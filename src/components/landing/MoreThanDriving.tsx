@@ -41,8 +41,8 @@ export default function MoreThanDriving() {
 
           <div className="relative aspect-[4/3] overflow-hidden rounded-[24px] shadow-float ring-1 ring-white/70">
             <Image
-              src="/images/lesson-instructor.jpg"
-              alt="Instructor guiding a student's hands on the steering wheel"
+              src="/images/more-than-lesson.png"
+              alt="Riyona instructor giving a thumbs up while a smiling student drives"
               fill
               sizes="(min-width: 1024px) 600px, 100vw"
               className="object-cover"

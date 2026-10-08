@@ -3,16 +3,16 @@
 
 export const site = {
   name: "Riyona Driving School",
-  phone: "+94 77 123 4567",
-  phoneHref: "tel:+94771234567",
-  whatsapp: "https://wa.me/94771234567",
+  phone: "+94 71 889 4481",
+  phoneHref: "tel:+94718894481",
+  whatsapp: "https://wa.me/94718894481",
 };
 
 export const navLinks = [
   { label: "Home", href: "#home" },
   { label: "About", href: "#about" },
-  { label: "Lessons", href: "#lessons" },
-  { label: "Learning Hub", href: "#learning-hub" },
+  { label: "Packages", href: "#lessons" },
+  { label: "Past Papers and Tutorials", href: "#learning-hub" },
   { label: "FAQ", href: "#faq" },
   { label: "Contact", href: "#contact" },
 ];
@@ -70,9 +70,9 @@ export const whyCards = [
   },
   {
     icon: "calendar",
-    title: "Full Transport on DMT Exam Day",
-    body: "Our organised transport takes you from the academy to the DMT test centre and back, so you arrive ready.",
-    tag: "Pickup & Drop",
+    title: "Full Support on DMT Exam Day",
+    body: "Our instructors guide you through every step on DMT exam day, from document checks to arriving at the test centre calm and ready.",
+    tag: "Exam Day Support",
   },
   {
     icon: "wallet",
@@ -94,7 +94,7 @@ export const vehicles = [
       "Automatic and manual transmission options",
       "Pickup and drop-off available in the Colombo area",
     ],
-    image: "/images/car-lesson.jpg",
+    image: "/images/car-swift.png",
   },
   {
     key: "van",
