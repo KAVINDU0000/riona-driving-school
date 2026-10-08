@@ -103,7 +103,7 @@ export const vehicles = [
     title: "Van Lessons",
     body: "Training for light commercial vans, covering load awareness, wider-body manoeuvring and the handling you need for work vehicles.",
     points: ["Load and blind-spot awareness", "Wider-body manoeuvring", "Dual-control van available"],
-    image: null,
+    image: "/images/van.png",
   },
   {
     key: "motorbike",
@@ -112,7 +112,7 @@ export const vehicles = [
     title: "Motorbike Lessons (A/L)",
     body: "Balance, braking and cornering skills on a motorbike, taught from the ground up with a focus on road safety.",
     points: ["Balance and low-speed control", "Braking and cornering technique", "Protective gear advice"],
-    image: null,
+    image: "/images/motorbike.png",
   },
   {
     key: "three-wheeler",
@@ -121,7 +121,7 @@ export const vehicles = [
     title: "Three-Wheeler Lessons",
     body: "Learn the three-wheeler controls, tight-space turns and traffic handling required for the three-wheeler licence.",
     points: ["Tight-space turning", "Traffic and junction handling", "Licence test preparation"],
-    image: null,
+    image: "/images/three-wheeler.png",
   },
 ];
 

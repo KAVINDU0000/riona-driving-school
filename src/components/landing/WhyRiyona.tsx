@@ -21,7 +21,7 @@ export default function WhyRiyona() {
 
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
           {whyCards.map((card, i) => (
-            <Surface key={card.title} className="flex flex-col gap-4 p-6">
+            <Surface key={card.title} lift className="flex flex-col gap-4 p-6">
               <div className="flex items-start justify-between">
                 <IconTile>
                   <Icon name={card.icon} className="h-5 w-5" />

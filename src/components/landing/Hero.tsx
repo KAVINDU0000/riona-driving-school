@@ -12,7 +12,7 @@ export default function Hero() {
   return (
     <section id="home" className="pt-10 pb-6 md:pt-14">
       <Container>
-        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,590px)] lg:gap-16">
+        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,44%)] lg:gap-16">
           {/* Copy */}
           <div className="flex flex-col items-start">
             <span className="inline-flex items-center gap-2 rounded-full bg-gold-soft px-3.5 py-1.5 ring-1 ring-gold/60">
@@ -53,7 +53,7 @@ export default function Hero() {
 
           {/* Visual */}
           <div className="flex flex-col gap-4">
-            <div className="relative aspect-[590/430] overflow-hidden rounded-[28px] shadow-float ring-1 ring-white/70">
+            <div className="relative aspect-[590/430] overflow-hidden rounded-[28px] border border-white/70 shadow-[0_20px_50px_-20px_rgb(40_60_90/0.25)]">
               <Image
                 src="/images/hero-instructors.jpg"
                 alt="Riyona instructor teaching a student from the back seat of a dual-control car"
@@ -68,7 +68,7 @@ export default function Hero() {
               </span>
             </div>
 
-            <div className="grid grid-cols-3 divide-x divide-line overflow-hidden rounded-2xl border border-white/80 bg-white/85 shadow-card backdrop-blur-sm">
+            <div className="glass grid grid-cols-3 divide-x divide-white/60 overflow-hidden rounded-2xl">
               {stats.map((s) => (
                 <div key={s.label} className="px-5 py-4">
                   <p className="text-[1.5rem] font-bold tracking-[-0.02em] text-ink">{s.value}</p>

@@ -1,13 +1,14 @@
 import Image from "next/image";
 import Icon from "@/components/ui/Icon";
 import { navLinks, site } from "@/data/landing";
+import { Container } from "./primitives";
 
 /** Floating glass navigation surface that sits above the page background. */
 export default function Navbar() {
   return (
     <header className="sticky top-0 z-50 pt-5">
-      <div className="mx-auto w-full max-w-[1360px] px-4 md:px-10">
-        <nav className="flex h-[76px] items-center gap-6 rounded-[18px] border border-white/60 bg-white/80 px-5 shadow-float backdrop-blur-xl">
+      <Container>
+        <nav className="glass flex h-[76px] items-center gap-6 rounded-[18px] px-5 shadow-[0_12px_40px_-16px_rgb(40_60_90/0.16)] backdrop-blur-2xl">
           <a href="#home" className="flex shrink-0 items-center gap-3">
             <Image
               src="/images/logo-riyona.jpg"
@@ -83,7 +84,7 @@ export default function Navbar() {
             </div>
           </details>
         </nav>
-      </div>
+      </Container>
     </header>
   );
 }

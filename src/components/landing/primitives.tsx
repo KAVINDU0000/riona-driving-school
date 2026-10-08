@@ -5,7 +5,8 @@ import React from "react";
  * margin, so every section shares a 1360px container.
  */
 export function Container({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <div className={`mx-auto w-full max-w-[1360px] px-4 md:px-10 ${className}`}>{children}</div>;
+  // Padding drops to zero only once the viewport can hold the full 1360px frame plus margins.
+  return <div className={`mx-auto w-full max-w-[1360px] px-4 md:px-6 wide:px-0! ${className}`}>{children}</div>;
 }
 
 /** Section wrapper with the shared vertical rhythm (80px desktop, 56px mobile). */
@@ -57,20 +58,24 @@ export function SectionHeading({
   );
 }
 
-/** Frosted white surface with a thin border and soft shadow. */
-export function Surface({ children, className = "" }: { children: React.ReactNode; className?: string }) {
+/** Translucent glass surface floating over the page atmosphere. */
+export function Surface({
+  children,
+  className = "",
+  lift = false,
+}: {
+  children: React.ReactNode;
+  className?: string;
+  lift?: boolean;
+}) {
   return (
-    <div
-      className={`rounded-2xl border border-white/80 bg-white/85 shadow-card backdrop-blur-sm ${className}`}
-    >
-      {children}
-    </div>
+    <div className={`glass rounded-2xl ${lift ? "glass-lift" : ""} ${className}`}>{children}</div>
   );
 }
 
-/** Small rounded icon tile used on cards. */
+/** Small rounded icon tile used on cards. Gold tiles get a translucent top-lit depth. */
 export function IconTile({ children, tone = "gold" }: { children: React.ReactNode; tone?: "gold" | "success" }) {
-  const toneClass = tone === "gold" ? "bg-gold-soft text-gold-ink" : "bg-success-soft text-success";
+  const toneClass = tone === "gold" ? "icon-gold text-gold-ink" : "bg-success-soft text-success";
   return (
     <span className={`grid h-10 w-10 shrink-0 place-items-center rounded-xl ${toneClass}`}>{children}</span>
   );

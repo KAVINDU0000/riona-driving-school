@@ -4,7 +4,7 @@ import { Container, IconTile, Surface } from "./primitives";
 
 export default function TrustStrip() {
   return (
-    <div className="pb-14 md:pb-20">
+    <div>
       <Container>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {trustPoints.map((p) => (

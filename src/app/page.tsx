@@ -15,6 +15,7 @@ import FAQ from "@/components/landing/FAQ";
 export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
+      <div className="page-atmosphere" aria-hidden="true" />
       <Navbar />
 
       <main className="flex-1">
