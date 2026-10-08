@@ -4,12 +4,12 @@ import { Container, Eyebrow, Surface } from "./primitives";
 
 export default function MoreThanDriving() {
   return (
-    <section id="about" className="py-14 md:py-20">
+    <section id="about" className="py-14 md:py-[clamp(64px,7vw,120px)]">
       <Container>
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <div>
             <Eyebrow>Before the Cockpit</Eyebrow>
-            <h2 className="mt-3 text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] text-ink md:text-[2.25rem]">
+            <h2 className="mt-3 text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] text-ink md:text-[clamp(1.875rem,2.5vw,2.75rem)]">
               More Than A Driving Lesson.
             </h2>
             <p className="mt-4 max-w-[520px] text-[0.9375rem] leading-[1.7] text-muted">

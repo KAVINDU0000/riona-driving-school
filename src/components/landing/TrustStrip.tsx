@@ -6,7 +6,7 @@ export default function TrustStrip() {
   return (
     <div>
       <Container>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-[clamp(16px,1.5vw,28px)] sm:grid-cols-2 lg:grid-cols-4">
           {trustPoints.map((p) => (
             <Surface key={p.title} className="flex items-center gap-4 p-5">
               <IconTile tone="success">

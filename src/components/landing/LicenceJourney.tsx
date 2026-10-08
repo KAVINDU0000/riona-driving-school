@@ -6,11 +6,11 @@ const stepIcons = ["heart-pulse", "file-check", "car", "badge-check"];
 
 export default function LicenceJourney() {
   return (
-    <section className="py-14 md:py-20">
+    <section className="py-14 md:py-[clamp(64px,7vw,120px)]">
       <Container>
         <div className="mb-10 text-center md:mb-12">
           <Eyebrow>Sri Lanka · DMT Pathway</Eyebrow>
-          <h2 className="mt-3 text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] text-ink md:text-[2.25rem]">
+          <h2 className="mt-3 text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] text-ink md:text-[clamp(1.875rem,2.5vw,2.75rem)]">
             Your Journey to a Driving Licence in Sri Lanka.
           </h2>
           <p className="mx-auto mt-3 max-w-[560px] text-[0.9375rem] leading-[1.7] text-muted">
@@ -18,7 +18,7 @@ export default function LicenceJourney() {
           </p>
         </div>
 
-        <div className="relative grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <div className="relative grid gap-[clamp(16px,1.5vw,28px)] md:grid-cols-2 xl:grid-cols-4">
           {/* Connecting line behind the number circles */}
           <div className="absolute left-[12%] right-[12%] top-[34px] hidden h-px bg-gradient-to-r from-transparent via-line to-transparent xl:block" />
 

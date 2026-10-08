@@ -7,12 +7,12 @@ export default function LearningHub() {
   const { featured, side } = resources;
 
   return (
-    <section id="learning-hub" className="py-14 md:py-20">
+    <section id="learning-hub" className="py-14 md:py-[clamp(64px,7vw,120px)]">
       <Container>
         <div className="mb-10 grid gap-6 md:mb-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)] lg:items-end">
           <div>
             <Eyebrow>Theory &amp; Training</Eyebrow>
-            <h2 className="mt-3 text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] text-ink md:text-[2.25rem]">
+            <h2 className="mt-3 text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] text-ink md:text-[clamp(1.875rem,2.5vw,2.75rem)]">
               Everything You Need to Learn.
             </h2>
           </div>
@@ -22,7 +22,7 @@ export default function LearningHub() {
           </p>
         </div>
 
-        <div className="grid gap-4 lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
+        <div className="grid gap-[clamp(16px,1.5vw,28px)] lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
           {/* Featured resource */}
           <Surface className="flex flex-col overflow-hidden p-0">
             <div className="relative aspect-[16/9]">

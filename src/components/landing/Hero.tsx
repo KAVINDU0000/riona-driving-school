@@ -12,7 +12,7 @@ export default function Hero() {
   return (
     <section id="home" className="pt-10 pb-6 md:pt-14">
       <Container>
-        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,44%)] lg:gap-16">
+        <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-[clamp(32px,4vw,72px)]">
           {/* Copy */}
           <div className="flex flex-col items-start">
             <span className="inline-flex items-center gap-2 rounded-full bg-gold-soft px-3.5 py-1.5 ring-1 ring-gold/60">
@@ -20,7 +20,7 @@ export default function Hero() {
               <Eyebrow className="mb-0">DMT Approved · Trusted Instructors</Eyebrow>
             </span>
 
-            <h1 className="mt-6 text-[2.75rem] font-bold leading-[1.05] tracking-[-0.03em] text-ink md:text-[3.5rem]">
+            <h1 className="mt-6 text-[2.75rem] font-bold leading-[1.05] tracking-[-0.03em] text-ink md:text-[clamp(44px,4vw,68px)]">
               Drive With
               <br />
               Confidence.

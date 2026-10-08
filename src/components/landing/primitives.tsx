@@ -1,12 +1,12 @@
 import React from "react";
 
 /**
- * Global content system. The Figma frame is 1440px wide with a 40px inner
- * margin, so every section shares a 1360px container.
+ * Global content system. Fluid: content is the viewport minus 64px on desktop
+ * (32px each side), capped at 1680px. The max-width includes the 32px side
+ * padding, so the widest content frame is exactly 1680px.
  */
 export function Container({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  // Padding drops to zero only once the viewport can hold the full 1360px frame plus margins.
-  return <div className={`mx-auto w-full max-w-[1360px] px-4 md:px-6 wide:px-0! ${className}`}>{children}</div>;
+  return <div className={`mx-auto w-full max-w-[1744px] px-4 md:px-8 ${className}`}>{children}</div>;
 }
 
 /** Section wrapper with the shared vertical rhythm (80px desktop, 56px mobile). */
@@ -20,7 +20,7 @@ export function Section({
   className?: string;
 }) {
   return (
-    <section id={id} className={`py-14 md:py-20 ${className}`}>
+    <section id={id} className={`py-14 md:py-[clamp(64px,7vw,120px)] ${className}`}>
       <Container>{children}</Container>
     </section>
   );
@@ -50,7 +50,7 @@ export function SectionHeading({
   return (
     <div className={`mb-10 flex flex-col gap-3 md:mb-12 ${center ? "items-center text-center" : ""}`}>
       {eyebrow && <Eyebrow>{eyebrow}</Eyebrow>}
-      <h2 className="text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] text-ink md:text-[2.25rem]">
+      <h2 className="text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] text-ink md:text-[clamp(1.875rem,2.5vw,2.75rem)]">
         {title}
       </h2>
       {body && <p className="max-w-[560px] text-[0.9375rem] leading-[1.65] text-muted">{body}</p>}
