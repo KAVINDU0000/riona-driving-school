@@ -1,27 +1,30 @@
-import { roadSafetyPrinciples } from "@/data/home";
+import Icon from "@/components/ui/Icon";
+import { safetyPrinciples } from "@/data/home";
 
-export function RoadSafety() {
+export default function RoadSafety() {
   return (
-    <section className="py-16 md:py-24" style={{ backgroundColor: '#EEF3FA' }}>
-      <div className="container">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-            Good Drivers Are Built on Good Habits.
-          </h2>
-        </div>
+    <section className="bg-white py-14 md:py-16">
+      <div className="max-w-[1240px] mx-auto px-6">
+        <div className="grid gap-10 lg:grid-cols-[0.8fr_1.6fr] lg:items-center lg:gap-14">
+          <div>
+            <p className="eyebrow">Our Educational Creed</p>
+            <h2 className="mt-4 text-[1.75rem] md:text-[2.25rem] font-bold leading-[1.15] tracking-[-0.025em] text-ink">
+              Good Drivers Are Built on Good Habits.
+            </h2>
+          </div>
 
-        {/* Principles Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-          {roadSafetyPrinciples.map((principle) => (
-            <div
-              key={principle.title}
-              className="text-center p-6 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-md transition-shadow"
-            >
-              <div className="text-4xl mb-3">{principle.icon}</div>
-              <h3 className="font-bold text-gray-900 mb-2">{principle.title}</h3>
-              <p className="text-sm text-gray-600">{principle.description}</p>
-            </div>
-          ))}
+          <ul className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            {safetyPrinciples.map((principle) => (
+              <li
+                key={principle.id}
+                className="rounded-2xl bg-page px-5 py-6 text-center ring-1 ring-line/70"
+              >
+                <Icon name={principle.icon} className="mx-auto w-[22px] h-[22px] text-gold-deep" />
+                <p className="mt-4 text-[0.8125rem] font-semibold tracking-[-0.01em] text-ink">{principle.title}</p>
+                <p className="mt-2 text-[0.6875rem] text-muted">{principle.description}</p>
+              </li>
+            ))}
+          </ul>
         </div>
       </div>
     </section>

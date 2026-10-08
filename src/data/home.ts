@@ -1,330 +1,455 @@
+export const site = {
+  name: "Riyona Driving Academy",
+  shortName: "Riyona Academy",
+  phone: "+94 77 123 4567",
+  phoneHref: "tel:+94771234567",
+  whatsapp: "https://wa.me/94771234567",
+  registration: "WP/DMT/05/0482",
+  hours: "Mon-Sun 7:30 AM–6:30 PM",
+};
+
+export const navLinks = [
+  { label: "Home", href: "#home" },
+  { label: "About", href: "#about" },
+  { label: "Lessons", href: "#lessons" },
+  { label: "Learning Hub", href: "#learning-hub" },
+  { label: "FAQ", href: "#faq" },
+  { label: "Contact", href: "#contact" },
+];
+
+export const heroStats = [
+  { value: "98%", label: "1st Time Pass" },
+  { value: "15k+", label: "Students" },
+  { value: "100%", label: "DMT Approved" },
+];
+
 export const trustItems = [
   {
-    id: 1,
-    icon: "✓",
+    id: "government",
+    icon: "check-circle",
     title: "Government Approved",
-    description: "Registered & certified by Sri Lankan authorities",
+    subtitle: "Reg WP/DMT/05/0482",
   },
   {
-    id: 2,
-    icon: "👨‍🏫",
-    title: "Experienced Instructors",
-    description: "Professional & patient driving instructors",
+    id: "instructors",
+    icon: "users",
+    title: "Expert Instructors",
+    subtitle: "Patient & Highly Qualified",
   },
   {
-    id: 3,
-    icon: "🚗",
+    id: "vehicles",
+    icon: "shield-check",
     title: "Dual-Control Vehicles",
-    description: "Modern, well-maintained dual-control cars",
+    subtitle: "Confident & Safe Learning",
   },
   {
-    id: 4,
-    icon: "⏰",
+    id: "scheduling",
+    icon: "calendar",
     title: "Flexible Scheduling",
-    description: "Learn at your own pace and convenience",
+    subtitle: "Evenings & Weekends",
   },
 ];
 
-export const moreThanDrivingItems = [
+export const drivingStages = [
   {
     number: "01",
-    title: "Learn The Correct Driving Dynamics",
-    description: "Master fundamental driving techniques and vehicle control",
+    title: "Learn The Core Cockpit Dynamics",
+    description:
+      "Master clutch balance, pedal control, and road positioning. Build your driving confidence with patient guidance.",
   },
   {
     number: "02",
-    title: "Practise In Real-World Environments",
-    description: "Train in actual traffic conditions and diverse road scenarios",
+    title: "Practice Precise Maneuvers",
+    description:
+      "Execute 3–point turns, tight reverse parking, and tricky urban turns—each manoeuvre with complete control.",
   },
   {
     number: "03",
     title: "Build Active Traffic Confidence",
-    description: "Develop confidence handling challenging driving situations",
+    description:
+      "Navigate Colombo intersections, challenging merges, and Sri Lankan road conditions with calm authority.",
   },
   {
     number: "04",
     title: "Drive Independently",
-    description: "Master all skills needed for independent, safe driving",
+    description:
+      "Take full charge of the vehicle. Prepare for your final driving trial and feel confident for your next journey.",
   },
 ];
 
-export const whyChooseRiyonaCards = [
+export const features = [
   {
     number: "01",
+    icon: "badge-check",
     title: "Government Approved & Certified",
-    description: "Licensed and recognized by Sri Lankan transport authorities",
-    icon: "🏛️",
+    description:
+      "Officially registered and certified under the Department of Motor Traffic (DMT). Strict curriculum compliance, professional instructors, and practical standards.",
+    tag: "Accredited Training",
   },
   {
     number: "02",
+    icon: "lightbulb",
     title: "Patient, Highly Qualified Instructors",
-    description: "Experienced professionals dedicated to your success",
-    icon: "👨‍🏫",
+    description:
+      "Friendly veteran instructors provide clear explanations in Sinhala, English, and Tamil, fostering a stress-free training atmosphere tailored specifically for nervous beginners.",
+    tag: "Sinhala · Tamil · English",
   },
   {
     number: "03",
+    icon: "car",
     title: "Modern Dual-Control Fleet",
-    description: "Well-maintained vehicles with latest safety features",
-    icon: "🚗",
+    description:
+      "Learn manual and automatic in maintained hatchbacks and vans with dual-control pedals, ensuring safety, responsive supervision and relaxed mastery.",
+    tag: "Safe. Smart. Fitted.",
   },
   {
     number: "04",
+    icon: "flag",
     title: "Dedicated Practical Training Yard",
-    description: "Secure, well-equipped training facility for basic skills",
-    icon: "🏗️",
+    description:
+      "Practice at Malden Place and our spacious training yard. Learn parking, three-point turns, reversing, and figure-8 routines, then take your new abilities away from traffic.",
+    tag: "Build A Steady Base",
   },
   {
     number: "05",
+    icon: "van",
     title: "Full Transport on DMT Exam Day",
-    description: "We provide transportation to your practical exam",
-    icon: "🚐",
+    description:
+      "Organized transport directly from our academy to the Werahera DMT test, reducing your logistical pressure and ensuring a smooth, seamless examination experience.",
+    tag: "Stress-Free Support",
   },
   {
     number: "06",
+    icon: "wallet",
     title: "Flexible Installment Payment Schemes",
-    description: "Convenient payment plans to suit your budget",
-    icon: "💰",
+    description:
+      "Affordable, transparent pricing with split payment options to make safe driving education more accessible, without hidden surprise fees.",
+    tag: "Transparent. Fair. Simple.",
   },
 ];
 
 export const vehicleCategories = [
   {
     id: "car",
-    title: "Car Lessons",
-    subtitle: "Auto & Manual",
+    tab: "Car",
+    badge: "Class B · Car",
+    kicker: "Comprehensive Beginner Lessons",
+    title: "Car Lessons (Auto & Manual)",
     description:
-      "Comprehensive driving lessons in automatic and manual transmission cars. Perfect for beginners and experienced drivers alike.",
-    features: [
-      "Basic vehicle controls and handling",
-      "Manual and automatic transmission training",
-      "Road positioning and lane discipline",
-      "Emergency braking techniques",
-      "Night driving practice",
-    ],
+      "Complete mastery of clutch, gears, steering, parallel parking, highway control, and navigating busy intersections on modern, dual-control hatchbacks.",
     image: "/images/car-lessons.jpg",
-    cta: "Book Car Lessons",
+    imageBadge: "Automatic & Manual · Dual Pedal",
+    features: [
+      "Dual-pedal safety and patient instructors",
+      "Both automatic and manual transmission",
+      "Parallel parking and real-world road confidence",
+    ],
+    cta: "Explore Car Lessons",
   },
   {
     id: "van",
-    title: "Van Lessons",
-    subtitle: "Commercial Vehicle Training",
+    tab: "D1 Van",
+    badge: "Class D1 · Van",
+    kicker: "Light Commercial Training",
+    title: "Van Lessons (Class D1)",
     description:
-      "Specialized training for commercial van driving. Learn how to handle larger vehicles safely and professionally.",
+      "Build the spatial awareness, mirror discipline and load handling a larger vehicle demands, with structured yard drills before heading into Colombo traffic.",
+    image: "/images/car-lessons.jpg",
+    imageBadge: "Light Commercial · Dual Pedal",
     features: [
-      "Large vehicle handling",
-      "Heavy steering and braking techniques",
-      "Mirror and blind spot awareness",
-      "Commercial road regulations",
-      "Safety regulations for cargo transport",
+      "Blind-spot and mirror discipline training",
+      "Reversing and manoeuvring in tight spaces",
+      "Passenger and load safety protocols",
     ],
-    image: "/images/van-lessons.jpg",
-    cta: "Book Van Lessons",
+    cta: "Explore Van Lessons",
   },
   {
-    id: "motorbike",
-    title: "Motorbike Lessons",
-    subtitle: "Two-Wheeler Mastery",
+    id: "bike",
+    tab: "A/A1 Bike",
+    badge: "Class A/A1 · Motorcycle",
+    kicker: "Two-Wheeler Training",
+    title: "Motorcycle Lessons (A / A1)",
     description:
-      "Professional motorbike training for safe and confident two-wheeler riding. Suitable for all experience levels.",
+      "Balance, counter-steering and hazard anticipation taught on our training yard, then applied to real Sri Lankan road conditions with a supervising instructor.",
+    image: "/images/car-lessons.jpg",
+    imageBadge: "Balance · Control · Awareness",
     features: [
-      "Balance and bike control techniques",
-      "Gear shifting and throttle control",
-      "Braking and cornering skills",
-      "Traffic navigation on two wheels",
-      "Weather and road condition awareness",
+      "Low-speed balance and figure-8 control",
+      "Defensive positioning in mixed traffic",
+      "Emergency braking and hazard response",
     ],
-    image: "/images/motorbike-lessons.jpg",
-    cta: "Book Motorbike Lessons",
+    cta: "Explore Bike Lessons",
   },
   {
     id: "threewheeler",
-    title: "Three-Wheeler Lessons",
-    subtitle: "Auto-Rickshaw Training",
+    tab: "B1 Three-Wheeler",
+    badge: "Class B1 · Three-Wheeler",
+    kicker: "Three-Wheeler Specialisation",
+    title: "Three-Wheeler Lessons (B1)",
     description:
-      "Specialized training for three-wheeler operation. Learn professional driving for commercial use.",
+      "Specialised handling for the three-wheeler: stability on turns, passenger comfort, and confident navigation of narrow downtown streets and side roads.",
+    image: "/images/car-lessons.jpg",
+    imageBadge: "Stability · City Navigation",
     features: [
-      "Three-wheeler vehicle dynamics",
-      "Passenger safety procedures",
-      "Route planning and navigation",
-      "Vehicle maintenance basics",
-      "Commercial driving regulations",
+      "Cornering stability and load management",
+      "Narrow-street and side-road navigation",
+      "Passenger safety and courteous driving",
     ],
-    image: "/images/threewheeler-lessons.jpg",
-    cta: "Book Three-Wheeler Lessons",
-  },
-];
-
-export const packages = [
-  {
-    id: "starter",
-    name: "Starter Package",
-    price: "Rs. 8,500",
-    description: "Perfect for absolute beginners",
-    features: [
-      "5 practical driving lessons",
-      "Basic vehicle control training",
-      "Yard practice included",
-      "Theory materials",
-    ],
-    cta: "Get Started",
-    popular: false,
-  },
-  {
-    id: "standard",
-    name: "Standard Package",
-    price: "Rs. 15,000",
-    description: "Most popular choice",
-    features: [
-      "10 practical driving lessons",
-      "Road experience training",
-      "DMT exam preparation",
-      "Personalized learning plan",
-      "Emergency handling techniques",
-    ],
-    cta: "Select Plan",
-    popular: true,
-  },
-  {
-    id: "complete",
-    name: "Complete Package",
-    price: "Rs. 22,500",
-    description: "Comprehensive learning program",
-    features: [
-      "15 practical driving lessons",
-      "Intensive road training",
-      "Advanced techniques",
-      "DMT exam day transport",
-      "Post-exam follow-up support",
-      "Flexible scheduling",
-    ],
-    cta: "Choose Complete",
-    popular: false,
+    cta: "Explore Three-Wheeler Lessons",
   },
 ];
 
 export const learningResources = [
   {
-    id: "exams",
-    title: "Online Exam Papers & Theory Practice",
-    description: "Access comprehensive exam papers and theory materials to prepare for your DMT written exam.",
-    icon: "📚",
-    featured: true,
-    image: "/images/exam-papers.jpg" as const,
-  },
-  {
     id: "portal",
+    icon: "grid",
     title: "Student Portal",
-    description: "Manage your bookings, track progress, and access course materials in one place.",
-    icon: "📱",
-    featured: false,
+    description:
+      "Manage scheduled lessons, track progress, access feedback, and review training notes, lesson milestones and hours.",
+    cta: "Access Portal Dashboard",
+    href: "#portal",
   },
   {
     id: "videos",
+    icon: "play",
     title: "Video Tutorials & Theory",
-    description: "Learn from professional video tutorials covering all aspects of safe driving.",
-    icon: "🎥",
-    featured: false,
+    description:
+      "Watch bite-size clips explaining common road rules, road techniques, parking, cockpit training tips, and safe defensive skills.",
+    cta: "Watch Our Learning Videos",
+    href: "#videos",
   },
   {
     id: "signs",
+    icon: "signpost",
     title: "Driving Signs & Road Rules",
-    description: "Master all road signs and traffic regulations required for safe driving in Sri Lanka.",
-    icon: "🛑",
-    featured: false,
-  },
-] as const;
-
-export const licenceSteps = [
-  {
-    number: "01",
-    title: "NTMI Medical Fitness",
-    description: "Complete your medical examination to ensure fitness for driving",
-  },
-  {
-    number: "02",
-    title: "DMT Written Exam",
-    description: "Pass the theoretical knowledge test on traffic rules and road safety",
-  },
-  {
-    number: "03",
-    title: "3-Month Training",
-    description: "Complete your practical driving lessons over three months",
-  },
-  {
-    number: "04",
-    title: "DMT Werahera Trial",
-    description: "Pass your final practical driving test at the DMT examination center",
+    description:
+      "Comprehensive visual illustrations of regulatory, warning, and information Sri Lankan road signs, supported with handy PDFs.",
+    cta: "Browse Signs Library",
+    href: "#signs",
   },
 ];
 
-export const roadSafetyPrinciples = [
+export const examPractice = {
+  badge: "Learner's Kit · Sri Lanka",
+  title: "Online Exam Papers & Theory Practice",
+  description:
+    "Timed mock tests designed strictly to reflect the official Department of Motor Traffic (Werahera) exam paper for accurate preparation. Available in Sinhala, English, and Tamil.",
+  thresholdLabel: "DMT Readiness Threshold",
+  score: "30 / 35 (86%)",
+  percent: 86,
+  progressNote: "Practice your way to a confident written exam.",
+  languages: ["Sinhala", "English", "Tamil"],
+  cta: "Start Free Practice Paper",
+  footnote: "35 Multiple Choice Questions included",
+};
+
+export const licenceSteps = [
   {
-    icon: "👀",
+    number: "1",
+    icon: "heart-pulse",
+    title: "NTMI Medical Fitness",
+    description:
+      "Complete your official Government NTMI Medical Fitness and submit medical assessment papers. We guide your initial registration, fees and basic documents.",
+    status: "Step 1 · Medical Fitness",
+  },
+  {
+    number: "2",
+    icon: "file-check",
+    title: "DMT Written Exam",
+    description:
+      "Take the official computerized multiple-choice theory test at the DMT Werahera. Upon passing, receive your Learner's Permit for supervised practical lessons.",
+    status: "Learner Permit Issued",
+  },
+  {
+    number: "3",
+    icon: "sliders",
+    title: "3-Month Training Yard",
+    description:
+      "Master driving under supervised coaching. Dual-control lessons, parking yard drills, hill starts, and road practice build the skills you need for confident independent driving.",
+    status: "Hands-on Yard Training",
+  },
+  {
+    number: "4",
+    icon: "check-circle",
+    title: "DMT Werahera Trial",
+    description:
+      "Attend your official practical driving trial accompanied by Riyona's vehicles and instructors. Clear the trial and receive your official driving licence.",
+    status: "Official Licence Received",
+  },
+];
+
+export const safetyPrinciples = [
+  {
+    id: "awareness",
+    icon: "eye",
     title: "Road Awareness",
-    description: "Stay alert and aware of your surroundings at all times",
+    description: "Stay observant on the road",
   },
   {
-    icon: "🛡️",
+    id: "defensive",
+    icon: "shield-check",
     title: "Defensive Driving",
-    description: "Anticipate hazards and drive defensively to avoid accidents",
+    description: "Anticipate. Adapt. Stay safe.",
   },
   {
-    icon: "🎮",
+    id: "handling",
+    icon: "x-circle",
     title: "Vehicle Handling",
-    description: "Master your vehicle's controls and dynamics",
+    description: "Smooth, confident control",
   },
   {
-    icon: "⚖️",
-    title: "Responsible Driving",
-    description: "Follow rules and drive with consideration for others",
+    id: "respect",
+    icon: "heart-handshake",
+    title: "Public Respect",
+    description: "A considerate road mindset",
   },
 ];
 
 export const testimonials = [
   {
+    id: "t1",
     rating: 5,
-    quote: "Riyona Academy provided excellent training. The instructors were patient and professional. I passed my DMT exam on the first attempt!",
-    name: "Anura Perera",
-    category: "DMT Pass - Car",
+    quote:
+      "The instructors were really patient and helped build my confidence from day one. The practical lessons on Colombo junctions were clear and well-structured. I passed my driving trial on my first attempt!",
+    name: "Tharindu Weerasinghe",
+    initials: "TW",
+    meta: "Nugegoda · Class B Manual",
   },
   {
+    id: "t2",
     rating: 5,
-    quote: "Best driving school in Colombo! The instructors are experienced and the lessons are well-structured. Highly recommended.",
-    name: "Priya Silva",
-    category: "DMT Pass - Car",
+    quote:
+      "Absolutely worth every rupee! My instructor was calm, clear and made learning stress-free. The Werahera test-day transport was fantastic and the dual-control vehicles inspired confidence. Thank you Riyona!",
+    name: "Devish Cooray",
+    initials: "DC",
+    meta: "Mount Lavinia · Class B Auto",
   },
   {
+    id: "t3",
     rating: 5,
-    quote: "Professional service, quality training, and flexible scheduling. Riyona Academy helped me achieve my driving license with confidence.",
-    name: "Rajesh Kumar",
-    category: "DMT Pass - Van",
+    quote:
+      "Good communication, professional staff, and very flexible training schedules before my university classes. The exam-day transport to Werahera was smooth and really stress-free. Highly recommended!",
+    name: "Kenneth Padmasiri",
+    initials: "KP",
+    meta: "Kohuwala · Class B Manual",
+  },
+  {
+    id: "t4",
+    rating: 5,
+    quote:
+      "I was a very nervous beginner, but the yard sessions at Malden Place made everything click. By the time I hit real traffic I already trusted my own hands on the wheel.",
+    name: "Sanduni Fernando",
+    initials: "SF",
+    meta: "Colombo 05 · Class B Auto",
+  },
+  {
+    id: "t5",
+    rating: 5,
+    quote:
+      "Clear explanations in Sinhala, honest pricing with an installment plan, and genuine care from the whole team. Riyona made the licence process far simpler than I expected.",
+    name: "Ruwan Jayasuriya",
+    initials: "RJ",
+    meta: "Dehiwala · Class D1 Van",
+  },
+  {
+    id: "t6",
+    rating: 5,
+    quote:
+      "The mock theory papers matched the real DMT exam almost question for question. I walked into Werahera calm and walked out with a pass on the first try.",
+    name: "Nimasha Silva",
+    initials: "NS",
+    meta: "Maharagama · Class B Manual",
+  },
+  {
+    id: "t7",
+    rating: 5,
+    quote:
+      "Booking around my shift work was never a problem — evenings and Sunday mornings were always available. Professional from the first phone call to the day I collected my licence.",
+    name: "Imesha Rajapaksa",
+    initials: "IR",
+    meta: "Nugegoda · Class B Auto",
+  },
+  {
+    id: "t8",
+    rating: 5,
+    quote:
+      "My instructor never once raised his voice. He explained every mistake calmly and had me reversing into tight spaces within a few sessions. Genuinely excellent teaching.",
+    name: "Chamara Bandara",
+    initials: "CB",
+    meta: "Kohuwala · Class A/A1 Bike",
+  },
+  {
+    id: "t9",
+    rating: 5,
+    quote:
+      "As a three-wheeler driver I needed very specific training, and Riyona tailored every lesson to it. Narrow lanes, cornering, passenger comfort — all covered properly.",
+    name: "Pradeep Gunawardena",
+    initials: "PG",
+    meta: "Mount Lavinia · Class B1 Three-Wheeler",
   },
 ];
 
 export const faqs = [
   {
-    question: "How much do lessons cost?",
+    id: "faq1",
+    question: "Which licence class should I choose?",
     answer:
-      "We offer flexible packages starting from Rs. 8,500 for the Starter Package. Our Standard Package (Rs. 15,000) is the most popular option with 10 lessons included. See our pricing section for details.",
+      "Most learners start with Class B for light motor vehicles (cars and small vans). If you ride a motorcycle, choose Class A or A1; three-wheeler drivers need Class B1; and larger vans fall under Class D1. Tell us how you plan to drive and our team will confirm the correct classification before you register.",
   },
   {
-    question: "Can I learn automatic or manual transmission?",
+    id: "faq2",
+    question: "Can I learn in an automatic or manual car?",
     answer:
-      "Yes! We offer training for both automatic and manual transmission vehicles. You can choose based on your preference and the vehicle you plan to use.",
+      "Both. Our fleet includes dual-control automatic and manual hatchbacks, so you can train on whichever suits you. Note that a licence obtained on an automatic restricts you to automatic vehicles, while a manual licence covers both — your instructor will talk you through the trade-off.",
   },
   {
-    question: "What documents do I need to start learning?",
+    id: "faq3",
+    question: "Where do lessons take place?",
     answer:
-      "You'll need a valid ID, medical fitness certificate from NTMI, and proof of payment. Our team will guide you through the process when you book your first lesson.",
+      "Practical sessions run from our training yards at Malden Place and Kohuwala, where you learn parking, three-point turns, reversing and figure-8 routines away from traffic. Once you are steady, lessons move onto real Colombo roads, junctions and highway stretches.",
   },
   {
-    question: "What should I do after the DMT exam?",
+    id: "faq4",
+    question: "What do I need for the DMT exam?",
     answer:
-      "After passing your DMT exam, you can visit the Transport Board office to collect your driving license. We provide guidance and support throughout this final step.",
+      "You will need your National Identity Card, the completed NTMI medical fitness certificate, your DMT application with the paid fees, and — for the practical trial — a valid Learner's Permit. Our staff prepares the paperwork with you and provides transport to Werahera on exam day.",
   },
   {
-    question: "How do I book a lesson?",
+    id: "faq5",
+    question: "How do I book a lesson or discuss payments?",
     answer:
-      "You can book through our website, call us directly, or message us on WhatsApp. We'll confirm your preferred time and instructor. Flexible scheduling is available to suit your needs.",
+      "Message us on WhatsApp or call the academy and we will schedule a slot that fits your week, including evenings and weekends. We offer flexible installment schemes with transparent, fixed pricing and no hidden fees.",
+  },
+];
+
+export const footerColumns = [
+  {
+    title: "Driving Lessons · DMT",
+    links: [
+      { label: "Class B Light Motor Vehicles", href: "#lessons" },
+      { label: "Class A/A1 Motorcycle", href: "#lessons" },
+      { label: "Dual-Control Auto & Manual", href: "#lessons" },
+      { label: "Free Trial for Packages", href: "#lessons" },
+      { label: "VIP Personal Training", href: "#lessons" },
+    ],
+  },
+  {
+    title: "Learner Resources",
+    links: [
+      { label: "Learner Permit Application Guide", href: "#journey" },
+      { label: "DMT Medical & Registration", href: "#journey" },
+      { label: "Road Signs & Markings Directory", href: "#signs" },
+      { label: "Transportation to Werahera", href: "#journey" },
+      { label: "Student Portal Access", href: "#portal" },
+    ],
+  },
+  {
+    title: "Yard & Direct Contact",
+    links: [
+      { label: "Practice Ground: Malden Place & Kohuwala Yard", href: "#contact" },
+      { label: "Werahera DMT Test Transport Fleet", href: "#contact" },
+      { label: site.phone, href: site.phoneHref },
+      { label: site.hours, href: "#contact" },
+    ],
   },
 ];

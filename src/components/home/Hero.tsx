@@ -1,87 +1,84 @@
-"use client";
-
 import Image from "next/image";
-import { Button } from "@/components/ui/Button";
+import Button from "@/components/ui/Button";
+import Icon from "@/components/ui/Icon";
+import { heroStats, site } from "@/data/home";
 
-export function Hero() {
-  const isVisible = true;
-
+export default function Hero() {
   return (
-    <section className="py-12 md:py-20 lg:py-28" style={{ backgroundColor: '#EEF3FA' }}>
-      <div className="container">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center">
-          {/* Left Content */}
-          <div
-            className={`transition-all duration-1000 ${
-              isVisible ? "opacity-100" : "opacity-0 translate-y-4"
-            }`}
-          >
-            <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-3 leading-tight tracking-tight">
-              Drive With Confidence.
+    <section id="home" className="glow-hero relative pt-14 pb-10 md:pt-20 md:pb-14">
+      <div className="max-w-[1240px] mx-auto px-6">
+        <div className="grid gap-12 lg:grid-cols-[1fr_1.05fr] lg:gap-16 lg:items-center">
+          {/* Copy */}
+          <div className="animate-fadeUp">
+            <span className="inline-flex items-center gap-2 rounded-full bg-success-soft px-3.5 py-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-success">
+              <Icon name="check-circle" className="w-4 h-4" strokeWidth={1.8} />
+              DMT Approved · Trusted Instructors
+            </span>
+
+            <h1 className="mt-6 text-[2.75rem] sm:text-[3.5rem] lg:text-[4.25rem] font-bold leading-[1.04] tracking-[-0.035em] text-ink">
+              Drive With
+              <br />
+              Confidence<span className="text-gold-dark">.</span>
             </h1>
-            <p className="text-2xl text-gray-900 font-semibold mb-6 leading-tight">
-              Learn Today. Drive Tomorrow.
-            </p>
-            <p className="text-base text-gray-600 mb-10 max-w-lg leading-relaxed">
-              Government-approved driver education with experienced instructors,
-              practical lessons, and comprehensive support from learning to licence.
+
+            <p className="mt-6 text-[1.375rem] md:text-[1.625rem] font-medium tracking-[-0.02em] text-ink">
+              Learn Today. <span className="text-gold-ink">Drive Tomorrow.</span>
             </p>
 
-            {/* CTAs */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <Button size="lg" variant="primary">
-                📅 Book a Lesson
-              </Button>
-              <Button size="lg" variant="secondary">
+            <p className="mt-5 max-w-[30rem] text-[0.9375rem] leading-relaxed text-muted">
+              Government approved driver education with practical lessons, experienced instructors, and patient
+              coaching. A clear, supportive path to your Sri Lankan driving licence.
+            </p>
+
+            <div className="mt-8">
+              <Button href="#lessons" size="lg" icon="arrow-up-right">
                 Explore Packages
               </Button>
             </div>
+
+            <p className="mt-7 flex items-center gap-2 text-xs font-medium text-muted">
+              <Icon name="shield-check" className="w-4 h-4 text-success" />
+              Government Approved • Reg {site.registration}
+            </p>
           </div>
 
-          {/* Right Content - Hero Image Card */}
-          <div
-            className={`transition-all duration-1000 delay-300 ${
-              isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
-            }`}
-          >
-            <div className="bg-white rounded-xl shadow-lg overflow-hidden border border-gray-200">
-              {/* Placeholder for hero image */}
-              <div className="bg-gray-300 h-80 flex items-center justify-center relative overflow-hidden">
-                <Image
-                  src="/images/hero-driving.svg"
-                  alt="Professional driving instructor with learner"
-                  width={500}
-                  height={400}
-                  className="w-full h-full object-cover"
-                  priority
-                />
+          {/* Media + stats card */}
+          <div className="animate-fadeUp rounded-2xl bg-white p-3 shadow-float">
+            <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-page">
+              <Image
+                src="/images/hero-driving.jpg"
+                alt="A Riyona instructor coaching a learner driver in a dual-control car"
+                fill
+                sizes="(max-width: 1024px) 100vw, 620px"
+                className="object-cover"
+                preload
+              />
+              <span className="absolute left-4 top-4 inline-flex items-center gap-2 rounded-full bg-gold-soft px-3.5 py-2 text-xs font-semibold text-ink shadow-sm">
+                <Icon name="sparkle" className="w-3.5 h-3.5 text-gold-deep" strokeWidth={1.8} />
+                Learn • Practise • Drive
+              </span>
+            </div>
+
+            <div className="px-3 pb-2 pt-5">
+              <div className="flex items-center justify-between gap-4">
+                <p className="text-[0.6875rem] font-bold uppercase tracking-[0.1em] text-ink">
+                  Calm. Safe. Skilled. Drivers.
+                </p>
+                <p className="text-[0.6875rem] font-bold uppercase tracking-[0.1em] text-success whitespace-nowrap">
+                  DMT Certified
+                </p>
               </div>
 
-              {/* Trust Label */}
-              <div className="p-6 bg-white border-t border-gray-200">
-                <div className="flex items-center gap-2 mb-5">
-                  <div className="w-2.5 h-2.5 bg-green-500 rounded-full"></div>
-                  <span className="text-xs font-semibold text-green-600 uppercase tracking-wide">
-                    Government Approved
-                  </span>
-                </div>
-
-                {/* Statistics */}
-                <div className="grid grid-cols-3 gap-4">
-                  <div>
-                    <p className="text-3xl font-bold text-gray-900">98%</p>
-                    <p className="text-xs text-gray-600 mt-1">Pass Rate</p>
+              <dl className="mt-5 grid grid-cols-3 gap-4">
+                {heroStats.map((stat) => (
+                  <div key={stat.label}>
+                    <dd className="text-[2.25rem] font-bold leading-none tracking-[-0.03em] text-ink">
+                      {stat.value}
+                    </dd>
+                    <dt className="mt-2 text-xs text-muted">{stat.label}</dt>
                   </div>
-                  <div>
-                    <p className="text-3xl font-bold text-gray-900">15k+</p>
-                    <p className="text-xs text-gray-600 mt-1">Students</p>
-                  </div>
-                  <div>
-                    <p className="text-3xl font-bold text-gray-900">100%</p>
-                    <p className="text-xs text-gray-600 mt-1">Satisfaction</p>
-                  </div>
-                </div>
-              </div>
+                ))}
+              </dl>
             </div>
           </div>
         </div>

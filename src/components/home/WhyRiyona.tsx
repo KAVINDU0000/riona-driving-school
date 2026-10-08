@@ -1,41 +1,39 @@
-import { whyChooseRiyonaCards } from "@/data/home";
+import Icon from "@/components/ui/Icon";
+import SectionHeader from "@/components/ui/SectionHeader";
+import { features } from "@/data/home";
 
-export function WhyRiyona() {
+export default function WhyRiyona() {
   return (
-    <section className="py-16 md:py-24" style={{ backgroundColor: '#EEF3FA' }}>
-      <div className="container">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
-            Why Choose Riyona Driving Academy?
-          </h2>
-          <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            We provide comprehensive, professional driving training with a focus
-            on safety, confidence, and excellence.
-          </p>
-        </div>
+    <section className="pb-16 md:pb-24">
+      <div className="max-w-[1240px] mx-auto px-6">
+        <SectionHeader
+          eyebrow="The Riyona Experience"
+          title="Why Choose Riyona Driving Academy?"
+          description="Over 25 cumulative years of training legacy across Colombo and the Western Province. Built on proven safety practices and exceptional learner outcomes."
+        />
 
-        {/* Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-          {whyChooseRiyonaCards.map((card) => (
-            <div
-              key={card.number}
-              className="bg-white p-8 rounded-lg border border-gray-200 hover:shadow-md hover:border-yellow-300 transition-all duration-300 group"
+        <div className="mt-12 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {features.map((feature) => (
+            <article
+              key={feature.number}
+              className="flex flex-col rounded-2xl bg-white p-7 shadow-card transition-shadow hover:shadow-float"
             >
-              <div className="text-5xl mb-4">{card.icon}</div>
-              <div className="text-sm font-bold text-yellow-500 mb-3 uppercase tracking-wide">
-                {card.number}
+              <div className="flex items-start justify-between">
+                <span className="grid h-11 w-11 place-items-center rounded-xl bg-gold-soft text-gold-deep">
+                  <Icon name={feature.icon} className="w-[22px] h-[22px]" />
+                </span>
+                <span className="text-xs font-medium text-muted/70">{feature.number}</span>
               </div>
-              <h3 className="text-base font-bold text-gray-900 mb-3 leading-snug">
-                {card.title}
-              </h3>
-              <p className="text-gray-600 text-sm mb-5 leading-relaxed">
-                {card.description}
-              </p>
-              <button className="text-yellow-600 font-semibold text-sm hover:text-yellow-700 transition-colors inline-flex items-center gap-1 group-hover:gap-2 transition-all">
-                Learn more
-                <span>→</span>
-              </button>
-            </div>
+
+              <h3 className="mt-6 text-[1.0625rem] font-semibold tracking-[-0.01em] text-ink">{feature.title}</h3>
+              <p className="mt-3 text-[0.8125rem] leading-relaxed text-muted">{feature.description}</p>
+
+              <div className="mt-auto pt-6">
+                <div className="border-t border-line pt-4">
+                  <p className="text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-muted">{feature.tag}</p>
+                </div>
+              </div>
+            </article>
           ))}
         </div>
       </div>

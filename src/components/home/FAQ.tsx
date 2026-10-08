@@ -1,75 +1,72 @@
 "use client";
 
 import { useState } from "react";
-import { faqs } from "@/data/home";
+import Icon from "@/components/ui/Icon";
+import { faqs, site } from "@/data/home";
 
-export function FAQ() {
-  const [openId, setOpenId] = useState<string | null>("0");
+export default function FAQ() {
+  const [openId, setOpenId] = useState<string | null>(null);
 
   return (
-    <section id="faq" className="py-16 md:py-24" style={{ backgroundColor: '#EEF3FA' }}>
-      <div className="container">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4 leading-tight">
-            A little clarity before your first drive.
-          </h2>
-          <p className="text-base md:text-lg text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            Find answers to common questions about our lessons, packages, and
-            driving licence process.
-          </p>
-        </div>
+    <section id="faq" className="pb-20 md:pb-28">
+      <div className="max-w-[1240px] mx-auto px-6">
+        <div className="grid gap-10 lg:grid-cols-[0.85fr_1.4fr] lg:gap-16">
+          {/* Intro */}
+          <div>
+            <p className="eyebrow">Here To Help</p>
+            <h2 className="mt-4 text-[1.875rem] md:text-[2.5rem] font-bold leading-[1.14] tracking-[-0.025em] text-ink">
+              A little clarity before your first drive.
+            </h2>
+            <p className="mt-5 max-w-[22rem] text-[0.875rem] leading-relaxed text-muted">
+              Find answers to the questions learners ask most. Need something else? Talk to Riyona.
+            </p>
 
-        {/* Accordion */}
-        <div className="max-w-3xl mx-auto space-y-3">
-          {faqs.map((faq, idx) => (
-            <div
-              key={idx}
-              className="border border-gray-200 rounded-lg overflow-hidden hover:border-yellow-300 transition-colors"
+            <a
+              href={site.whatsapp}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-7 inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-sm font-semibold text-ink shadow-card hover:shadow-float transition-shadow"
             >
-              <button
-                onClick={() => setOpenId(openId === String(idx) ? null : String(idx))}
-                className="w-full px-6 md:px-8 py-5 flex items-center justify-between bg-gray-50 hover:bg-gray-100 transition-colors"
-                aria-expanded={openId === String(idx)}
-              >
-                <h3 className="font-semibold text-gray-900 text-left text-sm md:text-base">
-                  {faq.question}
-                </h3>
-                <svg
-                  className={`w-5 h-5 text-yellow-500 transition-transform flex-shrink-0 ${
-                    openId === String(idx) ? "rotate-180" : ""
-                  }`}
-                  fill="currentColor"
-                  viewBox="0 0 20 20"
-                >
-                  <path
-                    fillRule="evenodd"
-                    d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </button>
+              Ask on WhatsApp
+              <Icon name="chat" className="w-4 h-4" />
+            </a>
+          </div>
 
-              {/* Answer */}
-              {openId === String(idx) && (
-                <div className="px-6 md:px-8 py-5 bg-white border-t border-gray-200">
-                  <p className="text-gray-600 text-sm md:text-base leading-relaxed">
-                    {faq.answer}
-                  </p>
+          {/* Accordion */}
+          <div className="space-y-4">
+            {faqs.map((faq) => {
+              const open = openId === faq.id;
+              return (
+                <div key={faq.id} className="rounded-2xl bg-white shadow-card">
+                  <h3>
+                    <button
+                      onClick={() => setOpenId(open ? null : faq.id)}
+                      aria-expanded={open}
+                      aria-controls={`answer-${faq.id}`}
+                      className="flex w-full items-center justify-between gap-6 px-7 py-6 text-left"
+                    >
+                      <span className="text-[0.9375rem] font-semibold tracking-[-0.01em] text-ink">
+                        {faq.question}
+                      </span>
+                      <Icon
+                        name={open ? "minus" : "plus"}
+                        className="w-5 h-5 shrink-0 text-muted"
+                        strokeWidth={1.8}
+                      />
+                    </button>
+                  </h3>
+
+                  {open && (
+                    <div id={`answer-${faq.id}`} className="px-7 pb-6">
+                      <p className="border-t border-line pt-5 text-[0.8125rem] leading-relaxed text-muted">
+                        {faq.answer}
+                      </p>
+                    </div>
+                  )}
                 </div>
-              )}
-            </div>
-          ))}
-        </div>
-
-        {/* Still have questions? */}
-        <div className="text-center mt-14">
-          <p className="text-gray-700 mb-4 font-semibold">Still have questions?</p>
-          <a
-            href="tel:+94123456789"
-            className="inline-block bg-yellow-400 text-gray-900 font-semibold py-3 px-8 rounded-lg hover:bg-yellow-500 transition-colors text-sm md:text-base"
-          >
-            📞 Give us a call
-          </a>
+              );
+            })}
+          </div>
         </div>
       </div>
     </section>

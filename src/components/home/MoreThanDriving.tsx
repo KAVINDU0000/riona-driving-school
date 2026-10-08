@@ -1,84 +1,81 @@
-"use client";
-
 import Image from "next/image";
-import { moreThanDrivingItems } from "@/data/home";
-import { useInView } from "@/hooks/useInView";
+import Icon from "@/components/ui/Icon";
+import { drivingStages } from "@/data/home";
 
-export function MoreThanDriving() {
-  const { ref, isVisible } = useInView();
-
+export default function MoreThanDriving() {
   return (
-    <section id="about" className="py-16 md:py-24" style={{ backgroundColor: '#EEF3FA' }}>
-      <div className="container">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          {/* Left Content */}
-          <div ref={ref}>
-            <p className="text-sm font-semibold text-yellow-500 uppercase tracking-wider mb-2">
-              Driver Training
-            </p>
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-8">
+    <section id="about" className="pb-16 md:pb-24">
+      <div className="max-w-[1240px] mx-auto px-6">
+        <div className="grid gap-12 lg:grid-cols-[1fr_1fr] lg:gap-16 lg:items-start">
+          {/* Narrative + stage list */}
+          <div>
+            <p className="eyebrow">Beyond The Cockpit</p>
+            <h2 className="mt-4 text-[2rem] md:text-[2.75rem] font-bold leading-[1.12] tracking-[-0.025em] text-ink">
               More Than A Driving Lesson.
             </h2>
-            <p className="text-lg text-gray-600 mb-8">
-              Our comprehensive training goes beyond basic driving. We focus on
-              developing the skills and mindset needed for safe, confident
-              driving in all conditions.
+            <p className="mt-6 max-w-[34rem] text-[0.9375rem] leading-relaxed text-muted">
+              We cultivate calm, proactive driving habits. Beyond acing the test at Werahera, we ensure you can safely
+              navigate Colombo&rsquo;s narrow downtown streets, three-wheel traffic, and unpredictable highway
+              conditions with absolute poise.
             </p>
 
-            {/* Numbered Items */}
-            <div className="space-y-6">
-              {moreThanDrivingItems.map((item, index) => (
-                <div
-                  key={item.number}
-                  className={`transition-all duration-500 ${
-                    isVisible
-                      ? "opacity-100 translate-x-0"
-                      : "opacity-0 -translate-x-8"
-                  }`}
-                  style={{
-                    transitionDelay: `${index * 100}ms`,
-                  }}
-                >
-                  <div className="flex gap-6">
-                    <div className="text-3xl font-bold text-yellow-400 flex-shrink-0">
-                      {item.number}
+            <ol className="mt-10 space-y-7">
+              {drivingStages.map((stage, i) => {
+                const first = i === 0;
+                const last = i === drivingStages.length - 1;
+
+                return (
+                  <li key={stage.number} className="relative flex gap-5">
+                    {/* Marker + connector */}
+                    <div className="relative flex flex-col items-center">
+                      <span
+                        className={`grid h-9 w-9 shrink-0 place-items-center rounded-full text-xs font-bold ${
+                          first ? "bg-gold text-ink" : "bg-white text-muted ring-1 ring-line"
+                        }`}
+                      >
+                        {stage.number}
+                      </span>
+                      {!last && (
+                        <span
+                          aria-hidden="true"
+                          className={`mt-1 w-px flex-1 ${first ? "bg-gold" : "bg-line"}`}
+                        />
+                      )}
                     </div>
-                    <div>
-                      <h3 className="font-bold text-gray-900 mb-1">
-                        {item.title}
-                      </h3>
-                      <p className="text-gray-600 text-sm">
-                        {item.description}
+
+                    <div className={last ? "" : "pb-1"}>
+                      <h3 className="text-[1.0625rem] font-semibold tracking-[-0.01em] text-ink">{stage.title}</h3>
+                      <p className="mt-2 max-w-[29rem] text-[0.8125rem] leading-relaxed text-muted">
+                        {stage.description}
                       </p>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  </li>
+                );
+              })}
+            </ol>
           </div>
 
-          {/* Right Image */}
-          <div
-            className={`transition-all duration-1000 ${
-              isVisible ? "opacity-100 scale-100" : "opacity-0 scale-95"
-            }`}
-          >
-            <div className="rounded-2xl overflow-hidden shadow-lg border border-gray-200">
+          {/* Media card */}
+          <div className="rounded-2xl bg-white p-3 shadow-float lg:sticky lg:top-28">
+            <div className="relative aspect-square overflow-hidden rounded-xl bg-page">
               <Image
-                src="/images/more-than-driving.svg"
-                alt="Professional driving instructor with student"
-                width={500}
-                height={500}
-                className="w-full h-auto object-cover"
+                src="/images/more-than-driving.jpg"
+                alt="Instructor guiding a learner's hands on the steering wheel during a lesson"
+                fill
+                sizes="(max-width: 1024px) 100vw, 560px"
+                className="object-cover"
               />
             </div>
 
-            {/* Info Label */}
-            <div className="mt-4 flex items-center gap-3 bg-green-50 p-3 rounded-lg border border-green-200">
-              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              <p className="text-sm text-green-700">
-                Practical training in real-world conditions
-              </p>
+            <div className="flex flex-wrap items-center justify-between gap-4 px-3 pb-2 pt-5">
+              <div>
+                <p className="text-[0.9375rem] font-semibold tracking-[-0.01em] text-ink">Learn • Practise • Drive</p>
+                <p className="mt-1.5 text-xs text-muted">Personal attention. Real-world confidence.</p>
+              </div>
+              <span className="inline-flex items-center gap-2 rounded-full border border-success/35 px-3.5 py-2 text-xs font-semibold text-success">
+                <Icon name="check-circle" className="w-4 h-4" strokeWidth={1.8} />
+                DMT Test Ready
+              </span>
             </div>
           </div>
         </div>

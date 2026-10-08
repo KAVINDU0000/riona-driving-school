@@ -1,39 +1,37 @@
-import { Navbar } from "@/components/layout/Navbar";
-import { Footer } from "@/components/layout/Footer";
-import { Hero } from "@/components/home/Hero";
-import { TrustStrip } from "@/components/home/TrustStrip";
-import { MoreThanDriving } from "@/components/home/MoreThanDriving";
-import { WhyRiyona } from "@/components/home/WhyRiyona";
-import { VehicleCategories } from "@/components/home/VehicleCategories";
-import { TrainingPackages } from "@/components/home/TrainingPackages";
-import { LearningHub } from "@/components/home/LearningHub";
-import { LicenceJourney } from "@/components/home/LicenceJourney";
-import { RoadSafety } from "@/components/home/RoadSafety";
-import { Testimonials } from "@/components/home/Testimonials";
-import { FAQ } from "@/components/home/FAQ";
-import { FinalCTA } from "@/components/home/FinalCTA";
+import Navbar from "@/components/landing/Navbar";
+import Footer from "@/components/landing/Footer";
+import FloatingWhatsApp from "@/components/landing/FloatingWhatsApp";
+import Hero from "@/components/landing/Hero";
+import TrustStrip from "@/components/landing/TrustStrip";
+import MoreThanDriving from "@/components/landing/MoreThanDriving";
+import WhyRiyona from "@/components/landing/WhyRiyona";
+import VehicleCategories from "@/components/landing/VehicleCategories";
+import LearningHub from "@/components/landing/LearningHub";
+import LicenceJourney from "@/components/landing/LicenceJourney";
+import RoadSafety from "@/components/landing/RoadSafety";
+import Testimonials from "@/components/landing/Testimonials";
+import FAQ from "@/components/landing/FAQ";
 
 export default function Home() {
   return (
-    <div className="flex flex-col min-h-screen" style={{ backgroundColor: '#EEF3FA' }}>
+    <div className="flex min-h-screen flex-col">
       <Navbar />
 
-      <main className="flex-1 w-full">
+      <main className="flex-1">
         <Hero />
         <TrustStrip />
         <MoreThanDriving />
         <WhyRiyona />
         <VehicleCategories />
-        <TrainingPackages />
         <LearningHub />
         <LicenceJourney />
         <RoadSafety />
         <Testimonials />
         <FAQ />
-        <FinalCTA />
       </main>
 
       <Footer />
+      <FloatingWhatsApp />
     </div>
   );
 }

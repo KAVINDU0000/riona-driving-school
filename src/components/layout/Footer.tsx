@@ -1,140 +1,70 @@
 import Image from "next/image";
-import Link from "next/link";
+import { footerColumns, site } from "@/data/home";
 
-export function Footer() {
-  const currentYear = new Date().getFullYear();
-
+export default function Footer() {
   return (
-    <footer className="bg-gray-900 text-white">
-      <div className="container py-12 md:py-16">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
+    <footer id="contact" className="bg-white pt-16 pb-8">
+      <div className="max-w-[1240px] mx-auto px-6">
+        <div className="grid gap-12 lg:grid-cols-[1.15fr_1fr_1fr_1fr] lg:gap-10">
           {/* Brand */}
           <div>
-            <Image
-              src="/riyona-logo.png"
-              alt="Riyona Driving School"
-              width={50}
-              height={50}
-              className="h-12 w-auto mb-4"
-            />
-            <p className="text-gray-400 text-sm">
-              Professional driving school in Sri Lanka offering quality
-              training and guidance to become a safe, confident driver.
+            <div className="flex items-center gap-3">
+              <Image
+                src="/images/logo.jpg"
+                alt=""
+                width={72}
+                height={72}
+                className="h-11 w-11 rounded-full object-cover ring-1 ring-line"
+              />
+              <span className="text-[1.0625rem] font-bold tracking-[-0.01em] text-ink">RIYONA ACADEMY</span>
+            </div>
+
+            <p className="mt-6 max-w-[20rem] text-[0.8125rem] leading-relaxed text-muted">
+              Sri Lanka&rsquo;s benchmark automotive mastery and certification institution. Empowering independent,
+              safety-first drivers with dual-control modern fleet training.
+            </p>
+
+            <p className="mt-6 inline-block rounded-md border border-gold px-3 py-2 font-mono text-[0.6875rem] text-gold-ink">
+              DMT Official Reg: {site.registration}
             </p>
           </div>
 
-          {/* Quick Links */}
-          <div>
-            <h3 className="font-bold text-lg mb-4">Quick Links</h3>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li>
-                <Link href="/" className="hover:text-yellow-400 transition">
-                  Home
-                </Link>
-              </li>
-              <li>
-                <Link href="#lessons" className="hover:text-yellow-400 transition">
-                  Lessons
-                </Link>
-              </li>
-              <li>
-                <Link href="#learning" className="hover:text-yellow-400 transition">
-                  Learning Hub
-                </Link>
-              </li>
-              <li>
-                <Link href="#faq" className="hover:text-yellow-400 transition">
-                  FAQ
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Services */}
-          <div>
-            <h3 className="font-bold text-lg mb-4">Services</h3>
-            <ul className="space-y-2 text-sm text-gray-400">
-              <li>
-                <Link href="#lessons" className="hover:text-yellow-400 transition">
-                  Car Lessons
-                </Link>
-              </li>
-              <li>
-                <Link href="#lessons" className="hover:text-yellow-400 transition">
-                  Van Training
-                </Link>
-              </li>
-              <li>
-                <Link href="#lessons" className="hover:text-yellow-400 transition">
-                  Motorbike Lessons
-                </Link>
-              </li>
-              <li>
-                <Link href="#packages" className="hover:text-yellow-400 transition">
-                  Packages
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          {/* Contact */}
-          <div>
-            <h3 className="font-bold text-lg mb-4">Contact</h3>
-            <ul className="space-y-3 text-sm text-gray-400">
-              <li>
-                <a
-                  href="tel:+94123456789"
-                  className="hover:text-yellow-400 transition flex items-center gap-2"
-                >
-                  📞 +94 (0) 123 456 789
-                </a>
-              </li>
-              <li>
-                <a
-                  href="https://wa.me/94123456789"
-                  className="hover:text-yellow-400 transition flex items-center gap-2"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  💬 WhatsApp
-                </a>
-              </li>
-              <li className="flex items-start gap-2">
-                📍 Colombo, Sri Lanka
-              </li>
-            </ul>
-          </div>
+          {/* Link columns */}
+          {footerColumns.map((column) => (
+            <div key={column.title}>
+              <h2 className="text-[0.6875rem] font-bold uppercase tracking-[0.12em] text-ink">{column.title}</h2>
+              <ul className="mt-6 space-y-4">
+                {column.links.map((link) => (
+                  <li key={link.label}>
+                    <a
+                      href={link.href}
+                      className="text-[0.8125rem] leading-snug text-muted hover:text-ink transition-colors"
+                    >
+                      {link.label}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
 
-        {/* Divider */}
-        <div className="border-t border-gray-800 pt-8">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-400 text-sm">
-              &copy; {currentYear} Riyona Driving School. All rights reserved.
-            </p>
-            <div className="flex gap-4 mt-4 md:mt-0">
-              <a
-                href="#"
-                className="text-gray-400 hover:text-yellow-400 transition"
-                title="Facebook"
-              >
-                f
-              </a>
-              <a
-                href="#"
-                className="text-gray-400 hover:text-yellow-400 transition"
-                title="Instagram"
-              >
-                📸
-              </a>
-              <a
-                href="#"
-                className="text-gray-400 hover:text-yellow-400 transition"
-                title="LinkedIn"
-              >
-                in
-              </a>
-            </div>
+        {/* Legal bar */}
+        <div className="mt-14 flex flex-col gap-4 border-t border-line pt-6 md:flex-row md:items-center md:justify-between">
+          <p className="text-[0.6875rem] text-muted">
+            © {site.name}. All rights reserved. Government approved driver education in Sri Lanka.
+          </p>
+
+          <div className="flex items-center gap-7">
+            <a href="#privacy" className="text-[0.6875rem] text-muted hover:text-ink transition-colors">
+              Privacy Policy
+            </a>
+            <a href="#terms" className="text-[0.6875rem] text-muted hover:text-ink transition-colors">
+              Terms of Use
+            </a>
+            <a href="#home" className="text-[0.6875rem] text-muted hover:text-ink transition-colors">
+              Back to top ↑
+            </a>
           </div>
         </div>
       </div>

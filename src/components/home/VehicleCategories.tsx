@@ -1,94 +1,97 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
-import { Button } from "@/components/ui/Button";
+import { useState } from "react";
+import Button from "@/components/ui/Button";
+import Icon from "@/components/ui/Icon";
+import SectionHeader from "@/components/ui/SectionHeader";
 import { vehicleCategories } from "@/data/home";
 
-export function VehicleCategories() {
-  const [activeCategory, setActiveCategory] = useState("car");
-  const category = vehicleCategories.find((c) => c.id === activeCategory)!;
+export default function VehicleCategories() {
+  const [activeId, setActiveId] = useState(vehicleCategories[0].id);
+  const active = vehicleCategories.find((c) => c.id === activeId) ?? vehicleCategories[0];
 
   return (
-    <section id="lessons" className="py-16 md:py-24" style={{ backgroundColor: '#EEF3FA' }}>
-      <div className="container">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-            Choose Your Way to Learn.
-          </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Select the vehicle category that suits your needs and begin your
-            journey to becoming a confident driver.
-          </p>
-        </div>
+    <section id="lessons" className="pb-16 md:pb-24">
+      <div className="max-w-[1240px] mx-auto px-6">
+        <SectionHeader
+          eyebrow="Licence Specializations"
+          title="Choose Your Way to Learn."
+          description="Customized training programs tailored to all official Sri Lankan Department of Motor Traffic vehicle classifications."
+        />
 
-        {/* Category Tabs */}
-        <div className="flex flex-wrap gap-3 justify-center mb-12">
-          {vehicleCategories.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
-              className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                activeCategory === cat.id
-                  ? "bg-yellow-400 text-gray-900 shadow-md"
-                  : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-              }`}
-            >
-              {cat.title}
-            </button>
-          ))}
-        </div>
-
-        {/* Content Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
-          {/* Image */}
-          <div className="order-2 md:order-1">
-            <div className="rounded-2xl overflow-hidden shadow-lg border border-gray-200">
-              <Image
+        {/* Class selector */}
+        <div role="tablist" aria-label="Licence classes" className="mt-10 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          {vehicleCategories.map((category) => {
+            const selected = category.id === activeId;
+            return (
+              <button
                 key={category.id}
-                src={category.image}
-                alt={category.title}
-                width={500}
-                height={400}
-                className="w-full h-auto object-cover animate-fade-in"
-                onError={(e) => {
-                  e.currentTarget.src =
-                    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 400'%3E%3Crect fill='%23e5e7eb' width='500' height='400'/%3E%3Ctext x='50%25' y='50%25' text-anchor='middle' dy='.3em' fill='%236b7280' font-size='20' font-family='sans-serif'%3E" +
-                    category.title +
-                    "%3C/text%3E%3C/svg%3E";
-                }}
+                role="tab"
+                id={`tab-${category.id}`}
+                aria-selected={selected}
+                aria-controls={`panel-${category.id}`}
+                onClick={() => setActiveId(category.id)}
+                className={`rounded-xl px-5 py-3.5 text-sm font-semibold transition-colors ${
+                  selected
+                    ? "bg-gold text-ink shadow-[0_8px_20px_-8px_rgba(232,164,0,0.7)]"
+                    : "bg-white text-muted ring-1 ring-line hover:text-ink"
+                }`}
+              >
+                {category.tab}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Active class panel */}
+        <div
+          role="tabpanel"
+          id={`panel-${active.id}`}
+          aria-labelledby={`tab-${active.id}`}
+          className="mt-5 rounded-2xl bg-white p-4 shadow-float md:p-5"
+        >
+          <div className="grid gap-8 lg:grid-cols-[1fr_1fr] lg:items-center">
+            <div className="relative aspect-[3/2] overflow-hidden rounded-xl bg-page">
+              <Image
+                src={active.image}
+                alt={active.title}
+                fill
+                sizes="(max-width: 1024px) 100vw, 560px"
+                className="object-cover"
               />
+              <span className="absolute left-4 top-4 rounded-full bg-gold-soft px-3.5 py-2 text-xs font-semibold text-ink shadow-sm">
+                {active.imageBadge}
+              </span>
             </div>
-          </div>
 
-          {/* Info */}
-          <div className="order-1 md:order-2">
-            <p className="text-sm font-semibold text-yellow-500 uppercase tracking-wider mb-2">
-              {category.subtitle}
-            </p>
-            <h3 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              {category.title}
-            </h3>
-            <p className="text-lg text-gray-600 mb-8">{category.description}</p>
+            <div className="px-2 pb-4 lg:pb-0 lg:pr-6">
+              <span className="inline-block rounded-full bg-gold-soft px-3 py-1.5 text-[0.6875rem] font-bold uppercase tracking-[0.1em] text-gold-ink">
+                {active.badge}
+              </span>
 
-            {/* Features */}
-            <div className="mb-8">
-              <h4 className="font-bold text-gray-900 mb-4">What you&apos;ll learn:</h4>
-              <ul className="space-y-3">
-                {category.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-3">
-                    <span className="text-yellow-400 font-bold flex-shrink-0 mt-1">
-                      ✓
-                    </span>
-                    <span className="text-gray-700">{feature}</span>
+              <p className="mt-5 text-[0.8125rem] text-muted">{active.kicker}</p>
+              <h3 className="mt-2 text-[1.75rem] md:text-[2rem] font-bold leading-tight tracking-[-0.025em] text-ink">
+                {active.title}
+              </h3>
+
+              <p className="mt-4 text-[0.875rem] leading-relaxed text-muted">{active.description}</p>
+
+              <ul className="mt-6 space-y-3">
+                {active.features.map((feature) => (
+                  <li key={feature} className="flex items-start gap-2.5 text-[0.8125rem] text-muted">
+                    <Icon name="check-circle" className="mt-px w-4 h-4 shrink-0 text-success" strokeWidth={1.8} />
+                    {feature}
                   </li>
                 ))}
               </ul>
-            </div>
 
-            <Button size="lg" variant="primary">
-              {category.cta}
-            </Button>
+              <div className="mt-7">
+                <Button href="#contact" size="lg" icon="arrow-up-right">
+                  {active.cta}
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
       </div>

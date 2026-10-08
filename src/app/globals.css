@@ -1,43 +1,27 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #1a1a1a;
-  --navy: #1a2332;
-  --gold: #fdb813;
-  --white: #ffffff;
-  --light-gray: #f9f9f9;
-  --medium-gray: #f0f0f0;
-  --dark-gray: #666666;
-  --text-dark: #333333;
-  --text-light: #666666;
-  --border-color: #e8e8e8;
-  --success-green: #10b981;
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.08);
-  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
-}
+@theme {
+  /* Palette lifted from the Riyona desktop mockup */
+  --color-page: #eef3fa;
+  --color-ink: #101b30;
+  --color-ink-soft: #253140;
+  --color-muted: #58677f;
+  --color-line: #d7e1ed;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-navy: var(--navy);
-  --color-gold: var(--gold);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
+  --color-gold: #ffc933;
+  --color-gold-dark: #e8a400;
+  --color-gold-deep: #e6961c;
+  --color-gold-ink: #755300;
+  --color-gold-soft: #fff4cc;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+  --color-success: #0f8a5f;
+  --color-success-soft: #e3f5ec;
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+  --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+
+  --shadow-card: 0 1px 2px rgb(16 27 48 / 0.04), 0 12px 32px -12px rgb(16 27 48 / 0.12);
+  --shadow-float: 0 2px 6px rgb(16 27 48 / 0.06), 0 20px 48px -16px rgb(16 27 48 / 0.18);
 }
 
 html {
@@ -45,10 +29,47 @@ html {
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
-  line-height: 1.6;
+  background: var(--color-page);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Eyebrow label shared by every section header */
+.eyebrow {
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-gold-ink);
+}
+
+/* Soft colour wash behind the hero and journey sections */
+.glow-hero {
+  background:
+    radial-gradient(60% 55% at 8% 14%, rgb(255 201 51 / 0.16) 0%, transparent 62%),
+    radial-gradient(45% 45% at 92% 6%, rgb(15 138 95 / 0.07) 0%, transparent 60%);
+}
+
+.glow-journey {
+  background:
+    radial-gradient(42% 46% at 50% 0%, rgb(15 138 95 / 0.1) 0%, transparent 65%),
+    radial-gradient(38% 40% at 18% 8%, rgb(255 201 51 / 0.12) 0%, transparent 65%);
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeUp {
+  animation: fadeUp 0.6s ease-out both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -58,92 +79,23 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
   }
 }
 
-.container {
-  width: 100%;
-  margin: 0 auto;
-  padding: 0 2rem;
-  max-width: 1200px;
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
 }
 
-@media (max-width: 1024px) {
-  .container {
-    max-width: 960px;
-    padding: 0 1.5rem;
-  }
+::-webkit-scrollbar-track {
+  background: var(--color-page);
 }
 
-@media (max-width: 768px) {
-  .container {
-    max-width: 100%;
-    padding: 0 1.25rem;
-  }
+::-webkit-scrollbar-thumb {
+  background: var(--color-line);
+  border-radius: 999px;
 }
 
-@media (max-width: 480px) {
-  .container {
-    padding: 0 1rem;
-  }
-}
-
-/* Smooth animations */
-@keyframes fadeUp {
-  from {
-    opacity: 0;
-    transform: translateY(25px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
-}
-
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-.animate-fade-up {
-  animation: fadeUp 0.6s ease-out forwards;
-}
-
-.animate-fade-in {
-  animation: fadeIn 0.6s ease-out forwards;
-}
-
-.animate-slide-in {
-  animation: slideIn 0.6s ease-out forwards;
-}
-
-.animate-scale-in {
-  animation: scaleIn 0.5s ease-out forwards;
+::-webkit-scrollbar-thumb:hover {
+  background: #bcccdf;
 }

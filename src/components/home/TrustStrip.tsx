@@ -1,22 +1,16 @@
+import Icon from "@/components/ui/Icon";
 import { trustItems } from "@/data/home";
 
-export function TrustStrip() {
+export default function TrustStrip() {
   return (
-    <section className="py-16 md:py-20 border-t border-gray-200" style={{ backgroundColor: '#EEF3FA' }}>
-      <div className="container">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
+    <section className="pb-16 md:pb-24">
+      <div className="max-w-[1240px] mx-auto px-6">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {trustItems.map((item) => (
-            <div
-              key={item.id}
-              className="p-6 md:p-8 text-center hover:bg-gray-50 transition-colors rounded-lg"
-            >
-              <div className="text-4xl mb-4">{item.icon}</div>
-              <h3 className="font-semibold text-gray-900 mb-2 text-sm md:text-base">
-                {item.title}
-              </h3>
-              <p className="text-xs md:text-sm text-gray-600 leading-relaxed">
-                {item.description}
-              </p>
+            <div key={item.id} className="rounded-2xl bg-white p-6 shadow-card">
+              <Icon name={item.icon} className="w-[22px] h-[22px] text-success" />
+              <p className="mt-4 text-[0.9375rem] font-semibold tracking-[-0.01em] text-ink">{item.title}</p>
+              <p className="mt-2.5 text-xs text-muted">{item.subtitle}</p>
             </div>
           ))}
         </div>
