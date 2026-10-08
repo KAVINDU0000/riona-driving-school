@@ -31,7 +31,7 @@ export default function Footer() {
                 height={40}
                 className="h-10 w-10 rounded-full object-cover ring-1 ring-line"
               />
-              <span className="text-[0.9375rem] font-bold tracking-[0.02em] text-ink">RIYONA DRIVING ACADEMY</span>
+              <span className="text-[0.9375rem] font-bold tracking-[0.02em] text-ink">RIYONA DRIVING SCHOOL</span>
             </div>
             <p className="max-w-[300px] text-[0.8125rem] leading-[1.7] text-muted">
               Sri Lanka&apos;s trusted driving academy. Independent, safety-first driver training, with DMT-approved
@@ -57,7 +57,7 @@ export default function Footer() {
         </div>
 
         <div className="mt-12 flex flex-col gap-3 border-t border-line pt-6 text-[0.75rem] text-muted sm:flex-row sm:items-center sm:justify-between">
-          <p>© {new Date().getFullYear()} Riyona Driving Academy. All rights reserved.</p>
+          <p>© {new Date().getFullYear()} Riyona Driving School. All rights reserved.</p>
           <div className="flex gap-5">
             <span>Privacy</span>
             <span>Terms</span>

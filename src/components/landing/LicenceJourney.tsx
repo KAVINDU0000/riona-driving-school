@@ -23,7 +23,7 @@ export default function LicenceJourney() {
           <div className="absolute left-[12%] right-[12%] top-[34px] hidden h-px bg-gradient-to-r from-transparent via-line to-transparent xl:block" />
 
           {licenceSteps.map((step, i) => (
-            <Surface key={step.n} className="relative flex flex-col gap-4 p-6">
+            <Surface key={step.n} lift className="relative flex flex-col gap-4 p-6">
               <div className="flex items-center justify-between">
                 <span
                   className={`grid h-9 w-9 place-items-center rounded-full text-[0.8125rem] font-bold ring-4 ring-page ${

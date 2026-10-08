@@ -2,7 +2,7 @@
 // Phone and WhatsApp values are placeholders read from the preview; confirm before launch.
 
 export const site = {
-  name: "Riyona Driving Academy",
+  name: "Riyona Driving School",
   phone: "+94 77 123 4567",
   phoneHref: "tel:+94771234567",
   whatsapp: "https://wa.me/94771234567",

@@ -20,7 +20,7 @@ export default function Testimonials() {
 
         <div className="grid gap-[clamp(16px,1.5vw,28px)] md:grid-cols-3">
           {testimonials.map((t) => (
-            <Surface key={t.name} className="flex flex-col gap-4 p-6">
+            <Surface key={t.name} lift className="flex flex-col gap-4 p-6">
               <div className="flex gap-0.5 text-gold-dark" aria-label="5 out of 5 stars">
                 {Array.from({ length: 5 }).map((_, i) => (
                   <svg key={i} viewBox="0 0 20 20" className="h-4 w-4 fill-current" aria-hidden="true">

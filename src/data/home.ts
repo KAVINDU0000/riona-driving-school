@@ -1,5 +1,5 @@
 export const site = {
-  name: "Riyona Driving Academy",
+  name: "Riyona Driving School",
   shortName: "Riyona Academy",
   phone: "+94 77 123 4567",
   phoneHref: "tel:+94771234567",

@@ -10,7 +10,7 @@ export default function WhyRiyona() {
           <div>
             <Eyebrow>The Riyona Experience</Eyebrow>
             <h2 className="mt-3 text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] text-ink md:text-[clamp(1.875rem,2.5vw,2.75rem)]">
-              Why Choose Riyona Driving Academy
+              Why Choose Riyona Driving School
             </h2>
           </div>
           <p className="text-[0.9375rem] leading-[1.7] text-muted">

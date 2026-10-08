@@ -8,7 +8,7 @@ export default function WhyRiyona() {
       <div className="max-w-[1240px] mx-auto px-6">
         <SectionHeader
           eyebrow="The Riyona Experience"
-          title="Why Choose Riyona Driving Academy?"
+          title="Why Choose Riyona Driving School?"
           description="Over 25 cumulative years of training legacy across Colombo and the Western Province. Built on proven safety practices and exceptional learner outcomes."
         />
 

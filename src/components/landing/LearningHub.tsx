@@ -24,7 +24,7 @@ export default function LearningHub() {
 
         <div className="grid gap-[clamp(16px,1.5vw,28px)] lg:grid-cols-[minmax(0,7fr)_minmax(0,5fr)]">
           {/* Featured resource */}
-          <Surface className="flex flex-col overflow-hidden p-0">
+          <Surface lift className="flex flex-col overflow-hidden p-0">
             <div className="relative aspect-[16/9]">
               <Image
                 src={featured.image}
@@ -53,7 +53,7 @@ export default function LearningHub() {
           {/* Stacked resource cards */}
           <div className="flex flex-col gap-4">
             {side.map((item) => (
-              <Surface key={item.title} className="flex flex-1 gap-4 p-6">
+              <Surface key={item.title} lift className="flex flex-1 gap-4 p-6">
                 <IconTile>
                   <Icon name={item.icon} className="h-5 w-5" />
                 </IconTile>

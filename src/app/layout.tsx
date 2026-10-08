@@ -15,12 +15,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Riyona Driving Academy | Professional Driving School in Sri Lanka",
+  title: "Riyona Driving School | Professional Driving School in Sri Lanka",
   description:
     "Government approved driver education in Sri Lanka. Car, van, motorcycle and three-wheeler lessons with patient instructors, dual-control vehicles and full transport on DMT exam day.",
   keywords:
     "driving school, driving lessons, Sri Lanka, DMT exam, driving licence, Werahera, dual control, Colombo",
-  authors: [{ name: "Riyona Driving Academy" }],
+  authors: [{ name: "Riyona Driving School" }],
   robots: "index, follow",
 };
 

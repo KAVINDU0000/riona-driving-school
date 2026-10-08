@@ -21,7 +21,7 @@ export default function MoreThanDriving() {
             <ol className="mt-8 space-y-3">
               {learningStages.map((stage, i) => (
                 <li key={stage.title}>
-                  <Surface className="flex gap-4 p-4">
+                  <Surface lift className="flex gap-4 p-4">
                     <span
                       className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-[0.8125rem] font-bold ${
                         i === 0 ? "bg-gold text-ink" : "bg-page text-muted ring-1 ring-line"
