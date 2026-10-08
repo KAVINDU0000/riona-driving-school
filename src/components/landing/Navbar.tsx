@@ -16,7 +16,7 @@ export default function Navbar() {
               className="h-11 w-11 rounded-full object-cover ring-1 ring-line"
             />
             <span className="whitespace-nowrap text-[0.9375rem] font-bold tracking-[0.02em] text-ink">
-              RIYONA DRIVING ACADEMY
+              RIYONA DRIVING SCHOOL
             </span>
           </a>
 
