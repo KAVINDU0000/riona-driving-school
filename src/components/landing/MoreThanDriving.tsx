@@ -4,7 +4,7 @@ import { Container, Eyebrow, Surface } from "./primitives";
 
 export default function MoreThanDriving() {
   return (
-    <section id="about" className="py-14 md:py-[clamp(64px,7vw,120px)]">
+    <section id="about" className="pt-14 md:pt-[clamp(72px,8vw,136px)]">
       <Container>
         <div className="grid items-center gap-12 lg:grid-cols-2 lg:gap-16">
           <div>

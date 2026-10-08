@@ -6,7 +6,7 @@ import React from "react";
  * padding, so the widest content frame is exactly 1680px.
  */
 export function Container({ children, className = "" }: { children: React.ReactNode; className?: string }) {
-  return <div className={`mx-auto w-full max-w-[1744px] px-4 md:px-8 ${className}`}>{children}</div>;
+  return <div className={`mx-auto w-full max-w-[1744px] px-4 md:px-12 ${className}`}>{children}</div>;
 }
 
 /** Section wrapper with the shared vertical rhythm (80px desktop, 56px mobile). */
@@ -20,7 +20,7 @@ export function Section({
   className?: string;
 }) {
   return (
-    <section id={id} className={`py-14 md:py-[clamp(64px,7vw,120px)] ${className}`}>
+    <section id={id} className={`pt-14 md:pt-[clamp(72px,8vw,136px)] ${className}`}>
       <Container>{children}</Container>
     </section>
   );

@@ -4,7 +4,7 @@ import { Container, Eyebrow, IconTile, Surface } from "./primitives";
 
 export default function RoadSafety() {
   return (
-    <section className="py-14 md:py-[clamp(64px,7vw,120px)]">
+    <section className="pt-14 md:pt-[clamp(72px,8vw,136px)]">
       <Container>
         <Surface className="grid gap-8 p-8 md:p-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)] lg:items-center">
           <div>

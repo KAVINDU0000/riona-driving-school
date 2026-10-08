@@ -11,7 +11,7 @@ export default function VehicleCategories() {
   const active = vehicles.find((v) => v.key === activeKey) ?? vehicles[0];
 
   return (
-    <section id="lessons" className="py-14 md:py-[clamp(64px,7vw,120px)]">
+    <section id="lessons" className="pt-14 md:pt-[clamp(72px,8vw,136px)]">
       <Container>
         <div className="mb-10 grid gap-6 md:mb-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)] lg:items-end">
           <div>

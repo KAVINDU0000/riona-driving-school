@@ -5,7 +5,7 @@ import { Container, Eyebrow, Surface } from "./primitives";
 /** Split layout: heading and help on the left, accordion on the right. Uses native <details>, so no client JS. */
 export default function FAQ() {
   return (
-    <section id="faq" className="py-14 md:py-[clamp(64px,7vw,120px)]">
+    <section id="faq" className="pt-14 pb-14 md:pt-[clamp(72px,8vw,136px)] md:pb-[clamp(72px,8vw,136px)]">
       <Container>
         <div className="grid gap-12 lg:grid-cols-[minmax(0,5fr)_minmax(0,7fr)] lg:gap-16">
           <div className="lg:sticky lg:top-32 lg:self-start">

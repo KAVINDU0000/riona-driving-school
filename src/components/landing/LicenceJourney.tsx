@@ -6,7 +6,7 @@ const stepIcons = ["heart-pulse", "file-check", "car", "badge-check"];
 
 export default function LicenceJourney() {
   return (
-    <section className="py-14 md:py-[clamp(64px,7vw,120px)]">
+    <section className="pt-14 md:pt-[clamp(72px,8vw,136px)]">
       <Container>
         <div className="mb-10 text-center md:mb-12">
           <Eyebrow>Sri Lanka · DMT Pathway</Eyebrow>
