@@ -183,6 +183,25 @@ const paths: Record<string, React.ReactNode> = {
   pause: <path d="M9.4 5.4v13.2M14.6 5.4v13.2" />,
   plus: <path d="M12 5.6v12.8M5.6 12h12.8" />,
   minus: <path d="M5.6 12h12.8" />,
+  mail: (
+    <>
+      <rect x="3.4" y="5.6" width="17.2" height="12.8" rx="2.2" />
+      <path d="m4.4 7.2 7.6 5.6 7.6-5.6" />
+    </>
+  ),
+  lock: (
+    <>
+      <rect x="5.4" y="10.6" width="13.2" height="9.4" rx="2.2" />
+      <path d="M8.4 10.6V8a3.6 3.6 0 0 1 7.2 0v2.6" />
+    </>
+  ),
+  "id-card": (
+    <>
+      <rect x="3.4" y="5.4" width="17.2" height="13.2" rx="2.4" />
+      <circle cx="9" cy="10.6" r="1.9" />
+      <path d="M6.6 15.8c.5-1.5 1.3-2.2 2.4-2.2s1.9.7 2.4 2.2M14.6 10h3.4M14.6 13.4h2.4" />
+    </>
+  ),
 };
 
 export type IconName = keyof typeof paths;

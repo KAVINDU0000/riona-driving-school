@@ -1,5 +1,5 @@
 import Icon from "@/components/ui/Icon";
-import { licenceSteps, site } from "@/data/landing";
+import { licenceSteps } from "@/data/landing";
 import { Container, Eyebrow, Surface } from "./primitives";
 
 const stepIcons = ["heart-pulse", "file-check", "car", "badge-check"];
@@ -43,22 +43,6 @@ export default function LicenceJourney() {
           ))}
         </div>
 
-        <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-gold/40 bg-gold-soft/70 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
-          <p className="flex items-center gap-3 text-[0.875rem] text-ink">
-            <Icon name="info" className="h-5 w-5 shrink-0 text-gold-ink" />
-            Fees and schedules change with official DMT notices. Confirm current requirements with our team before
-            you enrol.
-          </p>
-          <a
-            href={site.whatsapp}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex shrink-0 items-center gap-2 rounded-xl bg-white px-4 py-2.5 text-[0.8125rem] font-semibold text-ink shadow-card ring-1 ring-line hover:text-gold-ink"
-          >
-            Ask on WhatsApp
-            <Icon name="arrow-up-right" className="h-3.5 w-3.5" strokeWidth={2} />
-          </a>
-        </div>
       </Container>
     </section>
   );

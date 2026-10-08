@@ -13,7 +13,7 @@ const columns = [
   },
   {
     title: "Contact",
-    links: [site.phone, "Colombo & Western Province"],
+    links: [site.phone, "Pitipana Junction, Homagama, Sri Lanka"],
   },
 ];
 
