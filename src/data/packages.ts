@@ -3,8 +3,11 @@
 export interface PackageOption {
   id: string;
   name: string;
+  /** LKR. For "per-session" options this is the rate for one session, not a registration fee. */
   price: number;
   detail?: string;
+  /** Omitted for fixed-fee packages. Per-session packages cannot be registered online yet. */
+  pricing?: "per-session";
 }
 
 export interface PackageGroup {
@@ -47,10 +50,10 @@ export const packageGroups: PackageGroup[] = [
   {
     label: "Daily individual training",
     options: [
-      { id: "daily-car", name: "Car Daily Training", detail: "per 30 minutes", price: 2000 },
-      { id: "daily-van", name: "Van Daily Training", detail: "per 30 minutes", price: 2000 },
-      { id: "daily-motorcycle", name: "Motorcycle Daily Training", detail: "per hour", price: 1000 },
-      { id: "daily-three-wheeler", name: "Three-Wheeler Daily Training", detail: "per hour", price: 1500 },
+      { id: "daily-car", name: "Car Daily Training", detail: "per 30-minute session", price: 2000, pricing: "per-session" },
+      { id: "daily-van", name: "Van Daily Training", detail: "per 30-minute session", price: 2000, pricing: "per-session" },
+      { id: "daily-motorcycle", name: "Motorcycle Daily Training", detail: "per 60-minute session", price: 1000, pricing: "per-session" },
+      { id: "daily-three-wheeler", name: "Three-Wheeler Daily Training", detail: "per 60-minute session", price: 1500, pricing: "per-session" },
     ],
   },
 ];
@@ -60,6 +63,15 @@ export const packageDiscountNote = "5% discount when the full eligible package f
 /** Formats a price as "LKR 26,000" without locale-dependent output, so server and browser render the same text. */
 export function formatLkr(amount: number) {
   return `LKR ${amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
+}
+
+export function isPerSession(option: Pick<PackageOption, "pricing">) {
+  return option.pricing === "per-session";
+}
+
+/** Price text for lists and summaries. Per-session rates are labelled so they are never read as a total. */
+export function formatPackagePrice(option: Pick<PackageOption, "price" | "pricing">) {
+  return isPerSession(option) ? `${formatLkr(option.price)} per session` : formatLkr(option.price);
 }
 
 /** Finds a package option by id, with the name of its group. Returns undefined for unknown ids. */

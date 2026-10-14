@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import Icon from "@/components/ui/Icon";
-import { findPackage, formatLkr, packageGroups, type PackageOption } from "@/data/packages";
+import { findPackage, formatPackagePrice, packageGroups, type PackageOption } from "@/data/packages";
 
 interface PackageSelectProps {
   id: string;
@@ -93,7 +93,7 @@ export default function PackageSelect({ id, value, onChange, invalid = false }: 
         </span>
         {selected && (
           <span className="shrink-0 rounded-lg bg-success-soft px-2.5 py-1 text-[0.8125rem] font-bold text-success">
-            {formatLkr(selected.price)}
+            {formatPackagePrice(selected)}
           </span>
         )}
         <svg
@@ -171,7 +171,7 @@ export default function PackageSelect({ id, value, onChange, invalid = false }: 
                         <span className="block text-[0.875rem] font-medium text-ink">{option.name}</span>
                         {option.detail && <span className="block text-[0.75rem] text-muted">{option.detail}</span>}
                       </span>
-                      <span className="shrink-0 text-[0.875rem] font-bold tabular-nums text-ink">{formatLkr(option.price)}</span>
+                      <span className="shrink-0 text-right text-[0.875rem] font-bold tabular-nums text-ink">{formatPackagePrice(option)}</span>
                       <span
                         aria-hidden="true"
                         className={`grid h-5 w-5 shrink-0 place-items-center rounded-full ${

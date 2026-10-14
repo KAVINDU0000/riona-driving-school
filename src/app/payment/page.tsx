@@ -3,7 +3,7 @@ import Link from "next/link";
 import AuthBackground from "@/components/auth/AuthBackground";
 import AuthShell from "@/components/auth/AuthShell";
 import PaymentForm from "@/components/auth/PaymentForm";
-import { findPackage } from "@/data/packages";
+import { findPackage, formatPackagePrice, isPerSession } from "@/data/packages";
 
 export const metadata: Metadata = {
   title: "Complete Payment | Riyona Driving School",
@@ -34,7 +34,21 @@ export default async function PaymentPage({
           { icon: "shield-check", text: "Student ID issued after approval" },
         ]}
       >
-        {pkg ? (
+        {pkg && isPerSession(pkg) ? (
+          <div className="flex flex-col gap-4">
+            <h2 className="text-[1.5rem] font-bold leading-tight tracking-[-0.02em] text-ink">Per-session package</h2>
+            <p className="text-[0.9375rem] leading-relaxed text-muted">
+              {pkg.name} is charged per session at {formatPackagePrice(pkg)}. The number of sessions and the total fee are
+              agreed with the school, so there is no online payment for this package yet.
+            </p>
+            <Link
+              href="/signup"
+              className="inline-flex w-full items-center justify-center rounded-xl bg-gold px-6 py-3.5 text-[0.9375rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] transition-colors hover:bg-gold-dark"
+            >
+              Choose another package
+            </Link>
+          </div>
+        ) : pkg ? (
           <>
             <div className="mb-6">
               <h2 className="text-[1.5rem] font-bold leading-tight tracking-[-0.02em] text-ink">Payment</h2>

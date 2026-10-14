@@ -1,11 +1,10 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import Icon from "@/components/ui/Icon";
 import PackageSelect from "@/components/auth/PackageSelect";
-import { packageDiscountNote } from "@/data/packages";
+import { findPackage, formatPackagePrice, isPerSession, packageDiscountNote } from "@/data/packages";
 
 type Values = {
   fullName: string;
@@ -25,6 +24,7 @@ type Errors = Partial<Record<keyof Values, string>>;
 // client component does not import server-only modules.
 const PASSWORD_MIN_LENGTH = 8;
 const PASSWORD_MAX_LENGTH = 128;
+const PER_SESSION_MESSAGE = "This package is charged per session. Contact the school to register for it.";
 
 const initialValues: Values = {
   fullName: "",
@@ -86,25 +86,106 @@ function Field({
   );
 }
 
-/** Student registration form. Validates the fields; submission is not connected to a server yet. */
+/** Student registration form. Validates the fields here and again on the server, then posts to /api/registration. */
 export default function SignupForm() {
   const [values, setValues] = useState<Values>(initialValues);
   const [errors, setErrors] = useState<Errors>({});
-  const router = useRouter();
+  const [submitting, setSubmitting] = useState(false);
+  const [serverError, setServerError] = useState("");
+  const [reference, setReference] = useState<string | null>(null);
 
   function update(field: keyof Values) {
     return (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
       setValues((current) => ({ ...current, [field]: event.target.value }));
   }
 
-  // Only the package id travels to the payment step; personal details are not put in the URL.
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
+  // Per-session packages show their rate but cannot be registered online until the school sets a policy.
+  const selectedPackage = findPackage(values.packageId);
+  const perSessionPackage = selectedPackage && isPerSession(selectedPackage) ? selectedPackage : null;
+
+  // Server field names differ from the form's field names in these places only.
+  const serverField: Partial<Record<keyof Values, string>> = {
+    dateOfBirth: "birthday",
+    nic: "nicNumber",
+    mobile: "phoneNumber",
+    notes: "additionalNote",
+  };
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (submitting) return;
+    setServerError("");
     const nextErrors = validate(values);
+    if (perSessionPackage) nextErrors.packageId = PER_SESSION_MESSAGE;
     setErrors(nextErrors);
-    if (Object.keys(nextErrors).length === 0) {
-      router.push(`/payment?package=${encodeURIComponent(values.packageId)}`);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/registration", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        credentials: "same-origin",
+        cache: "no-store",
+        body: JSON.stringify({
+          fullName: values.fullName,
+          birthday: values.dateOfBirth,
+          nicNumber: values.nic,
+          phoneNumber: values.mobile,
+          email: values.email,
+          password: values.password,
+          address: values.address,
+          packageId: values.packageId,
+          additionalNote: values.notes,
+        }),
+      });
+      const data = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        referenceNumber?: string;
+        fields?: Partial<Record<string, string>>;
+      };
+
+      if (response.ok && data.referenceNumber) {
+        setReference(data.referenceNumber);
+        return;
+      }
+
+      // Put server-side field messages next to the matching inputs, and keep the rest as one message.
+      const fieldErrors: Errors = {};
+      for (const key of Object.keys(initialValues) as (keyof Values)[]) {
+        const message = data.fields?.[serverField[key] ?? key];
+        if (message) fieldErrors[key] = message;
+      }
+      setErrors(fieldErrors);
+      setServerError(data.error ?? "Your application could not be submitted. Try again.");
+    } catch {
+      setServerError("We could not reach the server. Check your connection and try again.");
+    } finally {
+      setSubmitting(false);
     }
+  }
+
+  if (reference) {
+    return (
+      <div className="flex flex-col gap-5" role="status">
+        <div>
+          <h2 className="text-[1.5rem] font-bold leading-tight tracking-[-0.02em] text-ink">Application received</h2>
+          <p className="mt-1.5 text-[0.875rem] text-muted">
+            Keep this reference number. The school will review your application and contact you on your mobile number.
+          </p>
+        </div>
+        <p className="rounded-2xl bg-success-soft px-5 py-4 text-[1.125rem] font-bold tracking-[0.04em] text-success">{reference}</p>
+        <p className="rounded-xl bg-gold-soft px-4 py-3 text-[0.875rem] text-gold-ink">
+          No payment has been recorded yet. Payment is confirmed separately by the school.
+        </p>
+        <Link
+          href={`/payment?package=${encodeURIComponent(values.packageId)}`}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-6 py-3.5 text-[0.9375rem] font-semibold text-ink hover:bg-gold-dark"
+        >
+          Continue to payment
+        </Link>
+      </div>
+    );
   }
 
   const borderFor = (field: keyof Values) => (errors[field] ? "border-red-400" : "border-line");
@@ -235,10 +316,22 @@ export default function SignupForm() {
         <PackageSelect
           id="packageId"
           value={values.packageId}
-          onChange={(packageId) => setValues((current) => ({ ...current, packageId }))}
+          onChange={(packageId) => {
+            setServerError("");
+            setValues((current) => ({ ...current, packageId }));
+          }}
           invalid={Boolean(errors.packageId)}
         />
       </Field>
+
+      {perSessionPackage && (
+        <div role="note" className="rounded-xl bg-gold-soft px-4 py-3 text-[0.875rem] text-gold-ink">
+          <p className="font-semibold">{perSessionPackage.name} is charged per session: {formatPackagePrice(perSessionPackage)}.</p>
+          <p className="mt-1">
+            Online registration is not available for per-session packages yet. Contact the school to register for this package.
+          </p>
+        </div>
+      )}
 
       <Field id="notes" label="Additional notes (optional)">
         <div className="relative">
@@ -255,12 +348,19 @@ export default function SignupForm() {
         </div>
       </Field>
 
+      {serverError && (
+        <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-[0.875rem] text-red-700">
+          {serverError}
+        </p>
+      )}
+
       <button
         type="submit"
-        className="mt-1 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-6 py-3.5 text-[0.9375rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] transition-colors hover:bg-gold-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark"
+        disabled={submitting || Boolean(perSessionPackage)}
+        className="mt-1 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-6 py-3.5 text-[0.9375rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] transition-colors hover:bg-gold-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark disabled:cursor-not-allowed disabled:opacity-60"
       >
-        Register
-        <Icon name="arrow-right" className="h-4 w-4" strokeWidth={2} />
+        {submitting ? "Submitting…" : "Register"}
+        {!submitting && <Icon name="arrow-right" className="h-4 w-4" strokeWidth={2} />}
       </button>
 
       <div className="text-center text-[0.8125rem] text-muted">
