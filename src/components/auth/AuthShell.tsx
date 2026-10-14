@@ -13,8 +13,13 @@ interface AuthShellProps {
   children: ReactNode;
   /** Extra classes for the form card, e.g. to nudge it along the row on large screens. */
   cardClassName?: string;
+<<<<<<< HEAD
   /** "start" pins both columns to the top, for tall forms; "center" vertically centres them. */
   align?: "center" | "start";
+=======
+  /** On large screens, fit the page to the viewport and scroll only the form card (for long forms). */
+  scrollableCard?: boolean;
+>>>>>>> aa7e31ed65daa3be64da401bae50316ca3c5ae9e
 }
 
 /** Shared frame for the role login pages: landing header, atmosphere, copy column and form card. */
@@ -25,10 +30,20 @@ export default function AuthShell({
   points,
   children,
   cardClassName = "",
+<<<<<<< HEAD
   align = "center",
 }: AuthShellProps) {
+=======
+  scrollableCard = false,
+}: AuthShellProps) {
+  // Viewport height minus the header, footer and main padding, so the card scrolls inside the screen.
+  const scrollClasses = scrollableCard
+    ? "lg:max-h-[calc(100dvh-15rem)] lg:overflow-y-auto lg:overscroll-contain"
+    : "";
+
+>>>>>>> aa7e31ed65daa3be64da401bae50316ca3c5ae9e
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className={`flex min-h-screen flex-col ${scrollableCard ? "lg:h-screen lg:overflow-hidden" : ""}`}>
       <div className="page-atmosphere" aria-hidden="true" />
 
       <header className="sticky top-0 z-50 pt-5">
@@ -58,7 +73,9 @@ export default function AuthShell({
         </div>
       </header>
 
-      <main className="glow-hero flex-1 pt-10 pb-16 md:pt-14 md:pb-20">
+      <main
+        className={`glow-hero flex-1 pt-10 pb-16 md:pt-14 md:pb-20 ${scrollableCard ? "lg:py-8" : ""}`}
+      >
         <Container>
           <div
             className={`grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)] lg:gap-[clamp(32px,5vw,96px)] ${
@@ -92,7 +109,9 @@ export default function AuthShell({
             </div>
 
             {/* Form card */}
-            <div className={`glass rounded-[28px] p-6 shadow-[0_20px_50px_-20px_rgb(40_60_90/0.25)] md:p-10 ${cardClassName}`}>
+            <div
+              className={`glass rounded-[28px] p-6 shadow-[0_20px_50px_-20px_rgb(40_60_90/0.25)] md:p-10 ${scrollClasses} ${cardClassName}`}
+            >
               {children}
 
               <p className="mt-8 flex items-center justify-center gap-2 border-t border-line pt-6 text-[0.8125rem] text-muted">
