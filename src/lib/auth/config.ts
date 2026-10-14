@@ -13,6 +13,17 @@ export function isProduction() {
   return process.env.NODE_ENV === "production";
 }
 
+/**
+ * The public origin used to build links in emails. In production it must be configured, and it is never
+ * taken from a request header, so an attacker cannot make emails point at another site.
+ * Returns null when no origin is available, which stops email delivery.
+ */
+export function getAppOrigin(): string | null {
+  const configured = process.env.APP_ORIGIN?.trim();
+  if (configured) return configured.replace(/\/+$/, "");
+  return isProduction() ? null : "http://localhost:3000";
+}
+
 /** Cookie attributes for the session token. `Secure` is required on HTTPS deployments, so it is set in production only. */
 export function sessionCookieOptions() {
   return {

@@ -1,4 +1,5 @@
 import Image from "next/image";
+import AccountMenu from "@/components/auth/AccountMenu";
 import Icon from "@/components/ui/Icon";
 import { navLinks, site } from "@/data/landing";
 /** Floating glass navigation surface that spans the full viewport width. */
@@ -51,14 +52,7 @@ export default function Navbar() {
               WhatsApp
               <Icon name="chat" className="h-4 w-4" />
             </a>
-            <a
-              href="/login"
-              aria-label="Login"
-              title="Login"
-              className="grid h-9 w-9 place-items-center rounded-full bg-page text-muted ring-1 ring-line transition-colors hover:text-ink"
-            >
-              <Icon name="user" className="h-[18px] w-[18px]" />
-            </a>
+            <AccountMenu />
           </div>
 
           {/* Compact menu for smaller screens, no client JS needed */}

@@ -12,10 +12,11 @@ const roles: LoginRole[] = ["student", "instructor", "admin"];
 export default async function LoginPage({
   searchParams,
 }: {
-  searchParams: Promise<{ role?: string }>;
+  searchParams: Promise<{ role?: string; reason?: string }>;
 }) {
-  const { role } = await searchParams;
+  const { role, reason } = await searchParams;
   const initialRole = roles.find((value) => value === role) ?? "student";
+  const notice = reason === "expired" ? "Your session has ended. Please sign in again." : undefined;
 
-  return <RoleLoginForm initialRole={initialRole} />;
+  return <RoleLoginForm initialRole={initialRole} notice={notice} />;
 }

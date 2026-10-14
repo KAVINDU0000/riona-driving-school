@@ -74,10 +74,12 @@ const roleContent: Record<
 
 interface RoleLoginFormProps {
   initialRole: LoginRole;
+  /** Shown above the form, e.g. after a portal session expired. */
+  notice?: string;
 }
 
 /** Role-aware login page: the copy column and the form both follow the selected role tab. Only students get the sign-up line. */
-export default function RoleLoginForm({ initialRole }: RoleLoginFormProps) {
+export default function RoleLoginForm({ initialRole, notice }: RoleLoginFormProps) {
   const [role, setRole] = useState<LoginRole>(initialRole);
   const content = roleContent[role];
 
@@ -132,10 +134,17 @@ export default function RoleLoginForm({ initialRole }: RoleLoginFormProps) {
             </div>
           </div>
 
+          {notice && (
+            <p role="status" className="rounded-xl bg-gold-soft px-4 py-3 text-center text-[0.8125rem] font-medium text-gold-ink">
+              {notice}
+            </p>
+          )}
+
           {/* key resets the fields when the role changes */}
           <div className="animate-fadeUp" style={{ animationDelay: "140ms" }}>
             <LoginForm
               key={role}
+              endpoint={`/api/auth/${role}/login`}
               identifierLabel={content.identifierLabel}
               identifierPlaceholder={content.identifierPlaceholder}
               identifierType={content.identifierType}

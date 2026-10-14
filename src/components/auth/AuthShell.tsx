@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
+import AccountMenu from "@/components/auth/AccountMenu";
 import Icon from "@/components/ui/Icon";
 import { Container, Eyebrow, IconTile } from "@/components/landing/primitives";
 import { site } from "@/data/landing";
@@ -59,13 +60,16 @@ export default function AuthShell({
               </span>
             </Link>
 
-            <Link
-              href="/"
-              className="ml-auto inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-[0.875rem] font-medium text-muted transition-colors hover:bg-page hover:text-ink"
-            >
-              <Icon name="arrow-left" className="h-4 w-4" />
-              Back to home
-            </Link>
+            <div className="ml-auto flex items-center gap-1">
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 rounded-xl px-3.5 py-2 text-[0.875rem] font-medium text-muted transition-colors hover:bg-page hover:text-ink"
+              >
+                <Icon name="arrow-left" className="h-4 w-4" />
+                Back to home
+              </Link>
+              <AccountMenu />
+            </div>
           </nav>
         </div>
       </header>
