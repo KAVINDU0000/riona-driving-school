@@ -59,3 +59,12 @@ export const packageDiscountNote = "5% discount when the full eligible package f
 export function formatLkr(amount: number) {
   return `LKR ${amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
 }
+
+/** Finds a package option by id, with the name of its group. Returns undefined for unknown ids. */
+export function findPackage(id: string) {
+  for (const group of packageGroups) {
+    const option = group.options.find((item) => item.id === id);
+    if (option) return { ...option, group: group.label };
+  }
+  return undefined;
+}

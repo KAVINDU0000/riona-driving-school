@@ -13,10 +13,20 @@ interface AuthShellProps {
   children: ReactNode;
   /** Extra classes for the form card, e.g. to nudge it along the row on large screens. */
   cardClassName?: string;
+  /** "start" pins both columns to the top, for tall forms; "center" vertically centres them. */
+  align?: "center" | "start";
 }
 
 /** Shared frame for the role login pages: landing header, atmosphere, copy column and form card. */
-export default function AuthShell({ eyebrow, title, body, points, children, cardClassName = "" }: AuthShellProps) {
+export default function AuthShell({
+  eyebrow,
+  title,
+  body,
+  points,
+  children,
+  cardClassName = "",
+  align = "center",
+}: AuthShellProps) {
   return (
     <div className="flex min-h-screen flex-col">
       <div className="page-atmosphere" aria-hidden="true" />
@@ -50,7 +60,11 @@ export default function AuthShell({ eyebrow, title, body, points, children, card
 
       <main className="glow-hero flex-1 pt-10 pb-16 md:pt-14 md:pb-20">
         <Container>
-          <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)] lg:gap-[clamp(32px,5vw,96px)]">
+          <div
+            className={`grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)] lg:gap-[clamp(32px,5vw,96px)] ${
+              align === "start" ? "lg:items-start" : "items-center"
+            }`}
+          >
             {/* Copy */}
             <div className="flex flex-col items-start">
               <span className="inline-flex items-center gap-2 rounded-full bg-gold-soft px-3.5 py-1.5 ring-1 ring-gold/60">

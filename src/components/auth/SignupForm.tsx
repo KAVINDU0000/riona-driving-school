@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import Icon from "@/components/ui/Icon";
 import { formatLkr, packageDiscountNote, packageGroups } from "@/data/packages";
@@ -74,18 +75,21 @@ function Field({
 export default function SignupForm() {
   const [values, setValues] = useState<Values>(initialValues);
   const [errors, setErrors] = useState<Errors>({});
-  const [notice, setNotice] = useState("");
+  const router = useRouter();
 
   function update(field: keyof Values) {
     return (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
       setValues((current) => ({ ...current, [field]: event.target.value }));
   }
 
+  // Only the package id travels to the payment step; personal details are not put in the URL.
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const nextErrors = validate(values);
     setErrors(nextErrors);
-    setNotice(Object.keys(nextErrors).length ? "" : "Registration is not connected to a server yet.");
+    if (Object.keys(nextErrors).length === 0) {
+      router.push(`/payment?package=${encodeURIComponent(values.packageId)}`);
+    }
   }
 
   const borderFor = (field: keyof Values) => (errors[field] ? "border-red-400" : "border-line");
@@ -227,12 +231,6 @@ export default function SignupForm() {
         Register
         <Icon name="arrow-right" className="h-4 w-4" strokeWidth={2} />
       </button>
-
-      {notice && (
-        <p role="status" className="rounded-xl bg-gold-soft px-4 py-3 text-[0.8125rem] font-medium text-gold-ink">
-          {notice}
-        </p>
-      )}
 
       <div className="text-center text-[0.8125rem] text-muted">
         Already registered?{" "}

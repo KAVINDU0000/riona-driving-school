@@ -12,8 +12,9 @@ export const metadata: Metadata = {
 export default function SignupPage() {
   return (
     <>
-      <AuthBackground />
+      <AuthBackground intensity="strong" />
       <AuthShell
+        align="start"
         eyebrow="New Student"
         title="Start Your Journey"
         body="Register once, choose the package that fits your licence goal and we will confirm your lessons with you."
