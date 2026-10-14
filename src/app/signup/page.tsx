@@ -24,6 +24,7 @@ export default function SignupPage() {
           { icon: "wallet", text: "5% off when you pay in full in cash" },
         ]}
         scrollableCard
+        cardClassName="lg:w-[540px] lg:justify-self-end lg:-translate-x-10 xl:-translate-x-20"
       >
         <SignupForm />
       </AuthShell>

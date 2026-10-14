@@ -176,3 +176,27 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #bcccdf;
 }
+
+/* Slim scrollbar for scrollable form cards (sign-up), in the site's blue-grey and gold */
+.thin-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: #bcccdf transparent;
+}
+
+.thin-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.thin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+  margin: 18px 0;
+}
+
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: #bcccdf;
+  border-radius: 999px;
+}
+
+.thin-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--color-gold-dark);
+}

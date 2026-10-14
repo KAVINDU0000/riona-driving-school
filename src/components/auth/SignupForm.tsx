@@ -96,7 +96,7 @@ export default function SignupForm() {
   const iconClass = "pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted";
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+    <form onSubmit={handleSubmit} noValidate autoComplete="off" className="flex flex-col gap-5">
       <div>
         <h2 className="text-[1.5rem] font-bold leading-tight tracking-[-0.02em] text-ink">Student Registration</h2>
         <p className="mt-1.5 text-[0.875rem] text-muted">Enter your details and choose a training package.</p>
@@ -108,7 +108,7 @@ export default function SignupForm() {
           <input
             id="fullName"
             name="fullName"
-            autoComplete="name"
+            autoComplete="off"
             placeholder="Enter your full name as on NIC"
             value={values.fullName}
             onChange={update("fullName")}
@@ -155,7 +155,7 @@ export default function SignupForm() {
             id="mobile"
             name="mobile"
             type="tel"
-            autoComplete="tel"
+            autoComplete="off"
             placeholder="e.g. 0771234567"
             value={values.mobile}
             onChange={update("mobile")}

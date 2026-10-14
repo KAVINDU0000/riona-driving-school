@@ -41,7 +41,7 @@ export default function LoginForm({
     "h-12 w-full rounded-xl border bg-white pl-11 pr-4 text-[0.9375rem] text-ink placeholder:text-muted/70 transition-colors focus:border-gold-dark focus:outline-none focus:ring-4 focus:ring-gold/25";
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
+    <form onSubmit={handleSubmit} noValidate autoComplete="off" className="flex flex-col gap-5">
       <div className="flex flex-col gap-2">
         <label htmlFor="identifier" className="text-[0.8125rem] font-semibold text-ink">
           {identifierLabel}
@@ -52,7 +52,7 @@ export default function LoginForm({
             id="identifier"
             name="identifier"
             type={identifierType}
-            autoComplete="username"
+            autoComplete="off"
             placeholder={identifierPlaceholder}
             value={identifier}
             onChange={(e) => setIdentifier(e.target.value)}
@@ -78,7 +78,7 @@ export default function LoginForm({
             id="password"
             name="password"
             type="password"
-            autoComplete="current-password"
+            autoComplete="new-password"
             placeholder="Enter your password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}

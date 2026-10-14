@@ -83,7 +83,7 @@ export default function PaymentForm({ pkg }: PaymentFormProps) {
   }
 
   return (
-    <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-6">
+    <form onSubmit={handleSubmit} noValidate autoComplete="off" className="flex flex-col gap-6">
       {/* Selected package */}
       <div className="rounded-2xl bg-page p-5 ring-1 ring-line">
         <p className="text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-muted">Your selected package</p>

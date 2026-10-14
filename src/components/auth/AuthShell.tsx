@@ -13,13 +13,10 @@ interface AuthShellProps {
   children: ReactNode;
   /** Extra classes for the form card, e.g. to nudge it along the row on large screens. */
   cardClassName?: string;
-<<<<<<< HEAD
   /** "start" pins both columns to the top, for tall forms; "center" vertically centres them. */
   align?: "center" | "start";
-=======
   /** On large screens, fit the page to the viewport and scroll only the form card (for long forms). */
   scrollableCard?: boolean;
->>>>>>> aa7e31ed65daa3be64da401bae50316ca3c5ae9e
 }
 
 /** Shared frame for the role login pages: landing header, atmosphere, copy column and form card. */
@@ -30,18 +27,14 @@ export default function AuthShell({
   points,
   children,
   cardClassName = "",
-<<<<<<< HEAD
   align = "center",
-}: AuthShellProps) {
-=======
   scrollableCard = false,
 }: AuthShellProps) {
   // Viewport height minus the header, footer and main padding, so the card scrolls inside the screen.
   const scrollClasses = scrollableCard
-    ? "lg:max-h-[calc(100dvh-15rem)] lg:overflow-y-auto lg:overscroll-contain"
+    ? "lg:max-h-[calc(100dvh-15rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-3 thin-scroll"
     : "";
 
->>>>>>> aa7e31ed65daa3be64da401bae50316ca3c5ae9e
   return (
     <div className={`flex min-h-screen flex-col ${scrollableCard ? "lg:h-screen lg:overflow-hidden" : ""}`}>
       <div className="page-atmosphere" aria-hidden="true" />
