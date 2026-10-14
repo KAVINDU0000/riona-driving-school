@@ -11,10 +11,12 @@ interface AuthShellProps {
   body: string;
   points: { icon: string; text: string }[];
   children: ReactNode;
+  /** Extra classes for the form card, e.g. to nudge it along the row on large screens. */
+  cardClassName?: string;
 }
 
 /** Shared frame for the role login pages: landing header, atmosphere, copy column and form card. */
-export default function AuthShell({ eyebrow, title, body, points, children }: AuthShellProps) {
+export default function AuthShell({ eyebrow, title, body, points, children, cardClassName = "" }: AuthShellProps) {
   return (
     <div className="flex min-h-screen flex-col">
       <div className="page-atmosphere" aria-hidden="true" />
@@ -76,7 +78,7 @@ export default function AuthShell({ eyebrow, title, body, points, children }: Au
             </div>
 
             {/* Form card */}
-            <div className="glass rounded-[28px] p-6 shadow-[0_20px_50px_-20px_rgb(40_60_90/0.25)] md:p-10">
+            <div className={`glass rounded-[28px] p-6 shadow-[0_20px_50px_-20px_rgb(40_60_90/0.25)] md:p-10 ${cardClassName}`}>
               {children}
 
               <p className="mt-8 flex items-center justify-center gap-2 border-t border-line pt-6 text-[0.8125rem] text-muted">
