@@ -51,12 +51,14 @@ export default function Navbar() {
               WhatsApp
               <Icon name="chat" className="h-4 w-4" />
             </a>
-            <span
-              aria-label="Student portal"
-              className="grid h-9 w-9 place-items-center rounded-full bg-page text-muted ring-1 ring-line"
+            <a
+              href="/login"
+              aria-label="Login"
+              title="Login"
+              className="grid h-9 w-9 place-items-center rounded-full bg-page text-muted ring-1 ring-line transition-colors hover:text-ink"
             >
               <Icon name="user" className="h-[18px] w-[18px]" />
-            </span>
+            </a>
           </div>
 
           {/* Compact menu for smaller screens, no client JS needed */}

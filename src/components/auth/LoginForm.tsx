@@ -9,7 +9,7 @@ interface LoginFormProps {
   identifierType: "text" | "email";
   identifierIcon: string;
   submitLabel: string;
-  footnote: ReactNode;
+  footnote?: ReactNode;
 }
 
 export default function LoginForm({
@@ -42,11 +42,6 @@ export default function LoginForm({
 
   return (
     <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-5">
-      <div>
-        <h2 className="text-[1.5rem] font-bold leading-tight tracking-[-0.02em] text-ink">Sign in</h2>
-        <p className="mt-1.5 text-[0.875rem] text-muted">Enter your details to continue.</p>
-      </div>
-
       <div className="flex flex-col gap-2">
         <label htmlFor="identifier" className="text-[0.8125rem] font-semibold text-ink">
           {identifierLabel}
@@ -128,7 +123,7 @@ export default function LoginForm({
         </p>
       )}
 
-      <div className="text-center text-[0.8125rem] text-muted">{footnote}</div>
+      {footnote && <div className="text-center text-[0.8125rem] text-muted">{footnote}</div>}
     </form>
   );
 }
