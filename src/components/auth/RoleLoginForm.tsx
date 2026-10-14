@@ -1,10 +1,10 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useState } from "react";
 import AuthShell from "@/components/auth/AuthShell";
 import LoginForm from "@/components/auth/LoginForm";
-import { site } from "@/data/landing";
 
 export type LoginRole = "student" | "instructor" | "admin";
 
@@ -127,14 +127,9 @@ export default function RoleLoginForm({ initialRole }: RoleLoginFormProps) {
             role === "student" ? (
               <>
                 New student?{" "}
-                <a
-                  href={site.whatsapp}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="font-semibold text-gold-ink hover:text-ink"
-                >
+                <Link href="/signup" className="font-semibold text-gold-ink hover:text-ink">
                   Sign up
-                </a>
+                </Link>
               </>
             ) : undefined
           }
