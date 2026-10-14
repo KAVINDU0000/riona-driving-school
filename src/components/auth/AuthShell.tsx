@@ -17,6 +17,8 @@ interface AuthShellProps {
   align?: "center" | "start";
   /** On large screens, fit the page to the viewport and scroll only the form card (for long forms). */
   scrollableCard?: boolean;
+  /** On large screens, keep the whole page fixed to the viewport with no page scrollbar. */
+  fixedPage?: boolean;
 }
 
 /** Shared frame for the role login pages: landing header, atmosphere, copy column and form card. */
@@ -29,14 +31,16 @@ export default function AuthShell({
   cardClassName = "",
   align = "center",
   scrollableCard = false,
+  fixedPage = false,
 }: AuthShellProps) {
   // Viewport height minus the header, footer and main padding, so the card scrolls inside the screen.
   const scrollClasses = scrollableCard
     ? "lg:max-h-[calc(100dvh-15rem)] lg:overflow-y-auto lg:overscroll-contain lg:[scrollbar-gutter:stable_both-edges] thin-scroll"
     : "";
+  const pageFixed = scrollableCard || fixedPage;
 
   return (
-    <div className={`flex min-h-screen flex-col ${scrollableCard ? "lg:h-screen lg:overflow-hidden" : ""}`}>
+    <div className={`flex min-h-screen flex-col ${pageFixed ? "lg:h-screen lg:overflow-hidden" : ""}`}>
       <div className="page-atmosphere" aria-hidden="true" />
 
       <header className="sticky top-0 z-50 pt-5">
@@ -67,7 +71,9 @@ export default function AuthShell({
       </header>
 
       <main
-        className={`glow-hero flex-1 pt-10 pb-16 md:pt-14 md:pb-20 ${scrollableCard ? "lg:py-8" : ""}`}
+        className={`glow-hero flex-1 pt-10 pb-16 md:pt-14 md:pb-20 ${
+          pageFixed ? "lg:flex lg:min-h-0 lg:flex-col lg:justify-center lg:py-8" : ""
+        }`}
       >
         <Container>
           <div
@@ -120,7 +126,7 @@ export default function AuthShell({
         </Container>
       </main>
 
-      <footer className="border-t border-line bg-white/60 py-6 backdrop-blur">
+      <footer className="shrink-0 border-t border-line bg-white/60 py-6 backdrop-blur">
         <Container>
           <p className="text-center text-[0.8125rem] text-muted">
             © {new Date().getFullYear()} Riyona Driving School · {site.phone}

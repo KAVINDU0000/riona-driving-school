@@ -90,6 +90,7 @@ export default function RoleLoginForm({ initialRole }: RoleLoginFormProps) {
         title={content.title}
         body={content.body}
         points={content.points}
+        fixedPage
         cardClassName="lg:-translate-x-10 xl:-translate-x-20"
       >
         <div className="flex flex-col gap-6">
