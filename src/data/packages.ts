@@ -27,9 +27,9 @@ export const packageGroups: PackageGroup[] = [
       { id: "trial-van", name: "Van Trial Preparation", price: 15000 },
       { id: "trial-three-wheeler-van", name: "Three-Wheeler + Van Trial Preparation", price: 16000 },
       { id: "trial-motorcycle-van", name: "Motorcycle + Van Trial Preparation", price: 15000 },
-      { id: "trial-van-three-wheeler-motorcycle", name: "Van + Three-Wheeler + Motorcycle Trial Preparation", price: 20000 },
-      { id: "trial-car-three-wheeler", name: "Car + Three-Wheeler Trial Preparation", price: 15000 },
-      { id: "trial-car-three-wheeler-motorcycle", name: "Car + Three-Wheeler + Motorcycle Trial Preparation", price: 20000 },
+      { id: "trial-van-three-wheeler-motorcycle", name: "(Van + Three-Wheeler + Motorcycle) Trial Preparation", price: 20000 },
+      { id: "trial-car-three-wheeler", name: "(Car + Three-Wheeler) Trial Preparation", price: 15000 },
+      { id: "trial-car-three-wheeler-motorcycle", name: "(Car + Three-Wheeler + Motorcycle) Trial Preparation", price: 20000 },
     ],
   },
   {
