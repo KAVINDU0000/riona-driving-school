@@ -1,5 +1,4 @@
 // Training packages and prices from the school's price list.
-// Three-wheeler daily training has no price yet, so it is not listed.
 
 export interface PackageOption {
   id: string;
@@ -25,30 +24,33 @@ export const packageGroups: PackageGroup[] = [
       { id: "trial-motorcycle", name: "Motorcycle Trial Preparation", price: 8000 },
       { id: "trial-car", name: "Car Trial Preparation", price: 15000 },
       { id: "trial-van", name: "Van Trial Preparation", price: 15000 },
-      { id: "trial-three-wheeler-van", name: "(Three-Wheeler + Van) Trial Preparation", price: 16000 },
-      { id: "trial-motorcycle-van", name: "(Motorcycle + Van) Trial Preparation", price: 15000 },
+      { id: "trial-three-wheeler-motorcycle", name: "(Three-Wheeler + Motorcycle) Trial Preparation", price: 15000 },
+      { id: "trial-three-wheeler-van", name: "(Van + Three-Wheeler) Trial Preparation", price: 17000 },
+      { id: "trial-motorcycle-van", name: "(Van + Motorcycle) Trial Preparation", price: 16000 },
       { id: "trial-van-three-wheeler-motorcycle", name: "(Van + Three-Wheeler + Motorcycle) Trial Preparation", price: 20000 },
-      { id: "trial-car-three-wheeler", name: "(Car + Three-Wheeler) Trial Preparation", price: 15000 },
+      { id: "trial-car-three-wheeler", name: "(Car + Three-Wheeler) Trial Preparation", price: 17000 },
+      { id: "trial-car-motorcycle", name: "(Car + Motorcycle) Trial Preparation", price: 16000 },
       { id: "trial-car-three-wheeler-motorcycle", name: "(Car + Three-Wheeler + Motorcycle) Trial Preparation", price: 20000 },
     ],
   },
   {
     label: "Additional vehicle training",
     options: [
-      { id: "extra-car-motorcycle", name: "Car Trial Preparation + Motorcycle Daily Training", price: 30000 },
-      { id: "extra-car-three-wheeler", name: "Car Trial Preparation + Three-Wheeler Daily Training", price: 31000 },
-      { id: "extra-car-three-wheeler-motorcycle", name: "Car Trial Preparation + Three-Wheeler and Motorcycle Daily Training", price: 35000 },
-      { id: "extra-van-motorcycle", name: "Van Trial Preparation + Motorcycle Daily Training", price: 30000 },
-      { id: "extra-van-three-wheeler", name: "(Van + Three-Wheeler) Daily Training", price: 31000 },
-      { id: "extra-van-three-wheeler-motorcycle", name: "(Van + Three-Wheeler + Motorcycle) Daily Training", price: 35000 },
+      { id: "extra-car-motorcycle", name: "Car Daily Training + Motorcycle Trial Preparation", price: 30000 },
+      { id: "extra-car-three-wheeler", name: "Car Daily Training + Three-Wheeler Trial Preparation", price: 31000 },
+      { id: "extra-car-three-wheeler-motorcycle", name: "Car Daily Training + Three-Wheeler and Motorcycle Trial Preparation", price: 35000 },
+      { id: "extra-van-motorcycle", name: "Van Daily Training + Motorcycle Trial Preparation", price: 30000 },
+      { id: "extra-van-three-wheeler", name: "Van Daily Training + Three-Wheeler Trial Preparation", price: 31000 },
+      { id: "extra-van-three-wheeler-motorcycle", name: "Van Daily Training + Three-Wheeler and Motorcycle Trial Preparation", price: 35000 },
     ],
   },
   {
-    label: "Daily individual training (per day)",
+    label: "Daily individual training",
     options: [
-      { id: "daily-car", name: "Car Daily Training", price: 1500 },
-      { id: "daily-van", name: "Van Daily Training", price: 750 },
-      { id: "daily-motorcycle", name: "Motorcycle Daily Training", price: 500 },
+      { id: "daily-car", name: "Car Daily Training", detail: "per 30 minutes", price: 2000 },
+      { id: "daily-van", name: "Van Daily Training", detail: "per 30 minutes", price: 2000 },
+      { id: "daily-motorcycle", name: "Motorcycle Daily Training", detail: "per hour", price: 1000 },
+      { id: "daily-three-wheeler", name: "Three-Wheeler Daily Training", detail: "per hour", price: 1500 },
     ],
   },
 ];
