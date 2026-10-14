@@ -13,12 +13,27 @@ interface AuthShellProps {
   children: ReactNode;
   /** Extra classes for the form card, e.g. to nudge it along the row on large screens. */
   cardClassName?: string;
+  /** On large screens, fit the page to the viewport and scroll only the form card (for long forms). */
+  scrollableCard?: boolean;
 }
 
 /** Shared frame for the role login pages: landing header, atmosphere, copy column and form card. */
-export default function AuthShell({ eyebrow, title, body, points, children, cardClassName = "" }: AuthShellProps) {
+export default function AuthShell({
+  eyebrow,
+  title,
+  body,
+  points,
+  children,
+  cardClassName = "",
+  scrollableCard = false,
+}: AuthShellProps) {
+  // Viewport height minus the header, footer and main padding, so the card scrolls inside the screen.
+  const scrollClasses = scrollableCard
+    ? "lg:max-h-[calc(100dvh-15rem)] lg:overflow-y-auto lg:overscroll-contain"
+    : "";
+
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className={`flex min-h-screen flex-col ${scrollableCard ? "lg:h-screen lg:overflow-hidden" : ""}`}>
       <div className="page-atmosphere" aria-hidden="true" />
 
       <header className="sticky top-0 z-50 pt-5">
@@ -48,7 +63,9 @@ export default function AuthShell({ eyebrow, title, body, points, children, card
         </div>
       </header>
 
-      <main className="glow-hero flex-1 pt-10 pb-16 md:pt-14 md:pb-20">
+      <main
+        className={`glow-hero flex-1 pt-10 pb-16 md:pt-14 md:pb-20 ${scrollableCard ? "lg:py-8" : ""}`}
+      >
         <Container>
           <div className="grid items-center gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)] lg:gap-[clamp(32px,5vw,96px)]">
             {/* Copy */}
@@ -78,7 +95,9 @@ export default function AuthShell({ eyebrow, title, body, points, children, card
             </div>
 
             {/* Form card */}
-            <div className={`glass rounded-[28px] p-6 shadow-[0_20px_50px_-20px_rgb(40_60_90/0.25)] md:p-10 ${cardClassName}`}>
+            <div
+              className={`glass rounded-[28px] p-6 shadow-[0_20px_50px_-20px_rgb(40_60_90/0.25)] md:p-10 ${scrollClasses} ${cardClassName}`}
+            >
               {children}
 
               <p className="mt-8 flex items-center justify-center gap-2 border-t border-line pt-6 text-[0.8125rem] text-muted">

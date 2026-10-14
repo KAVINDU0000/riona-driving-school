@@ -22,6 +22,7 @@ export default function SignupPage() {
           { icon: "car", text: "Daily training for extra vehicle types" },
           { icon: "wallet", text: "5% off when you pay in full in cash" },
         ]}
+        scrollableCard
       >
         <SignupForm />
       </AuthShell>
