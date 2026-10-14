@@ -32,7 +32,7 @@ export default function AuthShell({
 }: AuthShellProps) {
   // Viewport height minus the header, footer and main padding, so the card scrolls inside the screen.
   const scrollClasses = scrollableCard
-    ? "lg:max-h-[calc(100dvh-15rem)] lg:overflow-y-auto lg:overscroll-contain lg:pr-3 thin-scroll"
+    ? "lg:max-h-[calc(100dvh-15rem)] lg:overflow-y-auto lg:overscroll-contain lg:[scrollbar-gutter:stable_both-edges] thin-scroll"
     : "";
 
   return (
@@ -71,7 +71,11 @@ export default function AuthShell({
       >
         <Container>
           <div
-            className={`grid gap-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)] lg:gap-[clamp(32px,5vw,96px)] ${
+            className={`grid gap-12 ${
+              scrollableCard
+                ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,540px)]"
+                : "lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)]"
+            } lg:gap-[clamp(32px,5vw,96px)] ${
               align === "start" ? "lg:items-start" : "items-center"
             }`}
           >

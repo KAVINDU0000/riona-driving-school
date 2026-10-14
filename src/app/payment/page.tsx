@@ -25,7 +25,6 @@ export default async function PaymentPage({
       <AuthShell
         align="start"
         scrollableCard
-        cardClassName="lg:w-[540px] lg:justify-self-end lg:-translate-x-10 xl:-translate-x-20"
         eyebrow="Step 2 of 2"
         title="Complete Payment"
         body="Pay for your chosen package by bank transfer or bank deposit, then upload your payment slip for review."
