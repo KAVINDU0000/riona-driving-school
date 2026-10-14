@@ -2,7 +2,7 @@
 
 import { useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import Icon from "@/components/ui/Icon";
-import { allowedSlipTypes, bankDetails, maxSlipBytes, paymentMethods } from "@/data/payment";
+import { allowedSlipTypes, maxSlipBytes, paymentMethods } from "@/data/payment";
 import { formatLkr } from "@/data/packages";
 
 export interface SelectedPackage {
@@ -16,6 +16,11 @@ export interface SelectedPackage {
 interface PaymentFormProps {
   pkg: SelectedPackage;
 }
+
+type BankFields = { bankName: string; accountName: string; accountNumber: string; branch: string };
+type FormErrors = Partial<Record<keyof BankFields | "paymentDate" | "slip", string>>;
+
+const emptyBank: BankFields = { bankName: "", accountName: "", accountNumber: "", branch: "" };
 
 const inputBase =
   "h-12 w-full rounded-xl border bg-white pl-11 pr-4 text-[0.9375rem] text-ink placeholder:text-muted/70 transition-[border-color,box-shadow] focus:border-gold-dark focus:outline-none focus:ring-4 focus:ring-gold/25";
@@ -43,9 +48,13 @@ export default function PaymentForm({ pkg }: PaymentFormProps) {
   const [paymentDate, setPaymentDate] = useState("");
   const [reference, setReference] = useState("");
   const [slip, setSlip] = useState<File | null>(null);
-  const [errors, setErrors] = useState<{ paymentDate?: string; slip?: string }>({});
+  const [bank, setBank] = useState<BankFields>(emptyBank);
+  const [errors, setErrors] = useState<FormErrors>({});
   const [notice, setNotice] = useState("");
-  const [copied, setCopied] = useState(false);
+
+  function updateBank(field: keyof BankFields) {
+    return (event: ChangeEvent<HTMLInputElement>) => setBank((current) => ({ ...current, [field]: event.target.value }));
+  }
 
   function handleSlipChange(event: ChangeEvent<HTMLInputElement>) {
     const file = event.target.files?.[0] ?? null;
@@ -62,20 +71,13 @@ export default function PaymentForm({ pkg }: PaymentFormProps) {
     }
   }
 
-  async function copyAccountNumber() {
-    const accountNumber = bankDetails.find((row) => row.label === "Account number")?.value ?? "";
-    try {
-      await navigator.clipboard.writeText(accountNumber);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      setCopied(false);
-    }
-  }
-
   function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const nextErrors: typeof errors = {};
+    const nextErrors: FormErrors = {};
+    if (!bank.bankName.trim()) nextErrors.bankName = "Enter the name of your bank.";
+    if (!bank.accountName.trim()) nextErrors.accountName = "Enter the account holder's name.";
+    if (!/^\d{6,20}$/.test(bank.accountNumber.replace(/\s/g, ""))) nextErrors.accountNumber = "Enter a valid account number (digits only).";
+    if (!bank.branch.trim()) nextErrors.branch = "Enter your bank branch.";
     if (!paymentDate) nextErrors.paymentDate = "Select the date you made the payment.";
     if (!slip) nextErrors.slip = errors.slip ?? "Upload a photo or PDF of your payment slip.";
     setErrors(nextErrors);
@@ -99,27 +101,75 @@ export default function PaymentForm({ pkg }: PaymentFormProps) {
         </div>
       </div>
 
-      {/* Bank details */}
-      <div>
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="text-[1.0625rem] font-bold text-ink">1. Bank details</h2>
-          <button
-            type="button"
-            onClick={copyAccountNumber}
-            className="inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[0.8125rem] font-semibold text-gold-ink transition-colors hover:bg-gold-soft hover:text-ink"
-          >
-            <Icon name="file-check" className="h-4 w-4" />
-            {copied ? "Copied" : "Copy account number"}
-          </button>
+      {/* Student's own bank details */}
+      <div className="flex flex-col gap-5">
+        <div>
+          <h2 className="text-[1.0625rem] font-bold text-ink">1. Your bank details</h2>
+          <p className="mt-1 text-[0.8125rem] text-muted">Enter the details of the bank account you pay from.</p>
         </div>
-        <dl className="mt-3 divide-y divide-line overflow-hidden rounded-2xl border border-line bg-white">
-          {bankDetails.map((row) => (
-            <div key={row.label} className="flex items-center justify-between gap-4 px-4 py-3">
-              <dt className="text-[0.8125rem] text-muted">{row.label}</dt>
-              <dd className="text-right text-[0.9375rem] font-semibold text-ink">{row.value}</dd>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field id="bankName" label="Bank name *" error={errors.bankName}>
+            <div className="relative">
+              <Icon name="wallet" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" />
+              <input
+                id="bankName"
+                name="bankName"
+                placeholder="e.g. Bank of Ceylon"
+                value={bank.bankName}
+                onChange={updateBank("bankName")}
+                aria-invalid={Boolean(errors.bankName)}
+                className={`${inputBase} ${errors.bankName ? "border-red-400" : "border-line"}`}
+              />
             </div>
-          ))}
-        </dl>
+          </Field>
+
+          <Field id="accountName" label="Account holder name *" error={errors.accountName}>
+            <div className="relative">
+              <Icon name="user" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" />
+              <input
+                id="accountName"
+                name="accountName"
+                placeholder="As printed on the account"
+                value={bank.accountName}
+                onChange={updateBank("accountName")}
+                aria-invalid={Boolean(errors.accountName)}
+                className={`${inputBase} ${errors.accountName ? "border-red-400" : "border-line"}`}
+              />
+            </div>
+          </Field>
+
+          <Field id="accountNumber" label="Account number *" error={errors.accountNumber}>
+            <div className="relative">
+              <Icon name="id-card" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" />
+              <input
+                id="accountNumber"
+                name="accountNumber"
+                inputMode="numeric"
+                placeholder="Digits only"
+                value={bank.accountNumber}
+                onChange={updateBank("accountNumber")}
+                aria-invalid={Boolean(errors.accountNumber)}
+                className={`${inputBase} ${errors.accountNumber ? "border-red-400" : "border-line"}`}
+              />
+            </div>
+          </Field>
+
+          <Field id="branch" label="Branch *" error={errors.branch}>
+            <div className="relative">
+              <Icon name="map-pin" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" />
+              <input
+                id="branch"
+                name="branch"
+                placeholder="e.g. Colombo Fort"
+                value={bank.branch}
+                onChange={updateBank("branch")}
+                aria-invalid={Boolean(errors.branch)}
+                className={`${inputBase} ${errors.branch ? "border-red-400" : "border-line"}`}
+              />
+            </div>
+          </Field>
+        </div>
       </div>
 
       {/* Payment details */}
