@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import Icon from "@/components/ui/Icon";
-import { formatLkr, packageDiscountNote, packageGroups } from "@/data/packages";
+import PackageSelect from "@/components/auth/PackageSelect";
+import { packageDiscountNote } from "@/data/packages";
 
 type Values = {
   fullName: string;
@@ -182,31 +183,12 @@ export default function SignupForm() {
       </Field>
 
       <Field id="packageId" label="Select training package *" error={errors.packageId} hint={packageDiscountNote}>
-        <div className="relative">
-          <Icon name="file-check" className={iconClass} />
-          <select
-            id="packageId"
-            name="packageId"
-            value={values.packageId}
-            onChange={update("packageId")}
-            aria-invalid={Boolean(errors.packageId)}
-            className={`h-12 ${inputBase} pr-4 ${values.packageId ? "text-ink" : "text-muted/70"} ${borderFor("packageId")}`}
-          >
-            <option value="" disabled>
-              Choose a package
-            </option>
-            {packageGroups.map((group) => (
-              <optgroup key={group.label} label={group.label}>
-                {group.options.map((option) => (
-                  <option key={option.id} value={option.id}>
-                    {option.name}
-                    {option.detail ? ` (${option.detail})` : ""} — {formatLkr(option.price)}
-                  </option>
-                ))}
-              </optgroup>
-            ))}
-          </select>
-        </div>
+        <PackageSelect
+          id="packageId"
+          value={values.packageId}
+          onChange={(packageId) => setValues((current) => ({ ...current, packageId }))}
+          invalid={Boolean(errors.packageId)}
+        />
       </Field>
 
       <Field id="notes" label="Additional notes (optional)">
