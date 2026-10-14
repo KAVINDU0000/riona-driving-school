@@ -44,3 +44,6 @@ yarn-error.log*
 *.tsbuildinfo
 
 /src/generated/prisma
+
+# Uploaded payment slips (private, never served from public/).
+/private-storage/

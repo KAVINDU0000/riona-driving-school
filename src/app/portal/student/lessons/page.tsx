@@ -1,0 +1,109 @@
+import EmptyState from "@/components/student/EmptyState";
+import LessonBookingForm, { type BookableRequirement } from "@/components/student/LessonBookingForm";
+import { formatDate, labels } from "@/components/student/format";
+import PageIntro from "@/components/student/PageIntro";
+import StatusBadge from "@/components/student/StatusBadge";
+import { allowedDurations } from "@/lib/student/lesson-booking";
+import { requirePortalUser } from "@/lib/auth/portal-guard";
+import { getEnrollments, getLessons } from "@/lib/student/data";
+
+export const metadata = { title: "Lessons | Student portal", robots: { index: false, follow: false } };
+
+export default async function StudentLessonsPage() {
+  const user = await requirePortalUser("STUDENT");
+  const [enrollments, lessons] = await Promise.all([getEnrollments(user.userId), getLessons(user.userId)]);
+
+  // Only active enrollments with sessions still to book can be booked, and each one keeps its own durations.
+  const bookable: BookableRequirement[] = enrollments
+    .filter((e) => e.status === "ACTIVE")
+    .flatMap((enrollment) =>
+      enrollment.progress
+        .filter((item) => item.remaining > 0)
+        .map((item) => ({
+          key: `${enrollment.id}|${item.id}`,
+          enrollmentId: enrollment.id,
+          requirementId: item.id,
+          enrollmentLabel: enrollment.packageName,
+          requirementLabel: `${labels.vehicleType[item.vehicleType]} · ${labels.trainingType[item.trainingType]}`,
+          vehicleLabel: labels.vehicleType[item.vehicleType],
+          remaining: item.remaining,
+          durations: allowedDurations(enrollment.sessionDurationMinutes),
+        })),
+    );
+
+  return (
+    <>
+      <PageIntro
+        title="Lessons"
+        description="Practical driving lessons. Each lesson is one-to-one: one student, one instructor and one vehicle. Lessons are 30 minutes unless you choose a longer standard length."
+      />
+
+      <section aria-labelledby="book-heading" className="flex flex-col gap-4">
+        <h2 id="book-heading" className="text-[1.125rem] font-bold text-ink">
+          Book a lesson
+        </h2>
+        <LessonBookingForm requirements={bookable} />
+      </section>
+
+      <div className="grid gap-6 xl:grid-cols-2">
+        <section aria-labelledby="upcoming-heading" className="glass rounded-[22px] p-6">
+          <h2 id="upcoming-heading" className="text-[1.125rem] font-bold text-ink">
+            Upcoming lessons
+          </h2>
+          <div className="mt-4">
+            {lessons.upcoming.length === 0 ? (
+              <EmptyState title="No upcoming lessons" body="Lessons you book appear here." />
+            ) : (
+              <ul className="divide-y divide-line">
+                {lessons.upcoming.map((lesson) => (
+                  <li key={lesson.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
+                    <div>
+                      <p className="font-semibold text-ink">
+                        {formatDate(lesson.lessonDate)} · {lesson.startTime}–{lesson.endTime}
+                      </p>
+                      <p className="text-[0.8125rem] text-muted">
+                        {lesson.durationMinutes} min · {labels.vehicleType[lesson.vehicleType]} · {lesson.instructorName}
+                      </p>
+                    </div>
+                    <StatusBadge status={lesson.status} label={labels.lessonStatus[lesson.status]} />
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+
+        <section aria-labelledby="past-heading" className="glass rounded-[22px] p-6">
+          <h2 id="past-heading" className="text-[1.125rem] font-bold text-ink">
+            Lesson history
+          </h2>
+          <div className="mt-4">
+            {lessons.past.length === 0 ? (
+              <EmptyState title="No past lessons" body="Completed lessons appear here with attendance and any feedback." />
+            ) : (
+              <ul className="divide-y divide-line">
+                {lessons.past.map((lesson) => (
+                  <li key={lesson.id} className="flex flex-col gap-2 py-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="font-semibold text-ink">
+                        {formatDate(lesson.lessonDate)} · {lesson.startTime}–{lesson.endTime}
+                      </p>
+                      <div className="flex gap-2">
+                        <StatusBadge status={lesson.status} label={labels.lessonStatus[lesson.status]} />
+                        {lesson.attendance && <StatusBadge status={lesson.attendance} label={labels.attendance[lesson.attendance]} />}
+                      </div>
+                    </div>
+                    <p className="text-[0.8125rem] text-muted">
+                      {lesson.durationMinutes} min · {labels.vehicleType[lesson.vehicleType]} · {lesson.instructorName}
+                    </p>
+                    {lesson.feedback && <p className="rounded-xl bg-page px-3 py-2 text-[0.8125rem] text-ink">Feedback: {lesson.feedback.text}</p>}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </section>
+      </div>
+    </>
+  );
+}

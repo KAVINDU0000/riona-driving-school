@@ -12,6 +12,8 @@ type Values = {
   dateOfBirth: string;
   nic: string;
   mobile: string;
+  email: string;
+  password: string;
   address: string;
   packageId: string;
   notes: string;
@@ -19,11 +21,18 @@ type Values = {
 
 type Errors = Partial<Record<keyof Values, string>>;
 
+// Same limits as the server (src/lib/auth/password.ts and src/lib/auth/http.ts). Kept here so this
+// client component does not import server-only modules.
+const PASSWORD_MIN_LENGTH = 8;
+const PASSWORD_MAX_LENGTH = 128;
+
 const initialValues: Values = {
   fullName: "",
   dateOfBirth: "",
   nic: "",
   mobile: "",
+  email: "",
+  password: "",
   address: "",
   packageId: "",
   notes: "",
@@ -35,6 +44,11 @@ function validate(values: Values): Errors {
   if (!values.dateOfBirth) errors.dateOfBirth = "Select your date of birth.";
   if (!/^(\d{9}[VvXx]|\d{12})$/.test(values.nic.trim())) errors.nic = "Enter a valid NIC number.";
   if (!/^0\d{9}$/.test(values.mobile.replace(/\s/g, ""))) errors.mobile = "Enter a valid 10-digit mobile number, e.g. 0771234567.";
+  const email = values.email.trim();
+  if (!email || email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.email = "Enter a valid email address.";
+  if (values.password.length < PASSWORD_MIN_LENGTH || values.password.length > PASSWORD_MAX_LENGTH) {
+    errors.password = `Password must be ${PASSWORD_MIN_LENGTH}–${PASSWORD_MAX_LENGTH} characters.`;
+  }
   if (!values.address.trim()) errors.address = "Enter your residential address.";
   if (!values.packageId) errors.packageId = "Select a training package.";
   return errors;
@@ -162,6 +176,41 @@ export default function SignupForm() {
             onChange={update("mobile")}
             aria-invalid={Boolean(errors.mobile)}
             className={`h-12 ${inputBase} ${borderFor("mobile")}`}
+          />
+        </div>
+      </Field>
+
+      <Field id="email" label="Email address *" error={errors.email}>
+        <div className="relative">
+          <Icon name="mail" className={iconClass} />
+          <input
+            id="email"
+            name="email"
+            type="email"
+            autoComplete="off"
+            inputMode="email"
+            placeholder="name@example.com"
+            value={values.email}
+            onChange={update("email")}
+            aria-invalid={Boolean(errors.email)}
+            className={`h-12 ${inputBase} ${borderFor("email")}`}
+          />
+        </div>
+      </Field>
+
+      <Field id="password" label="Password *" error={errors.password} hint={`${PASSWORD_MIN_LENGTH} to ${PASSWORD_MAX_LENGTH} characters.`}>
+        <div className="relative">
+          <Icon name="lock" className={iconClass} />
+          <input
+            id="password"
+            name="password"
+            type="password"
+            autoComplete="new-password"
+            placeholder="Create a password"
+            value={values.password}
+            onChange={update("password")}
+            aria-invalid={Boolean(errors.password)}
+            className={`h-12 ${inputBase} ${borderFor("password")}`}
           />
         </div>
       </Field>

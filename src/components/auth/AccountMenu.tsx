@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import Icon from "@/components/ui/Icon";
 import { portalPathForRole } from "@/lib/auth/portal";
 
 type MenuState = { status: "loading" } | { status: "signed-out" } | { status: "signed-in"; portalPath: string };
@@ -69,8 +70,13 @@ export default function AccountMenu() {
 
   if (state.status === "signed-out") {
     return (
-      <Link href="/login" className={linkClass}>
-        Sign in
+      <Link
+        href="/login"
+        aria-label="Sign in to your account"
+        title="Sign in"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-muted ring-1 ring-line transition-colors hover:bg-gold-soft hover:text-ink hover:ring-gold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark"
+      >
+        <Icon name="user" className="h-[18px] w-[18px]" />
       </Link>
     );
   }
