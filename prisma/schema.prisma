@@ -6,3 +6,511 @@ generator client {
 datasource db {
   provider = "postgresql"
 }
+
+enum UserRole {
+  ADMIN
+  STUDENT
+  INSTRUCTOR
+}
+
+enum AccountStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum RegistrationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PackageType {
+  REGULAR
+  TRIAL_PREPARATION
+  ADDITIONAL_VEHICLE
+  DAILY
+}
+
+enum VehicleType {
+  CAR
+  VAN
+  MOTORCYCLE
+  THREE_WHEELER
+}
+
+enum TrainingType {
+  REGULAR
+  TRIAL_PREPARATION
+  DAILY
+}
+
+enum TransmissionType {
+  MANUAL
+  AUTOMATIC
+  NOT_APPLICABLE
+}
+
+enum VehicleStatus {
+  ACTIVE
+  MAINTENANCE
+  INACTIVE
+}
+
+enum PaymentMethod {
+  BANK_TRANSFER
+  BANK_DEPOSIT
+}
+
+enum PaymentStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum PaymentReviewDecision {
+  APPROVED
+  REJECTED
+}
+
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum LessonScheduleStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
+enum AttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+}
+
+enum MedicalAppointmentStatus {
+  SCHEDULED
+  COMPLETED
+  RESCHEDULED
+  CANCELLED
+}
+
+enum ExamType {
+  WRITTEN
+  OFFICIAL_DRIVING_TRIAL
+  OTHER
+}
+
+enum ExamStatus {
+  SCHEDULED
+  COMPLETED
+  RESCHEDULED
+  CANCELLED
+}
+
+enum ExamResult {
+  PASS
+  FAIL
+  PENDING
+}
+
+enum AppointmentType {
+  MEDICAL
+  EXAM
+}
+
+model User {
+  userId                       String                   @id // STU-001, INS-001, ADMIN-001
+  email                        String                   @unique
+  passwordHash                 String
+  role                         UserRole
+  status                       AccountStatus            @default(ACTIVE)
+  createdAt                    DateTime                 @default(now())
+  updatedAt                    DateTime                 @updatedAt
+  studentProfile               StudentProfile?
+  instructorProfile            InstructorProfile?
+  sessions                     Session[]
+  passwordResetTokens          PasswordResetToken[]
+  emailChangeTokens            EmailChangeToken[]
+  reviewedPayments             Payment[]                @relation("PaymentReviewer")
+  paymentReviews               PaymentReviewHistory[]   @relation("PaymentReviewUser")
+  reviewedRegistrationRequests RegistrationRequest[]    @relation("RegistrationReviewer")
+  appointmentChanges           AppointmentDateHistory[] @relation("AppointmentChangedBy")
+  attendanceMarks              LessonSchedule[]         @relation("AttendanceMarker")
+
+  @@index([role, status])
+}
+
+model StudentProfile {
+  userId                      String               @id
+  fullName                    String
+  address                     String
+  birthday                    DateTime             @db.Date
+  nicNumber                   String               @unique
+  phoneNumber                 String
+  startDate                   DateTime?            @db.Date
+  createdAt                   DateTime             @default(now())
+  updatedAt                   DateTime             @updatedAt
+  user                        User                 @relation(fields: [userId], references: [userId], onDelete: Restrict)
+  approvedRegistrationRequest RegistrationRequest?
+  enrollments                 Enrollment[]
+  lessons                     LessonSchedule[]
+  medicalAppointments         StudentMedical[]
+  exams                       StudentExam[]
+
+  @@index([fullName])
+  @@index([phoneNumber])
+}
+
+model InstructorProfile {
+  userId          String                   @id
+  fullName        String
+  phoneNumber     String
+  hireDate        DateTime                 @db.Date
+  status          AccountStatus            @default(ACTIVE)
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  user            User                     @relation(fields: [userId], references: [userId], onDelete: Restrict)
+  availability    InstructorAvailability[]
+  lessonSchedules LessonSchedule[]
+  lessonFeedback  LessonFeedback[]
+
+  @@index([fullName])
+  @@index([status])
+}
+
+model RegistrationRequest {
+  id                       String             @id @default(cuid())
+  referenceNumber          String             @unique
+  status                   RegistrationStatus @default(PENDING)
+  fullName                 String
+  birthday                 DateTime           @db.Date
+  nicNumber                String
+  phoneNumber              String
+  address                  String
+  email                    String
+  passwordHash             String
+  additionalNote           String?
+  selectedPackageId        String
+  packagePriceAtSubmission Decimal            @db.Decimal(10, 2)
+  submittedAt              DateTime           @default(now())
+  reviewedAt               DateTime?
+  reviewedByUserId         String?
+  rejectionReason          String?
+  approvedStudentUserId    String?            @unique
+  createdAt                DateTime           @default(now())
+  updatedAt                DateTime           @updatedAt
+  selectedPackage          TrainingPackage    @relation(fields: [selectedPackageId], references: [id], onDelete: Restrict)
+  reviewedBy               User?              @relation("RegistrationReviewer", fields: [reviewedByUserId], references: [userId], onDelete: SetNull)
+  studentProfile           StudentProfile?    @relation(fields: [approvedStudentUserId], references: [userId], onDelete: Restrict)
+  payments                 Payment[]
+  enrollment               Enrollment?
+
+  @@index([status, submittedAt])
+  @@index([phoneNumber])
+  @@index([nicNumber])
+  @@index([email])
+}
+
+model TrainingPackage {
+  id                     String                @id @default(cuid())
+  name                   String
+  packageType            PackageType
+  description            String?
+  price                  Decimal               @db.Decimal(10, 2)
+  durationDays           Int?
+  sessionDurationMinutes Int?
+  isActive               Boolean               @default(true)
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+  items                  TrainingPackageItem[]
+  registrationRequests   RegistrationRequest[]
+  enrollments            Enrollment[]
+
+  @@index([packageType, isActive])
+  @@index([name])
+}
+
+model TrainingPackageItem {
+  id               String          @id @default(cuid())
+  packageId        String
+  vehicleType      VehicleType
+  trainingType     TrainingType
+  requiredSessions Int?
+  createdAt        DateTime        @default(now())
+  updatedAt        DateTime        @updatedAt
+  package          TrainingPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+
+  @@unique([packageId, vehicleType, trainingType])
+  @@index([vehicleType, trainingType])
+}
+
+model Vehicle {
+  id                 String           @id @default(cuid())
+  vehicleType        VehicleType
+  registrationNumber String           @unique
+  make               String?
+  model              String?
+  manufacturingYear  Int?
+  colour             String?
+  transmissionType   TransmissionType @default(NOT_APPLICABLE)
+  status             VehicleStatus    @default(ACTIVE)
+  description        String?
+  createdAt          DateTime         @default(now())
+  updatedAt          DateTime         @updatedAt
+  lessonSchedules    LessonSchedule[]
+
+  // Lets a lesson reference (vehicleId, vehicleType) so the database rejects a vehicle/type mismatch.
+  @@unique([id, vehicleType])
+  @@index([vehicleType, status])
+}
+
+model Payment {
+  id                    String                 @id @default(cuid())
+  registrationRequestId String?
+  enrollmentId          String?
+  amount                Decimal                @db.Decimal(10, 2)
+  paymentMethod         PaymentMethod
+  paymentDate           DateTime
+  status                PaymentStatus          @default(PENDING)
+  transactionReference  String?
+  bankName              String?
+  accountHolderName     String?
+  // Only the last four digits are stored. The full number is never persisted.
+  accountNumberLast4    String?                @db.VarChar(4)
+  branch                String?
+  reviewedByUserId      String?
+  lastReviewedAt        DateTime?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+  registrationRequest   RegistrationRequest?   @relation(fields: [registrationRequestId], references: [id], onDelete: Restrict)
+  enrollment            Enrollment?            @relation(fields: [enrollmentId], references: [id], onDelete: Restrict)
+  reviewedBy            User?                  @relation("PaymentReviewer", fields: [reviewedByUserId], references: [userId], onDelete: SetNull)
+  slips                 PaymentSlip[]
+  reviewHistory         PaymentReviewHistory[]
+
+  @@index([status, paymentDate])
+  @@index([registrationRequestId])
+  @@index([enrollmentId])
+  @@index([transactionReference])
+}
+
+model PaymentSlip {
+  id               String   @id @default(cuid())
+  paymentId        String
+  storageKey       String
+  originalFileName String
+  mimeType         String
+  fileSizeBytes    Int
+  uploadedAt       DateTime @default(now())
+  payment          Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
+
+  @@index([paymentId, uploadedAt])
+}
+
+model PaymentReviewHistory {
+  id             String                @id @default(cuid())
+  paymentId      String
+  reviewerUserId String
+  decision       PaymentReviewDecision
+  reason         String?
+  reviewedAt     DateTime              @default(now())
+  payment        Payment               @relation(fields: [paymentId], references: [id], onDelete: Restrict)
+  reviewer       User                  @relation("PaymentReviewUser", fields: [reviewerUserId], references: [userId], onDelete: Restrict)
+
+  @@index([paymentId, reviewedAt])
+}
+
+model Enrollment {
+  id                    String                          @id @default(cuid())
+  studentUserId         String
+  packageId             String
+  registrationRequestId String?                         @unique
+  enrollmentDate        DateTime                        @default(now())
+  agreedPrice           Decimal                         @db.Decimal(10, 2)
+  finalFee              Decimal                         @db.Decimal(10, 2)
+  status                EnrollmentStatus                @default(ACTIVE)
+  completedAt           DateTime?
+  createdAt             DateTime                        @default(now())
+  updatedAt             DateTime                        @updatedAt
+  student               StudentProfile                  @relation(fields: [studentUserId], references: [userId], onDelete: Restrict)
+  package               TrainingPackage                 @relation(fields: [packageId], references: [id], onDelete: Restrict)
+  registrationRequest   RegistrationRequest?            @relation(fields: [registrationRequestId], references: [id], onDelete: Restrict)
+  payments              Payment[]
+  trainingRequirements  EnrollmentTrainingRequirement[]
+
+  // A student may hold several active enrollments, including in the same package.
+  @@index([studentUserId, status])
+  @@index([packageId])
+}
+
+model EnrollmentTrainingRequirement {
+  id               String           @id @default(cuid())
+  enrollmentId     String
+  vehicleType      VehicleType
+  trainingType     TrainingType
+  requiredSessions Int
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  enrollment       Enrollment       @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  lessons          LessonSchedule[]
+
+  @@unique([enrollmentId, vehicleType, trainingType])
+}
+
+// One practical lesson: exactly one student, one instructor and one vehicle.
+// Overlap, availability, status and time-order rules are enforced in the migration SQL (exclusion
+// constraints, CHECK constraints and a booking trigger), because Prisma cannot express them.
+model LessonSchedule {
+  id                       String                        @id @default(cuid())
+  lessonDate               DateTime                      @db.Date
+  startTime                DateTime                      @db.Time(0)
+  endTime                  DateTime                      @db.Time(0)
+  durationMinutes          Int
+  instructorUserId         String
+  vehicleId                String
+  vehicleType              VehicleType
+  studentUserId            String
+  enrollmentId             String
+  trainingType             TrainingType
+  status                   LessonScheduleStatus          @default(SCHEDULED)
+  attendance               AttendanceStatus?
+  attendanceMarkedAt       DateTime?
+  attendanceMarkedByUserId String?
+  notes                    String?
+  createdAt                DateTime                      @default(now())
+  updatedAt                DateTime                      @updatedAt
+  instructor               InstructorProfile             @relation(fields: [instructorUserId], references: [userId], onDelete: Restrict)
+  vehicle                  Vehicle                       @relation(fields: [vehicleId, vehicleType], references: [id, vehicleType], onDelete: Restrict)
+  student                  StudentProfile                @relation(fields: [studentUserId], references: [userId], onDelete: Restrict)
+  requirement              EnrollmentTrainingRequirement @relation(fields: [enrollmentId, vehicleType, trainingType], references: [enrollmentId, vehicleType, trainingType], onDelete: Restrict)
+  attendanceMarkedBy       User?                         @relation("AttendanceMarker", fields: [attendanceMarkedByUserId], references: [userId], onDelete: SetNull)
+  feedback                 LessonFeedback?
+
+  @@index([lessonDate, startTime, endTime])
+  @@index([instructorUserId, lessonDate])
+  @@index([vehicleId, lessonDate])
+  @@index([studentUserId, lessonDate])
+  @@index([enrollmentId, status])
+}
+
+// Date-specific availability window. A lesson must fit entirely inside one window of its instructor.
+model InstructorAvailability {
+  id               String            @id @default(cuid())
+  instructorUserId String
+  availabilityDate DateTime          @db.Date
+  startTime        DateTime          @db.Time(0)
+  endTime          DateTime          @db.Time(0)
+  notes            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  instructor       InstructorProfile @relation(fields: [instructorUserId], references: [userId], onDelete: Cascade)
+
+  @@index([instructorUserId, availabilityDate])
+}
+
+model LessonFeedback {
+  id               String            @id @default(cuid())
+  lessonScheduleId String            @unique
+  instructorUserId String
+  feedback         String
+  rating           Int?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  lesson           LessonSchedule    @relation(fields: [lessonScheduleId], references: [id], onDelete: Cascade)
+  instructor       InstructorProfile @relation(fields: [instructorUserId], references: [userId], onDelete: Restrict)
+
+  @@index([instructorUserId, createdAt])
+}
+
+model StudentMedical {
+  id              String                   @id @default(cuid())
+  studentUserId   String
+  appointmentDate DateTime
+  status          MedicalAppointmentStatus @default(SCHEDULED)
+  description     String?
+  createdAt       DateTime                 @default(now())
+  updatedAt       DateTime                 @updatedAt
+  student         StudentProfile           @relation(fields: [studentUserId], references: [userId], onDelete: Restrict)
+  dateHistory     AppointmentDateHistory[] @relation("MedicalDateHistory")
+
+  @@index([studentUserId, appointmentDate])
+  @@index([status, appointmentDate])
+}
+
+model StudentExam {
+  id            String                   @id @default(cuid())
+  studentUserId String
+  examType      ExamType
+  vehicleType   VehicleType?
+  scheduledDate DateTime
+  status        ExamStatus               @default(SCHEDULED)
+  result        ExamResult?
+  description   String?
+  createdAt     DateTime                 @default(now())
+  updatedAt     DateTime                 @updatedAt
+  student       StudentProfile           @relation(fields: [studentUserId], references: [userId], onDelete: Restrict)
+  dateHistory   AppointmentDateHistory[] @relation("ExamDateHistory")
+
+  @@index([studentUserId, scheduledDate])
+  @@index([status, scheduledDate])
+}
+
+model AppointmentDateHistory {
+  id                 String          @id @default(cuid())
+  appointmentType    AppointmentType
+  studentMedicalId   String?
+  studentExamId      String?
+  previousDate       DateTime
+  newDate            DateTime
+  reason             String?
+  changedByUserId    String
+  changedAt          DateTime        @default(now())
+  medicalAppointment StudentMedical? @relation("MedicalDateHistory", fields: [studentMedicalId], references: [id], onDelete: Restrict)
+  exam               StudentExam?    @relation("ExamDateHistory", fields: [studentExamId], references: [id], onDelete: Restrict)
+  changedBy          User            @relation("AppointmentChangedBy", fields: [changedByUserId], references: [userId], onDelete: Restrict)
+
+  @@index([studentMedicalId, changedAt])
+  @@index([studentExamId, changedAt])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([expiresAt])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  tokenHash String    @unique
+  userId    String
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+model EmailChangeToken {
+  id        String    @id @default(cuid())
+  userId    String
+  newEmail  String
+  tokenHash String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+  user      User      @relation(fields: [userId], references: [userId], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+  @@index([newEmail])
+}
