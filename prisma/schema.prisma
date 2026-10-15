@@ -56,6 +56,12 @@ enum VehicleStatus {
   INACTIVE
 }
 
+enum VehicleAuditAction {
+  CREATED
+  UPDATED
+  STATUS_CHANGED
+}
+
 enum PaymentMethod {
   BANK_TRANSFER
   BANK_DEPOSIT
@@ -139,9 +145,11 @@ model User {
   reviewedRegistrationRequests  RegistrationRequest[]        @relation("RegistrationReviewer")
   appointmentChanges            AppointmentDateHistory[]     @relation("AppointmentChangedBy")
   attendanceMarks               LessonSchedule[]             @relation("AttendanceMarker")
+  lessonsCancelled              LessonSchedule[]             @relation("LessonCanceller")
   packagePriceChanges           TrainingPackagePriceChange[] @relation("PackagePriceChanger")
   packageRequirementChanges     TrainingPackageItemChange[]  @relation("PackageRequirementChanger")
   packagesRequirementsConfirmed TrainingPackage[]            @relation("PackageRequirementConfirmer")
+  vehicleAuditLogs              VehicleAuditLog[]            @relation("VehicleAuditActor")
 
   @@index([role, status])
 }
@@ -303,10 +311,29 @@ model Vehicle {
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
   lessonSchedules    LessonSchedule[]
+  auditLogs          VehicleAuditLog[]
 
   // Lets a lesson reference (vehicleId, vehicleType) so the database rejects a vehicle/type mismatch.
   @@unique([id, vehicleType])
   @@index([vehicleType, status])
+}
+
+// Append-only record of changes to a vehicle. Rows are never updated or deleted (enforced by a trigger).
+model VehicleAuditLog {
+  id             String             @id @default(cuid())
+  vehicleId      String
+  action         VehicleAuditAction
+  previousStatus VehicleStatus?
+  newStatus      VehicleStatus?
+  // The vehicle's own non-sensitive fields as { field: { from, to } }, or the lesson IDs and resolutions for a status change.
+  changes        Json?
+  actorUserId    String
+  createdAt      DateTime           @default(now())
+  vehicle        Vehicle            @relation(fields: [vehicleId], references: [id], onDelete: Restrict)
+  actor          User               @relation("VehicleAuditActor", fields: [actorUserId], references: [userId], onDelete: Restrict)
+
+  @@index([vehicleId, createdAt])
+  @@index([actorUserId, createdAt])
 }
 
 model Payment {
@@ -422,6 +449,9 @@ model LessonSchedule {
   attendanceMarkedAt       DateTime?
   attendanceMarkedByUserId String?
   notes                    String?
+  cancellationReason       String?
+  cancelledAt              DateTime?
+  cancelledByUserId        String?
   createdAt                DateTime                      @default(now())
   updatedAt                DateTime                      @updatedAt
   instructor               InstructorProfile             @relation(fields: [instructorUserId], references: [userId], onDelete: Restrict)
@@ -429,6 +459,7 @@ model LessonSchedule {
   student                  StudentProfile                @relation(fields: [studentUserId], references: [userId], onDelete: Restrict)
   requirement              EnrollmentTrainingRequirement @relation(fields: [enrollmentId, vehicleType, trainingType], references: [enrollmentId, vehicleType, trainingType], onDelete: Restrict)
   attendanceMarkedBy       User?                         @relation("AttendanceMarker", fields: [attendanceMarkedByUserId], references: [userId], onDelete: SetNull)
+  cancelledBy              User?                         @relation("LessonCanceller", fields: [cancelledByUserId], references: [userId], onDelete: SetNull)
   feedback                 LessonFeedback?
 
   @@index([lessonDate, startTime, endTime])

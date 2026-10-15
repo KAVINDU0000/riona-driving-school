@@ -114,7 +114,7 @@ describe("instructor lessons", () => {
       expect(await statusOf(getLessonDetail("INS-1", "L2"))).toBe(404);
       expect(await statusOf(recordAttendance("INS-1", "PAST-2", AttendanceStatus.PRESENT))).toBe(404);
       expect(await statusOf(completeLesson("INS-1", "PAST-2"))).toBe(404);
-      expect(await statusOf(cancelLesson("INS-1", "L2"))).toBe(404);
+      expect(await statusOf(cancelLesson("INS-1", "L2", "Instructor unavailable"))).toBe(404);
     });
 
     it("rejects a schedule request from a student and one with no session", async () => {
@@ -127,7 +127,7 @@ describe("instructor lessons", () => {
 
     it("never returns another instructor's lesson through the API, even with its ID", async () => {
       const cookie = await cookieFor("INS-1");
-      const response = await cancelRoute(postRequest("/api/instructor/lessons/L2/cancel", {}, { cookie }), {
+      const response = await cancelRoute(postRequest("/api/instructor/lessons/L2/cancel", { reason: "Instructor unavailable" }, { cookie }), {
         params: Promise.resolve({ id: "L2" }),
       });
       expect(response.status).toBe(404);
@@ -137,7 +137,7 @@ describe("instructor lessons", () => {
 
     it("rejects a state-changing request from another origin", async () => {
       const cookie = await cookieFor("INS-1");
-      const response = await cancelRoute(postRequest("/api/instructor/lessons/L1/cancel", {}, { cookie, origin: "https://evil.example" }), {
+      const response = await cancelRoute(postRequest("/api/instructor/lessons/L1/cancel", { reason: "Instructor unavailable" }, { cookie, origin: "https://evil.example" }), {
         params: Promise.resolve({ id: "L1" }),
       });
       expect(response.status).toBe(403);
@@ -157,7 +157,7 @@ describe("instructor lessons", () => {
 
     it("refuses attendance for a future lesson and for a cancelled lesson", async () => {
       expect(await statusOf(recordAttendance("INS-1", "L1", AttendanceStatus.PRESENT))).toBe(409);
-      await cancelLesson("INS-1", "PAST-1");
+      await cancelLesson("INS-1", "PAST-1", "Instructor unavailable");
       expect(await statusOf(recordAttendance("INS-1", "PAST-1", AttendanceStatus.PRESENT))).toBe(409);
     });
   });
@@ -178,10 +178,34 @@ describe("instructor lessons", () => {
     });
 
     it("cancels a scheduled lesson but keeps the record, and refuses a second cancellation", async () => {
-      await cancelLesson("INS-1", "L1");
+      await cancelLesson("INS-1", "L1", "Instructor unavailable");
       const row = await prisma.lessonSchedule.findUnique({ where: { id: "L1" } });
       expect(row?.status).toBe(LessonScheduleStatus.CANCELLED);
-      expect(await statusOf(cancelLesson("INS-1", "L1"))).toBe(409);
+      expect(await statusOf(cancelLesson("INS-1", "L1", "Instructor unavailable"))).toBe(409);
+    });
+
+    it("stores the reason, the instructor who cancelled and the time on the lesson", async () => {
+      const before = Date.now();
+      await cancelLesson("INS-1", "L1", "  Instructor unavailable  ");
+      const row = await prisma.lessonSchedule.findUnique({ where: { id: "L1" } });
+      expect(row?.cancellationReason).toBe("Instructor unavailable");
+      expect(row?.cancelledByUserId).toBe("INS-1");
+      expect(row!.cancelledAt!.getTime()).toBeGreaterThanOrEqual(before - 1000);
+    });
+
+    it("refuses a missing or blank reason and changes nothing", async () => {
+      expect(await statusOf(cancelLesson("INS-1", "L1", undefined))).toBe(400);
+      expect(await statusOf(cancelLesson("INS-1", "L1", "   "))).toBe(400);
+      expect((await prisma.lessonSchedule.findUnique({ where: { id: "L1" } }))?.status).toBe(LessonScheduleStatus.SCHEDULED);
+    });
+
+    it("the API refuses a request with no reason", async () => {
+      const cookie = await cookieFor("INS-1");
+      const response = await cancelRoute(postRequest("/api/instructor/lessons/L1/cancel", {}, { cookie }), {
+        params: Promise.resolve({ id: "L1" }),
+      });
+      expect(response.status).toBe(400);
+      expect((await prisma.lessonSchedule.findUnique({ where: { id: "L1" } }))?.status).toBe(LessonScheduleStatus.SCHEDULED);
     });
   });
 

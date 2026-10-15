@@ -148,6 +148,7 @@ test("the applicant resubmits with the earlier bank details, and the admin appro
 
   await checkStatus(page);
   await expect(page.getByRole("heading", { name: "Payment approved" })).toBeVisible();
-  await expect(page.getByText("WhatsApp you your user ID", { exact: false })).toBeVisible();
+  await expect(page.getByText("Your payment has been approved.")).toBeVisible();
+  await expect(page.getByText("WhatsApp", { exact: false })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "Resubmit payment" })).toHaveCount(0);
 });

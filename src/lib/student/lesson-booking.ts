@@ -256,6 +256,9 @@ export async function bookPracticalLesson(request: BookingRequest): Promise<Book
       const lesson = await prisma.$transaction(async (tx) => {
         // Serialises bookings for this requirement, so the session count below cannot be raced.
         await tx.$queryRaw`SELECT id FROM "EnrollmentTrainingRequirement" WHERE id = ${requirement.id} FOR UPDATE`;
+        // A shared lock on the vehicle: a status change to maintenance or inactive waits for this booking to commit,
+        // so it cannot retire the vehicle between the check and the insert.
+        await tx.$queryRaw`SELECT id FROM "Vehicle" WHERE id = ${pair.vehicleId} FOR SHARE`;
 
         const booked = await countBookedSessions(requirementKey(requirement, request.enrollmentId), tx);
         if (booked >= requirement.requiredSessions) {

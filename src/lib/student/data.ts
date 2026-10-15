@@ -1,5 +1,6 @@
 import { LessonScheduleStatus, MedicalAppointmentStatus, ExamStatus, PaymentStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
+import { studentCancellation, type StudentCancellation } from "@/lib/lessons/cancellation";
 import { dateToString, parseDateOnly, schoolNow, timeToString } from "@/lib/student/time";
 
 /**
@@ -140,6 +141,8 @@ export type LessonRow = {
   instructorName: string;
   vehicleLabel: string;
   feedback: { text: string; rating: number | null } | null;
+  /** Set only for a cancelled lesson. Historical cancellations show a null reason and actor. */
+  cancellation: StudentCancellation | null;
 };
 
 function lessonRow(lesson: {
@@ -155,6 +158,9 @@ function lessonRow(lesson: {
   instructor: { fullName: string };
   vehicle: { make: string | null; model: string | null };
   feedback: { feedback: string; rating: number | null } | null;
+  cancellationReason: string | null;
+  cancelledAt: Date | null;
+  cancelledBy: { role: string } | null;
 }): LessonRow {
   return {
     id: lesson.id,
@@ -169,6 +175,8 @@ function lessonRow(lesson: {
     instructorName: lesson.instructor.fullName,
     vehicleLabel: [lesson.vehicle.make, lesson.vehicle.model].filter(Boolean).join(" ") || lesson.vehicleType,
     feedback: lesson.feedback ? { text: lesson.feedback.feedback, rating: lesson.feedback.rating } : null,
+    // Only the student's own lesson, and only the reason, the time and the kind of person who cancelled it.
+    cancellation: lesson.status === LessonScheduleStatus.CANCELLED ? studentCancellation(lesson) : null,
   };
 }
 
@@ -185,14 +193,18 @@ const lessonSelect = {
   instructor: { select: { fullName: true } },
   vehicle: { select: { make: true, model: true } },
   feedback: { select: { feedback: true, rating: true } },
+  cancellationReason: true,
+  cancelledAt: true,
+  // The role only. The name and ID of the person who cancelled are never selected for students.
+  cancelledBy: { select: { role: true } },
 } as const;
 
-/** The student's own lessons. Upcoming first, then the most recent past lessons. */
+/** The student's own lessons. Upcoming first (cancelled ones included, so the reason is seen), then the most recent past lessons. */
 export async function getLessons(userId: string) {
   const today = todayDate();
   const [upcoming, past] = await Promise.all([
     prisma.lessonSchedule.findMany({
-      where: { studentUserId: userId, lessonDate: { gte: today }, status: { not: LessonScheduleStatus.CANCELLED } },
+      where: { studentUserId: userId, lessonDate: { gte: today } },
       orderBy: [{ lessonDate: "asc" }, { startTime: "asc" }],
       take: 100,
       select: lessonSelect,

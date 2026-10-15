@@ -8,6 +8,7 @@ const SECTIONS = [
   { href: "/portal/admin/registrations", label: "Registrations" },
   { href: "/portal/admin/students", label: "Students" },
   { href: "/portal/admin/instructors", label: "Instructors" },
+  { href: "/portal/admin/vehicles", label: "Vehicles" },
   { href: "/portal/admin/packages", label: "Packages" },
 ] as const;
 

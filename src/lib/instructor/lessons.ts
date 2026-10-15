@@ -1,5 +1,6 @@
 import { AttendanceStatus, LessonScheduleStatus, VehicleStatus } from "@/generated/prisma/enums";
 import { AuthError } from "@/lib/auth/http";
+import { parseCancellationReason } from "@/lib/lessons/cancellation";
 import { prisma } from "@/lib/prisma";
 import { dateToString, minutesOfDay, parseDateOnly, schoolNow, timeToString } from "@/lib/student/time";
 import {
@@ -315,10 +316,12 @@ export async function completeLesson(instructorUserId: string, lessonId: string)
 }
 
 /**
- * Cancels a scheduled lesson. The row is kept, so the history stays intact. No replacement lesson is created
- * and the student is not rescheduled.
+ * Cancels a scheduled lesson. The row is kept, so the history stays intact. The reason is required, and the
+ * instructor and time are recorded on the lesson. No replacement lesson is created and the student is not
+ * rescheduled. Session balances and payments are not changed.
  */
-export async function cancelLesson(instructorUserId: string, lessonId: string) {
+export async function cancelLesson(instructorUserId: string, lessonId: string, reasonInput: unknown) {
+  const reason = parseCancellationReason(reasonInput);
   const lesson = await prisma.lessonSchedule.findFirst({
     where: { id: lessonId, instructorUserId },
     select: { status: true },
@@ -331,7 +334,12 @@ export async function cancelLesson(instructorUserId: string, lessonId: string) {
 
   const result = await prisma.lessonSchedule.updateMany({
     where: { id: lessonId, instructorUserId, status: LessonScheduleStatus.SCHEDULED },
-    data: { status: LessonScheduleStatus.CANCELLED },
+    data: {
+      status: LessonScheduleStatus.CANCELLED,
+      cancellationReason: reason,
+      cancelledAt: new Date(),
+      cancelledByUserId: instructorUserId,
+    },
   });
   if (result.count !== 1) throw new AuthError(409, CHANGED_MESSAGE);
   return { status: LessonScheduleStatus.CANCELLED };

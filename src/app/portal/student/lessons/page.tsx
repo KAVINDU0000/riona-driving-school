@@ -6,8 +6,29 @@ import StatusBadge from "@/components/student/StatusBadge";
 import { allowedDurations } from "@/lib/student/lesson-booking";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
 import { getEnrollments, getLessons } from "@/lib/student/data";
+import type { StudentCancellation } from "@/lib/lessons/cancellation";
 
 export const metadata = { title: "Lessons | Student portal", robots: { index: false, follow: false } };
+
+/**
+ * The cancellation reason and details. A lesson cancelled before reasons were recorded shows that no reason exists,
+ * rather than a guess. Notices are shown on this page only: the school does not send email about lesson cancellations.
+ */
+function CancellationNote({ cancellation }: { cancellation: StudentCancellation }) {
+  const when = cancellation.cancelledAt
+    ? new Date(cancellation.cancelledAt).toLocaleString("en-GB", { timeZone: "Asia/Colombo", dateStyle: "medium", timeStyle: "short" })
+    : null;
+  const who = cancellation.cancelledBy === "SCHOOL" ? "the school" : cancellation.cancelledBy === "INSTRUCTOR" ? "your instructor" : null;
+  return (
+    <div className="rounded-xl bg-page px-3 py-2 text-[0.8125rem] text-ink">
+      <p>
+        {who ? `Cancelled by ${who}` : "Cancelled"}
+        {when ? ` on ${when}` : ""}.
+      </p>
+      <p>{cancellation.reason ? `Reason: ${cancellation.reason}` : "No reason was recorded for this cancellation."}</p>
+    </div>
+  );
+}
 
 export default async function StudentLessonsPage() {
   const user = await requirePortalUser("STUDENT");
@@ -64,6 +85,7 @@ export default async function StudentLessonsPage() {
                       <p className="text-[0.8125rem] text-muted">
                         {lesson.durationMinutes} min · {labels.vehicleType[lesson.vehicleType]} · {lesson.instructorName}
                       </p>
+                      {lesson.cancellation && <CancellationNote cancellation={lesson.cancellation} />}
                     </div>
                     <StatusBadge status={lesson.status} label={labels.lessonStatus[lesson.status]} />
                   </li>
@@ -96,6 +118,7 @@ export default async function StudentLessonsPage() {
                     <p className="text-[0.8125rem] text-muted">
                       {lesson.durationMinutes} min · {labels.vehicleType[lesson.vehicleType]} · {lesson.instructorName}
                     </p>
+                    {lesson.cancellation && <CancellationNote cancellation={lesson.cancellation} />}
                     {lesson.feedback && <p className="rounded-xl bg-page px-3 py-2 text-[0.8125rem] text-ink">Feedback: {lesson.feedback.text}</p>}
                   </li>
                 ))}

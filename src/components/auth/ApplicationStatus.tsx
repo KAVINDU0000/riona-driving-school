@@ -210,29 +210,18 @@ export default function ApplicationStatus() {
 
       {status.status === "APPROVED" && (
         <Panel tone="ok" title="Your application is approved">
-          {status.studentUserId ? (
+          {status.studentUserId && (
             <p className="font-semibold">
               Your user ID: <span className="font-bold tracking-[0.04em]">{status.studentUserId}</span>
             </p>
-          ) : (
-            <p>Your user ID will be sent to you on WhatsApp.</p>
           )}
+          <p className="mt-2">Sign in with this user ID and the password you chose at signup.</p>
         </Panel>
       )}
 
       {latest?.status === "APPROVED" && (
         <Panel tone="ok" title="Payment approved">
           <p>Your payment has been approved.</p>
-          <p className="mt-2">
-            {status.studentUserId ? (
-              <>
-                The school owner will WhatsApp you your user ID (<span className="font-semibold">{status.studentUserId}</span>) and
-                login details.
-              </>
-            ) : (
-              <>The school owner will WhatsApp you your user ID and login details.</>
-            )}
-          </p>
         </Panel>
       )}
 

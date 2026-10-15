@@ -21,6 +21,7 @@ type Props = {
 
 const ATTENDANCE_OPTIONS: Attendance[] = ["PRESENT", "ABSENT", "LATE"];
 const FEEDBACK_MAX = 2000;
+const CANCEL_REASON_MAX = 300;
 
 const BUTTON =
   "inline-flex items-center justify-center rounded-xl px-5 py-2.5 text-[0.9375rem] font-semibold ring-1 transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark disabled:opacity-60";
@@ -41,6 +42,8 @@ export default function LessonActions({ lessonId, attendance, permissions, feedb
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [confirm, setConfirm] = useState<"complete" | "cancel" | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [cancelReasonError, setCancelReasonError] = useState("");
   const [text, setText] = useState(feedback?.feedback ?? "");
   const [rating, setRating] = useState(feedback?.rating ? String(feedback.rating) : "");
 
@@ -74,8 +77,15 @@ export default function LessonActions({ lessonId, attendance, permissions, feedb
   }
 
   async function cancel() {
+    const reason = cancelReason.trim();
+    if (!reason) {
+      setCancelReasonError("Enter the reason for cancelling this lesson.");
+      return;
+    }
+    setCancelReasonError("");
     setConfirm(null);
-    await send("cancel", { method: "POST" }, "Lesson cancelled. Its record has been kept.");
+    await send("cancel", { method: "POST", body: JSON.stringify({ reason }) }, "Lesson cancelled. Its record has been kept.");
+    setCancelReason("");
   }
 
   async function saveFeedback(event: FormEvent<HTMLFormElement>) {
@@ -207,6 +217,23 @@ export default function LessonActions({ lessonId, attendance, permissions, feedb
         onCancel={() => setConfirm(null)}
       >
         <p>The lesson stays in the record as cancelled. No replacement lesson is booked and the student is not rescheduled.</p>
+        <label className="mt-4 grid gap-1.5 text-[0.8125rem] font-semibold text-ink">
+          Reason for cancelling (shown to the student)
+          <textarea
+            value={cancelReason}
+            onChange={(event) => setCancelReason(event.target.value)}
+            maxLength={CANCEL_REASON_MAX}
+            rows={3}
+            aria-invalid={Boolean(cancelReasonError)}
+            aria-describedby={cancelReasonError ? "cancel-reason-error" : undefined}
+            className="w-full rounded-xl border border-line bg-white px-3 py-2 text-[0.9375rem] font-normal text-ink focus:border-gold-dark focus:outline-none focus:ring-4 focus:ring-gold/25"
+          />
+        </label>
+        {cancelReasonError && (
+          <p id="cancel-reason-error" role="alert" className="mt-2 text-[0.8125rem] text-red-600">
+            {cancelReasonError}
+          </p>
+        )}
       </ConfirmDialog>
     </div>
   );
