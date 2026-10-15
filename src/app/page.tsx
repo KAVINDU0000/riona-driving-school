@@ -16,7 +16,7 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       <div className="page-atmosphere" aria-hidden="true" />
-      <Navbar />
+      <Navbar hideApply />
 
       <main className="flex-1">
         <Hero />

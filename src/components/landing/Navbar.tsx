@@ -4,8 +4,8 @@ import Icon from "@/components/ui/Icon";
 import Link from "next/link";
 import { DesktopNav, MobileNav } from "@/components/public/PublicNav";
 import { site } from "@/data/landing";
-/** Floating glass navigation surface that spans the full viewport width. */
-export default function Navbar() {
+/** Floating glass navigation surface that spans the full viewport width. `hideApply` removes the Apply now button. */
+export default function Navbar({ hideApply = false }: { hideApply?: boolean }) {
   return (
     <header className="sticky top-0 z-50 pt-5">
       <div className="w-full px-4 md:px-8">
@@ -30,12 +30,14 @@ export default function Navbar() {
               <Icon name="phone" className="h-4 w-4" />
               {site.phone}
             </a>
-            <Link
-              href="/signup"
-              className="inline-flex items-center rounded-xl px-4 py-2.5 text-[0.875rem] font-semibold text-ink ring-1 ring-line transition-colors hover:bg-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark"
-            >
-              Apply now
-            </Link>
+            {!hideApply && (
+              <Link
+                href="/signup"
+                className="inline-flex items-center rounded-xl px-4 py-2.5 text-[0.875rem] font-semibold text-ink ring-1 ring-line transition-colors hover:bg-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark"
+              >
+                Apply now
+              </Link>
+            )}
             <a
               href={site.whatsapp}
               target="_blank"
@@ -64,9 +66,11 @@ export default function Navbar() {
               >
                 WhatsApp
               </a>
-              <Link href="/signup" className="mt-2 block rounded-xl px-5 py-3 text-center text-sm font-semibold text-ink ring-1 ring-line">
-                Apply now
-              </Link>
+              {!hideApply && (
+                <Link href="/signup" className="mt-2 block rounded-xl px-5 py-3 text-center text-sm font-semibold text-ink ring-1 ring-line">
+                  Apply now
+                </Link>
+              )}
               <div className="flex justify-center pt-2">
                 <AccountMenu />
               </div>
