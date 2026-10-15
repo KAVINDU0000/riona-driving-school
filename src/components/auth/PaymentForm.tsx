@@ -15,12 +15,20 @@ export interface SelectedPackage {
 
 interface PaymentFormProps {
   pkg: SelectedPackage;
+  /** The application reference from the signup link, or an empty string when the link did not carry one. */
+  applicationReference: string;
 }
 
 type BankFields = { bankName: string; accountName: string; accountNumber: string; branch: string };
-type FormErrors = Partial<Record<keyof BankFields | "paymentDate" | "slip", string>>;
+type ApplicantFields = { referenceNumber: string; email: string; password: string };
+type FormErrors = Partial<
+  Record<keyof BankFields | keyof ApplicantFields | "paymentDate" | "slip" | "reference", string>
+>;
 
 const emptyBank: BankFields = { bankName: "", accountName: "", accountNumber: "", branch: "" };
+
+/** The payment method values the server accepts, matched to the options shown on this page. */
+const SERVER_METHOD: Record<string, string> = { "bank-transfer": "BANK_TRANSFER", "bank-deposit": "BANK_DEPOSIT" };
 
 const inputBase =
   "h-12 w-full rounded-xl border bg-white pl-11 pr-4 text-[0.9375rem] text-ink placeholder:text-muted/70 transition-[border-color,box-shadow] focus:border-gold-dark focus:outline-none focus:ring-4 focus:ring-gold/25";
@@ -42,15 +50,25 @@ function Field({ id, label, error, children }: { id: string; label: string; erro
   );
 }
 
-/** Payment step: shows the selected package and bank details, then collects the payment slip. Submission is not connected to a server yet. */
-export default function PaymentForm({ pkg }: PaymentFormProps) {
+/**
+ * Payment step. The applicant confirms their application (reference, email and password), gives their bank
+ * details and uploads the slip. The server checks all of it and records a PENDING payment for admin review.
+ */
+export default function PaymentForm({ pkg, applicationReference }: PaymentFormProps) {
+  const [applicant, setApplicant] = useState<ApplicantFields>({ referenceNumber: applicationReference, email: "", password: "" });
   const [method, setMethod] = useState<string>(paymentMethods[0].value);
   const [paymentDate, setPaymentDate] = useState("");
   const [reference, setReference] = useState("");
   const [slip, setSlip] = useState<File | null>(null);
   const [bank, setBank] = useState<BankFields>(emptyBank);
   const [errors, setErrors] = useState<FormErrors>({});
-  const [notice, setNotice] = useState("");
+  const [serverError, setServerError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [submittedReference, setSubmittedReference] = useState<string | null>(null);
+
+  function updateApplicant(field: keyof ApplicantFields) {
+    return (event: ChangeEvent<HTMLInputElement>) => setApplicant((current) => ({ ...current, [field]: event.target.value }));
+  }
 
   function updateBank(field: keyof BankFields) {
     return (event: ChangeEvent<HTMLInputElement>) => setBank((current) => ({ ...current, [field]: event.target.value }));
@@ -71,17 +89,86 @@ export default function PaymentForm({ pkg }: PaymentFormProps) {
     }
   }
 
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  function checkBeforeSending(): FormErrors {
     const nextErrors: FormErrors = {};
+    if (!/^RDS-[0-9A-Fa-f]{10}$/.test(applicant.referenceNumber.trim())) nextErrors.referenceNumber = "Enter the reference number from your application.";
+    if (!applicant.email.trim()) nextErrors.email = "Enter the email address you used at signup.";
+    if (!applicant.password) nextErrors.password = "Enter the password you chose at signup.";
     if (!bank.bankName.trim()) nextErrors.bankName = "Enter the name of your bank.";
     if (!bank.accountName.trim()) nextErrors.accountName = "Enter the account holder's name.";
     if (!/^\d{6,20}$/.test(bank.accountNumber.replace(/\s/g, ""))) nextErrors.accountNumber = "Enter a valid account number (digits only).";
     if (!bank.branch.trim()) nextErrors.branch = "Enter your bank branch.";
     if (!paymentDate) nextErrors.paymentDate = "Select the date you made the payment.";
     if (!slip) nextErrors.slip = errors.slip ?? "Upload a photo or PDF of your payment slip.";
+    return nextErrors;
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (submitting) return;
+    const nextErrors = checkBeforeSending();
     setErrors(nextErrors);
-    setNotice(Object.keys(nextErrors).length ? "" : "Payment submission is not connected to a server yet.");
+    setServerError("");
+    if (Object.keys(nextErrors).length > 0 || !slip) return;
+
+    const body = new FormData();
+    body.append("referenceNumber", applicant.referenceNumber.trim().toUpperCase());
+    body.append("email", applicant.email.trim());
+    body.append("password", applicant.password);
+    body.append("paymentMethod", SERVER_METHOD[method] ?? "BANK_TRANSFER");
+    body.append("paymentDate", paymentDate);
+    body.append("reference", reference.trim());
+    body.append("bankName", bank.bankName.trim());
+    body.append("accountName", bank.accountName.trim());
+    body.append("accountNumber", bank.accountNumber.replace(/\s/g, ""));
+    body.append("branch", bank.branch.trim());
+    body.append("slip", slip);
+
+    setSubmitting(true);
+    try {
+      const response = await fetch("/api/registration/payment", {
+        method: "POST",
+        body,
+        credentials: "same-origin",
+        cache: "no-store",
+      });
+      const data = (await response.json().catch(() => ({}))) as {
+        error?: string;
+        fields?: Partial<Record<string, string>>;
+      };
+
+      if (response.ok) {
+        setSubmittedReference(applicant.referenceNumber.trim().toUpperCase());
+        return;
+      }
+
+      // Put each server message next to its input. The server uses the same field names as this form.
+      const fieldErrors: FormErrors = {};
+      for (const [name, message] of Object.entries(data.fields ?? {})) {
+        if (message) fieldErrors[name as keyof FormErrors] = message;
+      }
+      setErrors(fieldErrors);
+      setServerError(data.error ?? "Your payment slip could not be sent. Try again.");
+    } catch {
+      setServerError("We could not reach the server. Check your connection and try again. If you already sent it, do not send it again.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  if (submittedReference) {
+    return (
+      <div className="flex flex-col gap-5" role="status">
+        <div>
+          <h2 className="text-[1.5rem] font-bold leading-tight tracking-[-0.02em] text-ink">Payment slip received</h2>
+          <p className="mt-1.5 text-[0.875rem] text-muted">Keep this reference number for your records.</p>
+        </div>
+        <p className="rounded-2xl bg-success-soft px-5 py-4 text-[1.125rem] font-bold tracking-[0.04em] text-success">{submittedReference}</p>
+        <p className="rounded-xl bg-gold-soft px-4 py-3 text-[0.875rem] text-gold-ink">
+          Your slip is waiting for review. It is not approved yet. The school will contact you on your mobile number.
+        </p>
+      </div>
+    );
   }
 
   return (
@@ -101,10 +188,69 @@ export default function PaymentForm({ pkg }: PaymentFormProps) {
         </div>
       </div>
 
+      {/* Confirm the application */}
+      <div className="flex flex-col gap-5">
+        <div>
+          <h2 className="text-[1.0625rem] font-bold text-ink">1. Confirm your application</h2>
+          <p className="mt-1 text-[0.8125rem] text-muted">Use the reference number, email and password from your signup.</p>
+        </div>
+
+        <div className="grid gap-5 sm:grid-cols-2">
+          <Field id="referenceNumber" label="Application reference *" error={errors.referenceNumber}>
+            <div className="relative">
+              <Icon name="file-check" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" />
+              <input
+                id="referenceNumber"
+                name="referenceNumber"
+                placeholder="RDS-XXXXXXXXXX"
+                value={applicant.referenceNumber}
+                onChange={updateApplicant("referenceNumber")}
+                aria-invalid={Boolean(errors.referenceNumber)}
+                className={`${inputBase} ${errors.referenceNumber ? "border-red-400" : "border-line"}`}
+              />
+            </div>
+          </Field>
+
+          <Field id="email" label="Email *" error={errors.email}>
+            <div className="relative">
+              <Icon name="user" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" />
+              <input
+                id="email"
+                name="email"
+                type="email"
+                autoComplete="email"
+                placeholder="The email you used at signup"
+                value={applicant.email}
+                onChange={updateApplicant("email")}
+                aria-invalid={Boolean(errors.email)}
+                className={`${inputBase} ${errors.email ? "border-red-400" : "border-line"}`}
+              />
+            </div>
+          </Field>
+
+          <Field id="password" label="Password *" error={errors.password}>
+            <div className="relative">
+              <Icon name="id-card" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" />
+              <input
+                id="password"
+                name="password"
+                type="password"
+                autoComplete="current-password"
+                placeholder="The password you chose at signup"
+                value={applicant.password}
+                onChange={updateApplicant("password")}
+                aria-invalid={Boolean(errors.password)}
+                className={`${inputBase} ${errors.password ? "border-red-400" : "border-line"}`}
+              />
+            </div>
+          </Field>
+        </div>
+      </div>
+
       {/* Student's own bank details */}
       <div className="flex flex-col gap-5">
         <div>
-          <h2 className="text-[1.0625rem] font-bold text-ink">1. Your bank details</h2>
+          <h2 className="text-[1.0625rem] font-bold text-ink">2. Your bank details</h2>
           <p className="mt-1 text-[0.8125rem] text-muted">Enter the details of the bank account you pay from.</p>
         </div>
 
@@ -174,7 +320,7 @@ export default function PaymentForm({ pkg }: PaymentFormProps) {
 
       {/* Payment details */}
       <div className="flex flex-col gap-5">
-        <h2 className="text-[1.0625rem] font-bold text-ink">2. Payment details</h2>
+        <h2 className="text-[1.0625rem] font-bold text-ink">3. Payment details</h2>
 
         <fieldset className="flex flex-col gap-2">
           <legend className="text-[0.8125rem] font-semibold text-ink">Payment method</legend>
@@ -232,7 +378,7 @@ export default function PaymentForm({ pkg }: PaymentFormProps) {
           </Field>
         </div>
 
-        <Field id="reference" label="Bank reference / transaction number (optional)">
+        <Field id="reference" label="Bank reference / transaction number (optional)" error={errors.reference}>
           <div className="relative">
             <Icon name="info" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" />
             <input
@@ -241,7 +387,8 @@ export default function PaymentForm({ pkg }: PaymentFormProps) {
               placeholder="Enter the reference number if available"
               value={reference}
               onChange={(event) => setReference(event.target.value)}
-              className={`${inputBase} border-line`}
+              aria-invalid={Boolean(errors.reference)}
+              className={`${inputBase} ${errors.reference ? "border-red-400" : "border-line"}`}
             />
           </div>
         </Field>
@@ -272,15 +419,16 @@ export default function PaymentForm({ pkg }: PaymentFormProps) {
 
       <button
         type="submit"
-        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-6 py-3.5 text-[0.9375rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark"
+        disabled={submitting}
+        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-6 py-3.5 text-[0.9375rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0"
       >
-        Submit payment
-        <Icon name="arrow-right" className="h-4 w-4" strokeWidth={2} />
+        {submitting ? "Sending…" : "Submit payment"}
+        {!submitting && <Icon name="arrow-right" className="h-4 w-4" strokeWidth={2} />}
       </button>
 
-      {notice && (
-        <p role="status" className="rounded-xl bg-gold-soft px-4 py-3 text-[0.8125rem] font-medium text-gold-ink">
-          {notice}
+      {serverError && (
+        <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-[0.8125rem] font-medium text-red-700">
+          {serverError}
         </p>
       )}
 

@@ -180,7 +180,7 @@ export default function SignupForm({ catalog }: { catalog: CatalogGroup[] }) {
           No payment has been recorded yet. Payment is confirmed separately by the school.
         </p>
         <Link
-          href={`/payment?package=${encodeURIComponent(values.packageId)}`}
+          href={`/payment?package=${encodeURIComponent(values.packageId)}&ref=${encodeURIComponent(reference)}`}
           className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-6 py-3.5 text-[0.9375rem] font-semibold text-ink hover:bg-gold-dark"
         >
           Continue to payment

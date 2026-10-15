@@ -14,6 +14,12 @@ const STATUS_TABS: { value: Status; label: string }[] = [
   { value: "ALL", label: "All" },
 ];
 
+const PAYMENT_METHOD_LABELS: Record<string, string> = { BANK_TRANSFER: "Online transfer", BANK_DEPOSIT: "Bank deposit" };
+
+function paymentMethodLabel(method: string): string {
+  return PAYMENT_METHOD_LABELS[method] ?? method;
+}
+
 const REASON_MIN = 10;
 const REASON_MAX = 500;
 
@@ -49,7 +55,20 @@ type Detail = Summary & {
   reviewedByUserId: string | null;
   rejectionReason: string | null;
   approvedStudentUserId: string | null;
-  payments: { id: string; status: string; amount: string; paymentDate: string; createdAt: string }[];
+  payments: {
+    id: string;
+    status: string;
+    amount: string;
+    paymentMethod: string;
+    paymentDate: string;
+    createdAt: string;
+    transactionReference: string | null;
+    bankName: string | null;
+    accountHolderName: string | null;
+    accountNumberLast4: string | null;
+    branch: string | null;
+    slips: { id: string; originalFileName: string; uploadedAt: string }[];
+  }[];
   enrollment: { id: string; status: string; enrollmentDate: string } | null;
   history: { at: string; event: string; detail: string | null }[];
 };
@@ -455,13 +474,39 @@ export default function RegistrationReview({ packages }: { packages: { id: strin
                 <h3 id="payments-heading" className="text-[0.9375rem] font-bold text-ink">
                   Payments recorded
                 </h3>
-                <ul className="grid gap-2">
+                <ul className="grid gap-3">
                   {detail.payments.map((payment) => (
-                    <li key={payment.id} className="flex flex-wrap justify-between gap-2 text-[0.875rem] text-ink">
-                      <span>{formatMoney(Number(payment.amount))}</span>
-                      <span className="text-muted">
-                        {labels.paymentStatus[payment.status] ?? payment.status} · {formatDate(payment.paymentDate.slice(0, 10))}
-                      </span>
+                    <li key={payment.id} className="grid gap-2 rounded-xl bg-page p-4 ring-1 ring-line">
+                      <div className="flex flex-wrap justify-between gap-2 text-[0.875rem] text-ink">
+                        <span>{formatMoney(Number(payment.amount))}</span>
+                        <span className="text-muted">
+                          {labels.paymentStatus[payment.status] ?? payment.status} · {formatDate(payment.paymentDate.slice(0, 10))}
+                        </span>
+                      </div>
+                      <p className="text-[0.8125rem] text-muted">
+                        {paymentMethodLabel(payment.paymentMethod)}
+                        {payment.bankName ? ` · ${payment.bankName}` : ""}
+                        {payment.branch ? `, ${payment.branch}` : ""}
+                        {payment.accountHolderName ? ` · ${payment.accountHolderName}` : ""}
+                        {payment.accountNumberLast4 ? ` · account ending ${payment.accountNumberLast4}` : ""}
+                        {payment.transactionReference ? ` · reference ${payment.transactionReference}` : ""}
+                      </p>
+                      {payment.slips.length > 0 ? (
+                        <ul className="flex flex-wrap gap-3">
+                          {payment.slips.map((slip) => (
+                            <li key={slip.id}>
+                              <a
+                                href={`/api/admin/payment-slips/${encodeURIComponent(slip.id)}`}
+                                className="text-[0.875rem] font-semibold text-gold-ink underline underline-offset-2"
+                              >
+                                Open slip: {slip.originalFileName}
+                              </a>
+                            </li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <p className="text-[0.8125rem] text-muted">No slip attached.</p>
+                      )}
                     </li>
                   ))}
                 </ul>
@@ -515,7 +560,7 @@ export default function RegistrationReview({ packages }: { packages: { id: strin
       >
         <p>
           This creates a student account for {detail?.fullName ?? "the applicant"}, with the password they chose at signup, and an
-          enrollment in {detail?.selectedPackage.name ?? "the selected package"}. No payment is recorded.
+          enrollment in {detail?.selectedPackage.name ?? "the selected package"}. It does not approve or change any payment.
         </p>
       </ConfirmDialog>
     </div>

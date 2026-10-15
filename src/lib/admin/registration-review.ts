@@ -51,10 +51,27 @@ const detailSelect = {
   reviewedByUserId: true,
   rejectionReason: true,
   approvedStudentUserId: true,
-  // Payments are read for the history only. Bank details and slips are not selected here.
+  // Payments with their bank details and slip names, for review. Slip files are served only by the admin slip route.
   payments: {
     orderBy: { createdAt: "asc" },
-    select: { id: true, status: true, amount: true, paymentMethod: true, paymentDate: true, createdAt: true, lastReviewedAt: true },
+    select: {
+      id: true,
+      status: true,
+      amount: true,
+      paymentMethod: true,
+      paymentDate: true,
+      transactionReference: true,
+      bankName: true,
+      accountHolderName: true,
+      accountNumberLast4: true,
+      branch: true,
+      createdAt: true,
+      lastReviewedAt: true,
+      slips: {
+        orderBy: { uploadedAt: "asc" },
+        select: { id: true, originalFileName: true, mimeType: true, uploadedAt: true },
+      },
+    },
   },
   enrollment: { select: { id: true, status: true, enrollmentDate: true } },
 } satisfies Prisma.RegistrationRequestSelect;

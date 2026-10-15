@@ -15,9 +15,11 @@ export const metadata: Metadata = {
 export default async function PaymentPage({
   searchParams,
 }: {
-  searchParams: Promise<{ package?: string }>;
+  searchParams: Promise<{ package?: string; ref?: string }>;
 }) {
-  const { package: packageId } = await searchParams;
+  const { package: packageId, ref } = await searchParams;
+  // The reference comes from the signup link. The form still asks for it again, and the server checks it.
+  const applicationReference = ref && /^RDS-[0-9A-Fa-f]{10}$/.test(ref) ? ref.toUpperCase() : "";
   // Read from the database on every request. A package that is no longer active is treated as not offered.
   const pkg = packageId ? await getPublicPackage(packageId) : null;
   const notOffered = Boolean(packageId) && !pkg;
@@ -57,7 +59,7 @@ export default async function PaymentPage({
               <h2 className="text-[1.5rem] font-bold leading-tight tracking-[-0.02em] text-ink">Payment</h2>
               <p className="mt-1.5 text-[0.875rem] text-muted">Check your package, then complete the payment below.</p>
             </div>
-            <PaymentForm pkg={pkg} />
+            <PaymentForm pkg={pkg} applicationReference={applicationReference} />
           </>
         ) : (
           <div className="flex flex-col gap-4">
