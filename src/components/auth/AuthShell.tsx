@@ -10,6 +10,8 @@ interface AuthShellProps {
   title: string;
   body: string;
   points: { icon: string; text: string }[];
+  /** Optional card shown under the points on the left, for example a link to the application status page. */
+  aside?: ReactNode;
   children: ReactNode;
   /** Extra classes for the form card, e.g. to nudge it along the row on large screens. */
   cardClassName?: string;
@@ -27,6 +29,7 @@ export default function AuthShell({
   title,
   body,
   points,
+  aside,
   children,
   cardClassName = "",
   align = "center",
@@ -111,6 +114,8 @@ export default function AuthShell({
                   </li>
                 ))}
               </ul>
+
+              {aside && <div className="mt-6">{aside}</div>}
             </div>
 
             {/* Form card */}

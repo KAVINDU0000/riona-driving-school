@@ -68,6 +68,7 @@ type Detail = Summary & {
     accountNumberLast4: string | null;
     branch: string | null;
     slips: { id: string; originalFileName: string; uploadedAt: string }[];
+    reviewHistory: { decision: string; reason: string | null; reviewedAt: string }[];
   }[];
   enrollment: { id: string; status: string; enrollmentDate: string } | null;
   history: { at: string; event: string; detail: string | null }[];
@@ -106,6 +107,8 @@ export default function RegistrationReview({ packages }: { packages: { id: strin
   const [detailVersion, setDetailVersion] = useState(0);
   const [confirmApprove, setConfirmApprove] = useState(false);
   const [reason, setReason] = useState("");
+  // Each payment has its own rejection note, so one typed note cannot end up on another payment.
+  const [paymentReasons, setPaymentReasons] = useState<Record<string, string>>({});
 
   useEffect(() => {
     let active = true;
@@ -205,6 +208,43 @@ export default function RegistrationReview({ packages }: { packages: { id: strin
     } catch (error) {
       setActionError(error instanceof Error ? error.message : "The application could not be approved.");
       setConfirmApprove(false);
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  /** Approves or rejects one pending payment. A rejection needs a reason, which the applicant sees on the status page. */
+  async function reviewPayment(paymentId: string, decision: "APPROVED" | "REJECTED") {
+    const note = (paymentReasons[paymentId] ?? "").trim();
+    if (decision === "REJECTED" && (note.length < REASON_MIN || note.length > REASON_MAX)) {
+      setActionError(`Enter a rejection reason of ${REASON_MIN} to ${REASON_MAX} characters.`);
+      return;
+    }
+    if (decision === "APPROVED" && !window.confirm("Approve this payment? The applicant will see it as approved.")) {
+      return;
+    }
+    setBusy(true);
+    setActionError("");
+    try {
+      const response = await fetch(`/api/admin/payments/${encodeURIComponent(paymentId)}/review`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ decision, reason: note }),
+      });
+      if (!response.ok) throw new Error(await errorFrom(response, "The payment could not be reviewed."));
+      setNotice(
+        decision === "APPROVED"
+          ? "Payment approved. The applicant will see it as approved on the status page."
+          : "Payment rejected. The applicant will see the reason and can send a new slip.",
+      );
+      setPaymentReasons((current) => {
+        const next = { ...current };
+        delete next[paymentId];
+        return next;
+      });
+      refresh();
+    } catch (error) {
+      setActionError(error instanceof Error ? error.message : "The payment could not be reviewed.");
     } finally {
       setBusy(false);
     }
@@ -506,6 +546,42 @@ export default function RegistrationReview({ packages }: { packages: { id: strin
                         </ul>
                       ) : (
                         <p className="text-[0.8125rem] text-muted">No slip attached.</p>
+                      )}
+                      {payment.status === "REJECTED" && payment.reviewHistory[0]?.reason && (
+                        <p className="text-[0.8125rem] text-red-700">Rejected: {payment.reviewHistory[0].reason}</p>
+                      )}
+                      {payment.status === "PENDING" && (
+                        <div className="grid gap-2 border-t border-line pt-3">
+                          <label htmlFor={`payment-reason-${payment.id}`} className="text-[0.8125rem] font-semibold text-ink">
+                            Rejection reason (the applicant sees this if you reject)
+                          </label>
+                          <textarea
+                            id={`payment-reason-${payment.id}`}
+                            value={paymentReasons[payment.id] ?? ""}
+                            onChange={(event) => setPaymentReasons((current) => ({ ...current, [payment.id]: event.target.value }))}
+                            maxLength={REASON_MAX}
+                            rows={2}
+                            className="w-full rounded-xl border border-line bg-white px-3 py-2 text-[0.9375rem] text-ink focus:border-gold-dark focus:outline-none focus:ring-4 focus:ring-gold/25"
+                          />
+                          <div className="flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => reviewPayment(payment.id, "APPROVED")}
+                              className="rounded-xl px-5 py-2.5 text-[0.9375rem] font-semibold text-emerald-800 ring-1 ring-emerald-200 hover:bg-emerald-50 disabled:opacity-60"
+                            >
+                              Approve payment
+                            </button>
+                            <button
+                              type="button"
+                              disabled={busy}
+                              onClick={() => reviewPayment(payment.id, "REJECTED")}
+                              className="rounded-xl px-5 py-2.5 text-[0.9375rem] font-semibold text-red-700 ring-1 ring-red-200 hover:bg-red-50 disabled:opacity-60"
+                            >
+                              Reject payment
+                            </button>
+                          </div>
+                        </div>
                       )}
                     </li>
                   ))}

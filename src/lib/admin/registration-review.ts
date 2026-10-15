@@ -71,6 +71,11 @@ const detailSelect = {
         orderBy: { uploadedAt: "asc" },
         select: { id: true, originalFileName: true, mimeType: true, uploadedAt: true },
       },
+      reviewHistory: {
+        orderBy: { reviewedAt: "desc" },
+        take: 1,
+        select: { decision: true, reason: true, reviewedAt: true },
+      },
     },
   },
   enrollment: { select: { id: true, status: true, enrollmentDate: true } },

@@ -1,22 +1,29 @@
 "use client";
 
-import { useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
+import { useState, useSyncExternalStore, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import Icon from "@/components/ui/Icon";
 import { allowedSlipTypes, maxSlipBytes, paymentMethods } from "@/data/payment";
 import { formatLkr } from "@/lib/packages/format";
+import { readApplicationReference } from "@/lib/registration/browser-reference";
 
 export interface SelectedPackage {
   id: string;
   name: string;
   detail?: string;
   price: number;
-  group: string;
+  group?: string;
 }
 
 interface PaymentFormProps {
   pkg: SelectedPackage;
-  /** The application reference from the signup link, or an empty string when the link did not carry one. */
-  applicationReference: string;
+  /** The application reference, when the page already has it (the status page). Signup keeps it in the browser session. */
+  applicationReference?: string;
+  /** Set when the applicant resubmits from the status page, so the details they already gave are filled in again. */
+  initialEmail?: string;
+  initialPassword?: string;
+  initialBank?: { paymentMethod?: string; bankName?: string; accountName?: string; branch?: string };
+  /** Called after the server accepts a slip, so the status page can show the new state. */
+  onSubmitted?: () => void;
 }
 
 type BankFields = { bankName: string; accountName: string; accountNumber: string; branch: string };
@@ -25,13 +32,14 @@ type FormErrors = Partial<
   Record<keyof BankFields | keyof ApplicantFields | "paymentDate" | "slip" | "reference", string>
 >;
 
-const emptyBank: BankFields = { bankName: "", accountName: "", accountNumber: "", branch: "" };
-
 /** The payment method values the server accepts, matched to the options shown on this page. */
 const SERVER_METHOD: Record<string, string> = { "bank-transfer": "BANK_TRANSFER", "bank-deposit": "BANK_DEPOSIT" };
 
 const inputBase =
   "h-12 w-full rounded-xl border bg-white pl-11 pr-4 text-[0.9375rem] text-ink placeholder:text-muted/70 transition-[border-color,box-shadow] focus:border-gold-dark focus:outline-none focus:ring-4 focus:ring-gold/25";
+
+/** The browser session does not change while the page is open, so nothing needs to be subscribed to. */
+const subscribeNothing = () => () => {};
 
 function Field({ id, label, error, children }: { id: string; label: string; error?: string; children: ReactNode }) {
   return (
@@ -54,13 +62,35 @@ function Field({ id, label, error, children }: { id: string; label: string; erro
  * Payment step. The applicant confirms their application (reference, email and password), gives their bank
  * details and uploads the slip. The server checks all of it and records a PENDING payment for admin review.
  */
-export default function PaymentForm({ pkg, applicationReference }: PaymentFormProps) {
-  const [applicant, setApplicant] = useState<ApplicantFields>({ referenceNumber: applicationReference, email: "", password: "" });
-  const [method, setMethod] = useState<string>(paymentMethods[0].value);
+export default function PaymentForm({
+  pkg,
+  applicationReference,
+  initialEmail,
+  initialPassword,
+  initialBank,
+  onSubmitted,
+}: PaymentFormProps) {
+  const [applicant, setApplicant] = useState<Omit<ApplicantFields, "referenceNumber">>({
+    email: initialEmail ?? "",
+    password: initialPassword ?? "",
+  });
+  // The signup step saved the reference in this tab. It is read from the session and never displayed. On the
+  // server, and before the page loads, the value is null, so nothing is drawn yet.
+  const sessionReference = useSyncExternalStore(subscribeNothing, readApplicationReference, () => null);
+  const referenceNumber = (applicationReference || sessionReference || "").trim().toUpperCase();
+  const [method, setMethod] = useState<string>(
+    Object.entries(SERVER_METHOD).find(([, serverValue]) => serverValue === initialBank?.paymentMethod)?.[0] ?? paymentMethods[0].value,
+  );
   const [paymentDate, setPaymentDate] = useState("");
   const [reference, setReference] = useState("");
   const [slip, setSlip] = useState<File | null>(null);
-  const [bank, setBank] = useState<BankFields>(emptyBank);
+  // The account number is never filled in again: only the last four digits were kept, so the applicant types it.
+  const [bank, setBank] = useState<BankFields>({
+    bankName: initialBank?.bankName ?? "",
+    accountName: initialBank?.accountName ?? "",
+    accountNumber: "",
+    branch: initialBank?.branch ?? "",
+  });
   const [errors, setErrors] = useState<FormErrors>({});
   const [serverError, setServerError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -91,7 +121,7 @@ export default function PaymentForm({ pkg, applicationReference }: PaymentFormPr
 
   function checkBeforeSending(): FormErrors {
     const nextErrors: FormErrors = {};
-    if (!/^RDS-[0-9A-Fa-f]{10}$/.test(applicant.referenceNumber.trim())) nextErrors.referenceNumber = "Enter the reference number from your application.";
+    if (!/^RDS-[0-9A-F]{10}$/.test(referenceNumber)) nextErrors.referenceNumber = "Enter the reference number from your application.";
     if (!applicant.email.trim()) nextErrors.email = "Enter the email address you used at signup.";
     if (!applicant.password) nextErrors.password = "Enter the password you chose at signup.";
     if (!bank.bankName.trim()) nextErrors.bankName = "Enter the name of your bank.";
@@ -112,7 +142,7 @@ export default function PaymentForm({ pkg, applicationReference }: PaymentFormPr
     if (Object.keys(nextErrors).length > 0 || !slip) return;
 
     const body = new FormData();
-    body.append("referenceNumber", applicant.referenceNumber.trim().toUpperCase());
+    body.append("referenceNumber", referenceNumber);
     body.append("email", applicant.email.trim());
     body.append("password", applicant.password);
     body.append("paymentMethod", SERVER_METHOD[method] ?? "BANK_TRANSFER");
@@ -138,7 +168,8 @@ export default function PaymentForm({ pkg, applicationReference }: PaymentFormPr
       };
 
       if (response.ok) {
-        setSubmittedReference(applicant.referenceNumber.trim().toUpperCase());
+        setSubmittedReference(referenceNumber);
+        onSubmitted?.();
         return;
       }
 
@@ -167,12 +198,28 @@ export default function PaymentForm({ pkg, applicationReference }: PaymentFormPr
         <p className="rounded-xl bg-gold-soft px-4 py-3 text-[0.875rem] text-gold-ink">
           Your slip is waiting for review. It is not approved yet. The school will contact you on your mobile number.
         </p>
+        <a href="/application-status" className="text-[0.875rem] font-semibold text-gold-ink underline underline-offset-2">
+          Check your application status
+        </a>
       </div>
     );
   }
 
+  // Nothing is drawn until the session has been read, so the notice below never flashes for an applicant who has one.
+  if (sessionReference === null && !applicationReference) return null;
+
   return (
     <form onSubmit={handleSubmit} noValidate autoComplete="off" className="flex flex-col gap-6">
+      {!referenceNumber && (
+        <div role="status" className="rounded-xl bg-red-50 px-4 py-3 text-[0.875rem] leading-relaxed text-red-700">
+          <p className="font-semibold">We could not find your application in this browser.</p>
+          <p className="mt-1">
+            Please do not sign up again, because that creates a second application. Contact the school and they will help you
+            finish.
+          </p>
+        </div>
+      )}
+
       {/* Selected package */}
       <div className="rounded-2xl bg-page p-5 ring-1 ring-line">
         <p className="text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-muted">Your selected package</p>
@@ -182,7 +229,7 @@ export default function PaymentForm({ pkg, applicationReference }: PaymentFormPr
               {pkg.name}
               {pkg.detail ? ` (${pkg.detail})` : ""}
             </p>
-            <p className="mt-0.5 text-[0.8125rem] text-muted">{pkg.group}</p>
+            {pkg.group && <p className="mt-0.5 text-[0.8125rem] text-muted">{pkg.group}</p>}
           </div>
           <p className="text-[1.375rem] font-bold text-success">{formatLkr(pkg.price)}</p>
         </div>
@@ -192,25 +239,10 @@ export default function PaymentForm({ pkg, applicationReference }: PaymentFormPr
       <div className="flex flex-col gap-5">
         <div>
           <h2 className="text-[1.0625rem] font-bold text-ink">1. Confirm your application</h2>
-          <p className="mt-1 text-[0.8125rem] text-muted">Use the reference number, email and password from your signup.</p>
+          <p className="mt-1 text-[0.8125rem] text-muted">Enter the email and password you chose at signup.</p>
         </div>
 
         <div className="grid gap-5 sm:grid-cols-2">
-          <Field id="referenceNumber" label="Application reference *" error={errors.referenceNumber}>
-            <div className="relative">
-              <Icon name="file-check" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" />
-              <input
-                id="referenceNumber"
-                name="referenceNumber"
-                placeholder="RDS-XXXXXXXXXX"
-                value={applicant.referenceNumber}
-                onChange={updateApplicant("referenceNumber")}
-                aria-invalid={Boolean(errors.referenceNumber)}
-                className={`${inputBase} ${errors.referenceNumber ? "border-red-400" : "border-line"}`}
-              />
-            </div>
-          </Field>
-
           <Field id="email" label="Email *" error={errors.email}>
             <div className="relative">
               <Icon name="user" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" />
@@ -419,7 +451,7 @@ export default function PaymentForm({ pkg, applicationReference }: PaymentFormPr
 
       <button
         type="submit"
-        disabled={submitting}
+        disabled={submitting || !referenceNumber}
         className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-6 py-3.5 text-[0.9375rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0"
       >
         {submitting ? "Sending…" : "Submit payment"}

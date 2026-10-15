@@ -167,6 +167,14 @@ export async function submitApplicationPayment(fields: PaymentFields, file: File
         throw new AuthError(409, "A payment slip for this application is already waiting for review. You do not need to send it again.");
       }
 
+      const approved = await tx.payment.findFirst({
+        where: { registrationRequestId: registration.id, status: PaymentStatus.APPROVED },
+        select: { id: true },
+      });
+      if (approved) {
+        throw new AuthError(409, "The payment for this application is already approved. No new slip is needed.");
+      }
+
       const payment = await tx.payment.create({
         data: {
           registrationRequestId: registration.id,

@@ -16,7 +16,8 @@ if (!isGuardedTarget) {
   throw new Error("Refusing to run: browser tests must use localhost:15432/riona_fresh_test.");
 }
 
-const PORT = 3100;
+// 3100 by default. Set PW_PORT to use another port when 3100 is already taken on this machine.
+const PORT = Number(process.env.PW_PORT ?? 3100);
 
 /**
  * Browser channel. Unset keeps the default, the Microsoft Edge installed on the machine. Set PW_CHANNEL to

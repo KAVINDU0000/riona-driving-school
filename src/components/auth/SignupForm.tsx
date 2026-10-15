@@ -6,6 +6,7 @@ import Icon from "@/components/ui/Icon";
 import PackageSelect from "@/components/auth/PackageSelect";
 import { packageDiscountNote } from "@/data/public";
 import { findInGroups, formatPackagePrice, isPerSession, type CatalogGroup } from "@/lib/packages/format";
+import { saveApplicationReference } from "@/lib/registration/browser-reference";
 
 type Values = {
   fullName: string;
@@ -147,6 +148,8 @@ export default function SignupForm({ catalog }: { catalog: CatalogGroup[] }) {
       };
 
       if (response.ok && data.referenceNumber) {
+        // The reference is kept for the payment step. It is not shown here.
+        saveApplicationReference(data.referenceNumber);
         setReference(data.referenceNumber);
         return;
       }
@@ -170,17 +173,17 @@ export default function SignupForm({ catalog }: { catalog: CatalogGroup[] }) {
     return (
       <div className="flex flex-col gap-5" role="status">
         <div>
-          <h2 className="text-[1.5rem] font-bold leading-tight tracking-[-0.02em] text-ink">Application received</h2>
+          <h2 className="text-[1.5rem] font-bold leading-tight tracking-[-0.02em] text-ink">Details saved</h2>
           <p className="mt-1.5 text-[0.875rem] text-muted">
-            Keep this reference number. The school will review your application and contact you on your mobile number.
+            Complete your payment now to finish your application. Your application reference number appears after you upload
+            your payment slip.
           </p>
         </div>
-        <p className="rounded-2xl bg-success-soft px-5 py-4 text-[1.125rem] font-bold tracking-[0.04em] text-success">{reference}</p>
         <p className="rounded-xl bg-gold-soft px-4 py-3 text-[0.875rem] text-gold-ink">
-          No payment has been recorded yet. Payment is confirmed separately by the school.
+          Keep this page open until the payment is complete. Closing it means you will need to sign up again.
         </p>
         <Link
-          href={`/payment?package=${encodeURIComponent(values.packageId)}&ref=${encodeURIComponent(reference)}`}
+          href={`/payment?package=${encodeURIComponent(values.packageId)}`}
           className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-6 py-3.5 text-[0.9375rem] font-semibold text-ink hover:bg-gold-dark"
         >
           Continue to payment

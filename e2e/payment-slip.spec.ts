@@ -60,9 +60,16 @@ test.afterAll(async () => {
   await globalSetup();
 });
 
+/** The signup step keeps the reference in the tab's session. The payment page reads it without showing it. */
+async function openPaymentWithSignupSession(page: Page) {
+  await page.addInitScript((reference) => window.sessionStorage.setItem("riona.applicationReference", reference), referenceNumber);
+  await page.goto(`/payment?package=${PACKAGE_ID}`);
+  await expect(page.locator("#email")).toBeVisible();
+  await expect(page.locator("#referenceNumber")).toHaveCount(0);
+}
+
 async function fillPaymentForm(page: Page, password: string) {
-  await page.goto(`/payment?package=${PACKAGE_ID}&ref=${referenceNumber}`);
-  await expect(page.locator("#referenceNumber")).toHaveValue(referenceNumber);
+  await openPaymentWithSignupSession(page);
   await page.locator("#email").fill(email);
   await page.locator("#password").fill(password);
   await page.locator("#bankName").fill("Bank of Ceylon");
@@ -73,7 +80,14 @@ async function fillPaymentForm(page: Page, password: string) {
   await page.locator("#slip").setInputFiles({ name: SLIP.name, mimeType: SLIP.mimeType, buffer: SLIP.buffer });
 }
 
-test("the applicant sees the reference from signup, and a wrong password is refused with a clear message", async ({ page }) => {
+test("without the signup session, the payment page says so and does not ask for a reference", async ({ page }) => {
+  await page.goto(`/payment?package=${PACKAGE_ID}`);
+  await expect(page.getByText("We could not find your application in this browser.")).toBeVisible();
+  await expect(page.locator("#referenceNumber")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Submit payment" })).toBeDisabled();
+});
+
+test("a wrong password on the payment step is refused with a clear message", async ({ page }) => {
   await fillPaymentForm(page, "not-the-password");
   await page.getByRole("button", { name: "Submit payment" }).click();
   await expect(page.getByRole("alert").filter({ hasText: "The reference number, email or password is not correct." })).toBeVisible();
