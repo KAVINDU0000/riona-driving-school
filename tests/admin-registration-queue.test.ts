@@ -45,6 +45,8 @@ async function seedQueue() {
   await prisma.trainingPackageItem.create({
     data: { packageId: REGULAR_ID, vehicleType: "CAR", trainingType: "REGULAR", requiredSessions: 15 },
   });
+  // Approval also needs the school's confirmation of the requirements.
+  await prisma.trainingPackage.update({ where: { id: REGULAR_ID }, data: { requirementsConfirmedAt: new Date() } });
 }
 
 async function addApplication(

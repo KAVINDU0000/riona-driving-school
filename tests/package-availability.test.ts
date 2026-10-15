@@ -1,41 +1,9 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { POST } from "@/app/api/registration/route";
-import { filterAvailablePackageGroups, isPerSession, packageGroups } from "@/data/packages";
 import { resetRateLimits } from "@/lib/auth/rate-limit";
 import { prisma } from "@/lib/prisma";
 import { getActivePackageIds } from "@/lib/registration/packages";
 import { postRequest, resetDatabase } from "./helpers";
-
-const ALL_IDS = packageGroups.flatMap((group) => group.options.map((option) => option.id));
-
-describe("filterAvailablePackageGroups", () => {
-  it("keeps every package, in order and unchanged, when all are available", () => {
-    expect(filterAvailablePackageGroups(packageGroups, ALL_IDS)).toEqual(packageGroups);
-  });
-
-  it("removes unavailable packages and keeps the rest in their original order", () => {
-    const withoutTrialCar = ALL_IDS.filter((id) => id !== "trial-car");
-    const groups = filterAvailablePackageGroups(packageGroups, withoutTrialCar);
-    const ids = groups.flatMap((group) => group.options.map((option) => option.id));
-    expect(ids).toEqual(withoutTrialCar);
-    expect(ids).not.toContain("trial-car");
-  });
-
-  it("drops a group whose packages are all unavailable", () => {
-    const groups = filterAvailablePackageGroups(packageGroups, ALL_IDS.filter((id) => id !== "regular-car-van"));
-    expect(groups.map((group) => group.label)).not.toContain("Regular training package");
-  });
-
-  it("keeps the per-session flag and price on daily packages", () => {
-    const daily = filterAvailablePackageGroups(packageGroups, ["daily-car"]).flatMap((group) => group.options);
-    expect(daily).toEqual([expect.objectContaining({ id: "daily-car", price: 2000, pricing: "per-session" })]);
-    expect(isPerSession(daily[0])).toBe(true);
-  });
-
-  it("offers nothing when no package is available", () => {
-    expect(filterAvailablePackageGroups(packageGroups, [])).toEqual([]);
-  });
-});
 
 describe("active packages in the database", () => {
   const VALID = {

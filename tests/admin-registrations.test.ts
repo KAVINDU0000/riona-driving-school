@@ -141,6 +141,27 @@ describe("admin registration review", () => {
   });
 
   describe("approval", () => {
+    // Approval needs the package's session counts. Every test starts from a complete set, and the tests that need
+    // a different set change this row rather than adding another.
+    beforeEach(async () => {
+      await prisma.trainingPackageItem.create({
+        data: { packageId: REGULAR_ID, vehicleType: "CAR", trainingType: "REGULAR", requiredSessions: 15 },
+      });
+      // Approval also needs the school's confirmation of the requirements.
+      await prisma.trainingPackage.update({ where: { id: REGULAR_ID }, data: { requirementsConfirmedAt: new Date() } });
+    });
+
+    it("refuses approval until the school has confirmed the requirements, and creates nothing", async () => {
+      await prisma.trainingPackage.update({ where: { id: REGULAR_ID }, data: { requirementsConfirmedAt: null } });
+      const pending = await createPending({ email: "unconfirmed@example.com" });
+      const response = await approve(pending.id, await cookieFor("ADMIN-001"));
+
+      expect(response.status).toBe(422);
+      expect(await prisma.user.findUnique({ where: { email: "unconfirmed@example.com" } })).toBeNull();
+      expect(await prisma.enrollment.count()).toBe(0);
+      expect((await prisma.registrationRequest.findUniqueOrThrow({ where: { id: pending.id } })).status).toBe("PENDING");
+    });
+
     it("creates the student account, profile and enrollment, and links the application", async () => {
       const pending = await createPending();
       const response = await approve(pending.id, await cookieFor("ADMIN-001"));
@@ -186,8 +207,9 @@ describe("admin registration review", () => {
     });
 
     it("copies the training requirements from the package", async () => {
-      await prisma.trainingPackageItem.create({
-        data: { packageId: REGULAR_ID, vehicleType: "CAR", trainingType: "REGULAR", requiredSessions: 20 },
+      await prisma.trainingPackageItem.update({
+        where: { packageId_vehicleType_trainingType: { packageId: REGULAR_ID, vehicleType: "CAR", trainingType: "REGULAR" } },
+        data: { requiredSessions: 20 },
       });
       const pending = await createPending();
       const response = await approve(pending.id, await cookieFor("ADMIN-001"));
@@ -199,9 +221,21 @@ describe("admin registration review", () => {
     });
 
     it("refuses a package with no session count yet, and creates nothing", async () => {
-      await prisma.trainingPackageItem.create({
-        data: { packageId: REGULAR_ID, vehicleType: "CAR", trainingType: "REGULAR", requiredSessions: null },
+      await prisma.trainingPackageItem.update({
+        where: { packageId_vehicleType_trainingType: { packageId: REGULAR_ID, vehicleType: "CAR", trainingType: "REGULAR" } },
+        data: { requiredSessions: null },
       });
+      const pending = await createPending();
+      const response = await approve(pending.id, await cookieFor("ADMIN-001"));
+
+      expect(response.status).toBe(422);
+      expect(await prisma.user.count({ where: { role: UserRole.STUDENT } })).toBe(1);
+      expect(await prisma.enrollment.count()).toBe(0);
+      expect((await prisma.registrationRequest.findUniqueOrThrow({ where: { id: pending.id } })).status).toBe("PENDING");
+    });
+
+    it("refuses a package with no session-count rows at all, so it cannot create an enrollment with no requirements", async () => {
+      await prisma.trainingPackageItem.deleteMany({ where: { packageId: REGULAR_ID } });
       const pending = await createPending();
       const response = await approve(pending.id, await cookieFor("ADMIN-001"));
 

@@ -1,13 +1,12 @@
 import Link from "next/link";
-import { formatPackagePrice, isPerSession } from "@/data/packages";
-import type { PackageEntry } from "@/data/public";
+import { formatPackagePrice, isPerSession, type CatalogPackage } from "@/lib/packages/format";
 import { Surface } from "@/components/landing/primitives";
 
 /**
  * One package or daily rate. Fixed-fee packages show their total with a link to apply. Per-session rates show the
  * rate and its unit, and link to the school, because the online application does not accept them.
  */
-export default function PackageCard({ option }: { option: PackageEntry }) {
+export default function PackageCard({ option }: { option: CatalogPackage }) {
   const perSession = isPerSession(option);
   return (
     <Surface className="flex h-full flex-col gap-4 p-6">

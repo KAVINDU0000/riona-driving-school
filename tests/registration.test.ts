@@ -3,7 +3,8 @@ import { POST } from "@/app/api/registration/route";
 import { verifyPassword } from "@/lib/auth/password";
 import { resetRateLimits } from "@/lib/auth/rate-limit";
 import { prisma } from "@/lib/prisma";
-import { packageGroups, isPerSession } from "@/data/packages";
+import { packageGroups } from "@/data/packages";
+import { isPerSession } from "@/lib/packages/format";
 import { generateReferenceNumber } from "@/lib/registration/submit";
 import { postRequest, resetDatabase } from "./helpers";
 

@@ -1,9 +1,8 @@
-import { packageDiscountNote, packageGroups, isPerSession, type PackageOption } from "@/data/packages";
 import { site } from "@/data/landing";
 
 /*
- * Public website content that is derived from the price list and the landing data. Keep figures in
- * src/data/packages.ts, not here. Nothing in this file creates a price, a discount or a contact detail.
+ * Public website copy and mappings. No prices live here: every price is read from the database through
+ * src/lib/packages/catalog.ts. The vehicle mappings below refer to package IDs, not prices.
  *
  * OWNER CONFIRMATION NEEDED before launch (see the public-site report):
  * - Phone and WhatsApp numbers come from src/data/landing.ts, which marks them as placeholders to confirm.
@@ -35,31 +34,8 @@ export const packageNameKeywordByVehicle: Record<string, string> = {
   "three-wheeler": "Three-Wheeler",
 };
 
-export type PackageEntry = PackageOption & { groupLabel: string };
+/** The cash discount wording as the school supplied it. The percentage is not applied to any price on the site. */
+export const packageDiscountNote = "5% discount when the full eligible package fee is paid in cash at once.";
 
-export function allPackages(): PackageEntry[] {
-  return packageGroups.flatMap((group) => group.options.map((option) => ({ ...option, groupLabel: group.label })));
-}
-
-/** The per-session daily rate for a vehicle category, or null when the price list has none. No fallback is used. */
-export function dailyRateFor(vehicleKey: string): PackageEntry | null {
-  const id = dailyPackageIdByVehicle[vehicleKey];
-  if (!id) return null;
-  return allPackages().find((option) => option.id === id) ?? null;
-}
-
-/**
- * Fixed-fee packages whose name mentions the vehicle category. Per-session daily rates are excluded, because they
- * are listed separately with their own unit.
- */
-export function fixedPackagesFor(vehicleKey: string): PackageEntry[] {
-  const keyword = packageNameKeywordByVehicle[vehicleKey];
-  if (!keyword) return [];
-  return allPackages().filter((option) => !isPerSession(option) && option.name.includes(keyword));
-}
-
-/**
- * The cash discount wording as the school supplied it. The percentage is not applied to any price on the site.
- * Eligibility, validity and restrictions are not in the project, so they are not shown.
- */
+/** Eligibility, validity and restrictions are not in the project, so they are not shown. */
 export const cashDiscountNote = packageDiscountNote;

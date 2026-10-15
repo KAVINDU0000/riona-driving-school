@@ -3,7 +3,7 @@
 import { useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import Icon from "@/components/ui/Icon";
 import { allowedSlipTypes, maxSlipBytes, paymentMethods } from "@/data/payment";
-import { formatLkr } from "@/data/packages";
+import { formatLkr } from "@/lib/packages/format";
 
 export interface SelectedPackage {
   id: string;

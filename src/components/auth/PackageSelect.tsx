@@ -2,26 +2,26 @@
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import Icon from "@/components/ui/Icon";
-import { filterAvailablePackageGroups, findPackage, formatPackagePrice, packageGroups, type PackageOption } from "@/data/packages";
+import { findInGroups, formatPackagePrice, type CatalogGroup, type CatalogPackage } from "@/lib/packages/format";
 
 interface PackageSelectProps {
   id: string;
   value: string;
   onChange: (id: string) => void;
   invalid?: boolean;
-  /** Ids of the packages active in the database. Only these are offered. */
-  availableIds: readonly string[];
+  /** Active packages from the database, grouped. Only these are offered. */
+  catalog: CatalogGroup[];
 }
 
 /** Package picker: searchable, grouped and keyboard-friendly. The list opens in place and never has its own scrollbar. */
-export default function PackageSelect({ id, value, onChange, invalid = false, availableIds }: PackageSelectProps) {
+export default function PackageSelect({ id, value, onChange, invalid = false, catalog }: PackageSelectProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
-  const selected = findPackage(value);
+  const selected = findInGroups(catalog, value);
 
-  const offered = useMemo(() => filterAvailablePackageGroups(packageGroups, availableIds), [availableIds]);
+  const offered = catalog;
 
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -33,7 +33,7 @@ export default function PackageSelect({ id, value, onChange, invalid = false, av
       .filter((group) => group.options.length > 0);
   }, [query, offered]);
 
-  const flat: PackageOption[] = groups.flatMap((group) => group.options);
+  const flat: CatalogPackage[] = groups.flatMap((group) => group.options);
   const activeIndex = Math.min(active, Math.max(flat.length - 1, 0));
 
   // Close when the user clicks anywhere outside the picker
@@ -52,7 +52,7 @@ export default function PackageSelect({ id, value, onChange, invalid = false, av
     setOpen(true);
   }
 
-  function choose(option: PackageOption) {
+  function choose(option: CatalogPackage) {
     onChange(option.id);
     setOpen(false);
   }

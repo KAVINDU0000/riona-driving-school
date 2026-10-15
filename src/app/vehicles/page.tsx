@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
 import Image from "next/image";
+import { connection } from "next/server";
 import Link from "next/link";
 import PageHero from "@/components/public/PageHero";
 import PublicFrame from "@/components/public/PublicFrame";
 import { Container, Surface } from "@/components/landing/primitives";
 import Icon from "@/components/ui/Icon";
-import { formatPackagePrice } from "@/data/packages";
-import { dailyRateFor, fixedPackagesFor } from "@/data/public";
+import { getPublicPackageCatalog } from "@/lib/packages/catalog";
+import { formatPackagePrice } from "@/lib/packages/format";
+import { allCatalogPackages, dailyRateFor, fixedPackagesFor } from "@/lib/packages/public";
 import { vehicles } from "@/data/landing";
 
 export const metadata: Metadata = {
@@ -14,7 +16,11 @@ export const metadata: Metadata = {
   description: "Car, van, motorbike and three-wheeler training at Riyona Driving School, with the packages and rates for each.",
 };
 
-export default function VehiclesPage() {
+export default async function VehiclesPage() {
+  // Rendered per request, so every price shown is read from the database when the page is requested.
+  await connection();
+  // Every package and rate shown here comes from the database. Nothing falls back to a fixed list.
+  const allPackages = allCatalogPackages(await getPublicPackageCatalog());
   return (
     <PublicFrame>
       <PageHero
@@ -34,8 +40,8 @@ export default function VehiclesPage() {
       <Container>
         <div className="mt-12 grid gap-8">
           {vehicles.map((vehicle) => {
-            const daily = dailyRateFor(vehicle.key);
-            const packages = fixedPackagesFor(vehicle.key);
+            const daily = dailyRateFor(allPackages, vehicle.key);
+            const packages = fixedPackagesFor(allPackages, vehicle.key);
             return (
               <section key={vehicle.key} id={vehicle.key} aria-labelledby={`${vehicle.key}-heading`} className="scroll-mt-32">
                 <Surface className="grid overflow-hidden p-0 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.1fr)]">

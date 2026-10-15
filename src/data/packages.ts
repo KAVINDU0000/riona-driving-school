@@ -1,4 +1,6 @@
-// Training packages and prices from the school's price list.
+// TEST AND SEED FIXTURE ONLY. The live price list is the database (src/lib/packages/catalog.ts).
+// Nothing in src/ may import this file. tests/package-source-guard.test.ts enforces that.
+// Used by: the Playwright global setup, scripts/seed-packages.ts (local database only), and the tests.
 
 export interface PackageOption {
   id: string;
@@ -57,40 +59,3 @@ export const packageGroups: PackageGroup[] = [
     ],
   },
 ];
-
-export const packageDiscountNote = "5% discount when the full eligible package fee is paid in cash at once.";
-
-/** Formats a price as "LKR 26,000" without locale-dependent output, so server and browser render the same text. */
-export function formatLkr(amount: number) {
-  return `LKR ${amount.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",")}`;
-}
-
-export function isPerSession(option: Pick<PackageOption, "pricing">) {
-  return option.pricing === "per-session";
-}
-
-/** Price text for lists and summaries. Per-session rates are labelled so they are never read as a total. */
-export function formatPackagePrice(option: Pick<PackageOption, "price" | "pricing">) {
-  return isPerSession(option) ? `${formatLkr(option.price)} per session` : formatLkr(option.price);
-}
-
-/**
- * Keeps only the options whose ids are in `availableIds` (the packages active in the database), and drops
- * groups left empty. Order, names, prices and the per-session flag are unchanged. This only decides what is
- * offered; the registration API still checks the package itself.
- */
-export function filterAvailablePackageGroups(groups: PackageGroup[], availableIds: readonly string[]): PackageGroup[] {
-  const available = new Set(availableIds);
-  return groups
-    .map((group) => ({ ...group, options: group.options.filter((option) => available.has(option.id)) }))
-    .filter((group) => group.options.length > 0);
-}
-
-/** Finds a package option by id, with the name of its group. Returns undefined for unknown ids. */
-export function findPackage(id: string) {
-  for (const group of packageGroups) {
-    const option = group.options.find((item) => item.id === id);
-    if (option) return { ...option, group: group.label };
-  }
-  return undefined;
-}

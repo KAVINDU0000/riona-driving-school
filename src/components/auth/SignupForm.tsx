@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useState, type ChangeEvent, type FormEvent, type ReactNode } from "react";
 import Icon from "@/components/ui/Icon";
 import PackageSelect from "@/components/auth/PackageSelect";
-import { findPackage, formatPackagePrice, isPerSession, packageDiscountNote } from "@/data/packages";
+import { packageDiscountNote } from "@/data/public";
+import { findInGroups, formatPackagePrice, isPerSession, type CatalogGroup } from "@/lib/packages/format";
 
 type Values = {
   fullName: string;
@@ -87,7 +88,7 @@ function Field({
 }
 
 /** Student registration form. Validates the fields here and again on the server, then posts to /api/registration. */
-export default function SignupForm({ availablePackageIds }: { availablePackageIds: readonly string[] }) {
+export default function SignupForm({ catalog }: { catalog: CatalogGroup[] }) {
   const [values, setValues] = useState<Values>(initialValues);
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
@@ -100,7 +101,7 @@ export default function SignupForm({ availablePackageIds }: { availablePackageId
   }
 
   // Per-session packages show their rate but cannot be registered online until the school sets a policy.
-  const selectedPackage = findPackage(values.packageId);
+  const selectedPackage = findInGroups(catalog, values.packageId);
   const perSessionPackage = selectedPackage && isPerSession(selectedPackage) ? selectedPackage : null;
 
   // Server field names differ from the form's field names in these places only.
@@ -321,7 +322,7 @@ export default function SignupForm({ availablePackageIds }: { availablePackageId
             setValues((current) => ({ ...current, packageId }));
           }}
           invalid={Boolean(errors.packageId)}
-          availableIds={availablePackageIds}
+          catalog={catalog}
         />
       </Field>
 

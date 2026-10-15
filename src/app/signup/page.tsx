@@ -3,7 +3,7 @@ import { connection } from "next/server";
 import AuthBackground from "@/components/auth/AuthBackground";
 import AuthShell from "@/components/auth/AuthShell";
 import SignupForm from "@/components/auth/SignupForm";
-import { getActivePackageIds } from "@/lib/registration/packages";
+import { getPublicPackageCatalog } from "@/lib/packages/catalog";
 
 export const metadata: Metadata = {
   title: "Student Registration | Riyona Driving School",
@@ -14,7 +14,7 @@ export const metadata: Metadata = {
 export default async function SignupPage() {
   // Rendered per request, so a package deactivated in the database disappears from the list right away.
   await connection();
-  const availablePackageIds = await getActivePackageIds();
+  const catalog = await getPublicPackageCatalog();
 
   return (
     <>
@@ -32,7 +32,7 @@ export default async function SignupPage() {
         scrollableCard
         cardClassName="lg:w-[540px] lg:justify-self-end lg:-translate-x-10 xl:-translate-x-20"
       >
-        <SignupForm availablePackageIds={availablePackageIds} />
+        <SignupForm catalog={catalog} />
       </AuthShell>
     </>
   );

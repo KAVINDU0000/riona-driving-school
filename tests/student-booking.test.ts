@@ -5,6 +5,7 @@ import { createSession } from "@/lib/auth/session";
 import { findBookingOptions, bookPracticalLesson } from "@/lib/student/lesson-booking";
 import { prisma } from "@/lib/prisma";
 import { getRequest, postRequest } from "./helpers";
+import { parseDateOnly } from "@/lib/student/time";
 import { LESSON_DATE, insertLesson, seedStudentWorld } from "./student-fixtures";
 
 let fixture: Awaited<ReturnType<typeof seedStudentWorld>>;
@@ -165,6 +166,22 @@ describe("practical lesson booking", () => {
         durationMinutes: 30,
       }),
     ).resolves.toMatchObject({ startTime: "09:30" });
+  });
+
+  it("allows several non-overlapping lessons for one student on the same day, with no daily limit", async () => {
+    for (const startTime of ["09:00", "10:00", "11:00"]) {
+      await expect(
+        bookPracticalLesson({
+          studentUserId: "STU-A",
+          enrollmentId: fixture.enrollments.A1,
+          requirementId: fixture.requirements.A1,
+          lessonDate: LESSON_DATE,
+          startTime,
+          durationMinutes: 30,
+        }),
+      ).resolves.toMatchObject({ startTime });
+    }
+    expect(await prisma.lessonSchedule.count({ where: { studentUserId: "STU-A", lessonDate: parseDateOnly(LESSON_DATE)! } })).toBe(3);
   });
 
   it("does not let a cancelled lesson block a new booking", async () => {

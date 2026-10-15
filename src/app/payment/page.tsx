@@ -3,7 +3,8 @@ import Link from "next/link";
 import AuthBackground from "@/components/auth/AuthBackground";
 import AuthShell from "@/components/auth/AuthShell";
 import PaymentForm from "@/components/auth/PaymentForm";
-import { findPackage, formatPackagePrice, isPerSession } from "@/data/packages";
+import { getPublicPackage } from "@/lib/packages/catalog";
+import { formatPackagePrice, isPerSession } from "@/lib/packages/format";
 
 export const metadata: Metadata = {
   title: "Complete Payment | Riyona Driving School",
@@ -17,7 +18,9 @@ export default async function PaymentPage({
   searchParams: Promise<{ package?: string }>;
 }) {
   const { package: packageId } = await searchParams;
-  const pkg = packageId ? findPackage(packageId) : undefined;
+  // Read from the database on every request. A package that is no longer active is treated as not offered.
+  const pkg = packageId ? await getPublicPackage(packageId) : null;
+  const notOffered = Boolean(packageId) && !pkg;
 
   return (
     <>
@@ -58,9 +61,13 @@ export default async function PaymentPage({
           </>
         ) : (
           <div className="flex flex-col gap-4">
-            <h2 className="text-[1.5rem] font-bold leading-tight tracking-[-0.02em] text-ink">No package selected</h2>
+            <h2 className="text-[1.5rem] font-bold leading-tight tracking-[-0.02em] text-ink">
+              {notOffered ? "Package not offered" : "No package selected"}
+            </h2>
             <p className="text-[0.9375rem] leading-relaxed text-muted">
-              Choose a training package in the registration form first, then you will be taken to payment.
+              {notOffered
+                ? "That package is no longer offered, so it cannot be paid for online. Choose another package in the registration form."
+                : "Choose a training package in the registration form first, then you will be taken to payment."}
             </p>
             <Link
               href="/signup"

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { connection } from "next/server";
 import PackageCard from "@/components/public/PackageCard";
 import PageHero from "@/components/public/PageHero";
 import PublicFrame from "@/components/public/PublicFrame";
 import { Container } from "@/components/landing/primitives";
-import { packageGroups } from "@/data/packages";
+import { getPublicPackageCatalog } from "@/lib/packages/catalog";
 
 export const metadata: Metadata = {
   title: "Training Packages and Prices | Riyona Driving School",
@@ -29,7 +30,10 @@ const SECTION_NOTES: Record<string, string> = {
     "Charged per session, not as a package total. Each rate shows the length of one session. Per-session rates are arranged with the school.",
 };
 
-export default function PackagesPage() {
+export default async function PackagesPage() {
+  // Rendered per request, so the prices shown are always the ones in the database right now.
+  await connection();
+  const groups = await getPublicPackageCatalog();
   return (
     <PublicFrame>
       <PageHero
@@ -48,7 +52,7 @@ export default function PackagesPage() {
 
       <Container>
         <nav aria-label="On this page" className="mt-10 flex flex-wrap gap-2">
-          {packageGroups.map((group) => (
+          {groups.map((group) => (
             <a
               key={group.label}
               href={`#${SECTION_IDS[group.label]}`}
@@ -59,8 +63,14 @@ export default function PackagesPage() {
           ))}
         </nav>
 
+        {groups.length === 0 && (
+          <p className="mt-12 text-[0.9375rem] text-muted">
+            No packages are offered online right now. Contact the school for the current packages and fees.
+          </p>
+        )}
+
         <div className="mt-12 grid gap-14">
-          {packageGroups.map((group) => (
+          {groups.map((group) => (
             <section key={group.label} id={SECTION_IDS[group.label]} aria-labelledby={`${SECTION_IDS[group.label]}-heading`} className="scroll-mt-32">
               <h2 id={`${SECTION_IDS[group.label]}-heading`} className="text-[1.5rem] font-bold tracking-[-0.02em] text-ink">
                 {group.label}
@@ -69,7 +79,7 @@ export default function PackagesPage() {
               <ul className="mt-6 grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
                 {group.options.map((option) => (
                   <li key={option.id}>
-                    <PackageCard option={{ ...option, groupLabel: group.label }} />
+                    <PackageCard option={option} />
                   </li>
                 ))}
               </ul>

@@ -59,6 +59,8 @@ async function main() {
       durationDays: Number(/(\d+) days/.exec(option.detail ?? "")?.[1]) || null,
       sessionDurationMinutes: Number(/(\d+)-minute/.exec(option.detail ?? "")?.[1]) || null,
       isActive: true,
+      // The school's price-list order, so the public site shows the same sequence as the price list.
+      sortOrder: packageGroups.flatMap((item) => item.options).findIndex((item) => item.id === option.id) + 1,
     }));
   });
 

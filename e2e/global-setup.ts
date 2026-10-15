@@ -50,11 +50,11 @@ export default async function globalSetup() {
   try {
     await client.query("BEGIN");
     await client.query('TRUNCATE TABLE "RegistrationRequest", "TrainingPackage" CASCADE');
-    for (const row of rows) {
+    for (const [index, row] of rows.entries()) {
       await client.query(
-        `insert into "TrainingPackage" (id, name, "packageType", description, price, "durationDays", "sessionDurationMinutes", "isActive", "updatedAt")
-         values ($1, $2, $3::"PackageType", null, $4::numeric, $5, $6, true, now())`,
-        [row.id, row.name, row.packageType, row.price, row.durationDays, row.sessionDurationMinutes],
+        `insert into "TrainingPackage" (id, name, "packageType", description, price, "durationDays", "sessionDurationMinutes", "isActive", "sortOrder", "updatedAt")
+         values ($1, $2, $3::"PackageType", null, $4::numeric, $5, $6, true, $7, now())`,
+        [row.id, row.name, row.packageType, row.price, row.durationDays, row.sessionDurationMinutes, index + 1],
       );
     }
     await client.query("COMMIT");

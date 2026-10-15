@@ -141,3 +141,42 @@ test("an instructor profile shows the workload and the directory search keeps th
   await expect(page).toHaveURL(/\/portal\/admin\/instructors\/INS-1$/);
   await expect(page.getByRole("heading", { name: "Workload" })).toBeVisible();
 });
+
+test("the packages page warns about missing session counts, and asks before a price change", async ({ page }) => {
+  await signIn(page, "admin", "ADMIN-1");
+  await expect(page).toHaveURL(/\/portal\/admin$/);
+  await page.getByRole("navigation", { name: "Admin sections" }).getByRole("link", { name: "Packages" }).click();
+  await expect(page).toHaveURL(/\/portal\/admin\/packages$/);
+  await expect(page.getByRole("heading", { name: "Packages", exact: true })).toBeVisible();
+
+  // The seeded packages have no session counts, so approval is blocked and the page says so.
+  await expect(page.getByText("Requirements incomplete", { exact: true }).first()).toBeVisible();
+
+  const form = page.getByRole("form", { name: "Edit Car Training" });
+  await form.getByLabel("Price (LKR)").fill("16000");
+  await form.getByRole("button", { name: "Save price and availability" }).click();
+  await expect(page.getByRole("dialog")).toBeVisible();
+  await expect(page.getByRole("dialog").getByText("New applications use the new price.")).toBeVisible();
+  await page.getByRole("button", { name: "Change price" }).click();
+  await expect(page.getByText("Car Training saved.")).toBeVisible();
+  await expect(page.getByRole("form", { name: "Edit Car Training" }).getByLabel("Price (LKR)")).toHaveValue("16000");
+});
+
+test("session requirements: add a row, save, then confirm, and the status follows each step", async ({ page }) => {
+  await signIn(page, "admin", "ADMIN-1");
+  await expect(page).toHaveURL(/\/portal\/admin$/);
+  await page.goto("/portal/admin/packages");
+
+  const row = page.locator("li").filter({ hasText: "Car Training" }).first();
+  await row.getByText("Session requirements", { exact: true }).click();
+  await row.getByLabel("Total sessions").fill("15");
+  await row.getByRole("button", { name: "Add row" }).click();
+  await row.getByRole("button", { name: "Save requirements" }).click();
+  await expect(page.getByText("Car Training: requirements saved.")).toBeVisible();
+  await expect(row.getByText("Awaiting confirmation", { exact: true })).toBeVisible();
+
+  await row.getByRole("button", { name: "Confirm requirements" }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Confirm requirements" }).click();
+  await expect(page.getByText("Car Training: requirements confirmed.")).toBeVisible();
+  await expect(row.getByText("Requirements confirmed", { exact: true })).toBeVisible();
+});

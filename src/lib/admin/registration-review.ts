@@ -269,13 +269,17 @@ export async function approveRegistration(registrationId: string, adminUserId: s
       await tx.$queryRaw`SELECT id FROM "TrainingPackage" WHERE id = ${registration.selectedPackageId} FOR SHARE`;
       const selectedPackage = await tx.trainingPackage.findUniqueOrThrow({
         where: { id: registration.selectedPackageId },
-        select: { packageType: true, isActive: true },
+        select: { packageType: true, isActive: true, requirementsConfirmedAt: true },
       });
       if (!selectedPackage.isActive) {
         throw new AuthError(422, "This training package is no longer offered, so the application cannot be approved. Contact the school.");
       }
       if (selectedPackage.packageType === PackageType.DAILY) {
         throw new AuthError(422, "Per-session packages cannot be approved online yet. Contact the school.");
+      }
+      // The school must enter and confirm the package's session requirements before any application can use them.
+      if (!selectedPackage.requirementsConfirmedAt) {
+        throw new AuthError(422, "This package's session requirements have not been confirmed yet, so the application cannot be approved. Contact the school.");
       }
 
       const emailOwner = await tx.user.findUnique({ where: { email: registration.email }, select: { userId: true } });
@@ -288,7 +292,9 @@ export async function approveRegistration(registrationId: string, adminUserId: s
       }
 
       const items = await tx.trainingPackageItem.findMany({ where: { packageId: registration.selectedPackageId } });
-      if (items.some((item) => item.requiredSessions === null)) {
+      // No rows at all means no session counts were set. That blocks approval just like a missing count does, so a
+      // package with no requirements cannot create an enrollment with nothing to train against.
+      if (items.length === 0 || items.some((item) => item.requiredSessions === null)) {
         throw new AuthError(422, "This package has no session counts set yet, so it cannot be approved.");
       }
 

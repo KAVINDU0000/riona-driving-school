@@ -122,23 +122,26 @@ enum AppointmentType {
 }
 
 model User {
-  userId                       String                   @id // STU-001, INS-001, ADMIN-001
-  email                        String?                  @unique // Required for students and instructors (CHECK in the migration). Admins may have none.
-  passwordHash                 String
-  role                         UserRole
-  status                       AccountStatus            @default(ACTIVE)
-  createdAt                    DateTime                 @default(now())
-  updatedAt                    DateTime                 @updatedAt
-  studentProfile               StudentProfile?
-  instructorProfile            InstructorProfile?
-  sessions                     Session[]
-  passwordResetTokens          PasswordResetToken[]
-  emailChangeTokens            EmailChangeToken[]
-  reviewedPayments             Payment[]                @relation("PaymentReviewer")
-  paymentReviews               PaymentReviewHistory[]   @relation("PaymentReviewUser")
-  reviewedRegistrationRequests RegistrationRequest[]    @relation("RegistrationReviewer")
-  appointmentChanges           AppointmentDateHistory[] @relation("AppointmentChangedBy")
-  attendanceMarks              LessonSchedule[]         @relation("AttendanceMarker")
+  userId                        String                       @id // STU-001, INS-001, ADMIN-001
+  email                         String?                      @unique // Required for students and instructors (CHECK in the migration). Admins may have none.
+  passwordHash                  String
+  role                          UserRole
+  status                        AccountStatus                @default(ACTIVE)
+  createdAt                     DateTime                     @default(now())
+  updatedAt                     DateTime                     @updatedAt
+  studentProfile                StudentProfile?
+  instructorProfile             InstructorProfile?
+  sessions                      Session[]
+  passwordResetTokens           PasswordResetToken[]
+  emailChangeTokens             EmailChangeToken[]
+  reviewedPayments              Payment[]                    @relation("PaymentReviewer")
+  paymentReviews                PaymentReviewHistory[]       @relation("PaymentReviewUser")
+  reviewedRegistrationRequests  RegistrationRequest[]        @relation("RegistrationReviewer")
+  appointmentChanges            AppointmentDateHistory[]     @relation("AppointmentChangedBy")
+  attendanceMarks               LessonSchedule[]             @relation("AttendanceMarker")
+  packagePriceChanges           TrainingPackagePriceChange[] @relation("PackagePriceChanger")
+  packageRequirementChanges     TrainingPackageItemChange[]  @relation("PackageRequirementChanger")
+  packagesRequirementsConfirmed TrainingPackage[]            @relation("PackageRequirementConfirmer")
 
   @@index([role, status])
 }
@@ -215,22 +218,61 @@ model RegistrationRequest {
 }
 
 model TrainingPackage {
-  id                     String                @id @default(cuid())
-  name                   String
-  packageType            PackageType
-  description            String?
-  price                  Decimal               @db.Decimal(10, 2)
-  durationDays           Int?
-  sessionDurationMinutes Int?
-  isActive               Boolean               @default(true)
-  createdAt              DateTime              @default(now())
-  updatedAt              DateTime              @updatedAt
-  items                  TrainingPackageItem[]
-  registrationRequests   RegistrationRequest[]
-  enrollments            Enrollment[]
+  id                            String                       @id @default(cuid())
+  name                          String
+  packageType                   PackageType
+  description                   String?
+  price                         Decimal                      @db.Decimal(10, 2)
+  durationDays                  Int?
+  sessionDurationMinutes        Int?
+  isActive                      Boolean                      @default(true)
+  sortOrder                     Int                          @default(0)
+  requirementsConfirmedAt       DateTime?
+  requirementsConfirmedByUserId String?
+  requirementsConfirmedBy       User?                        @relation("PackageRequirementConfirmer", fields: [requirementsConfirmedByUserId], references: [userId], onDelete: SetNull)
+  createdAt                     DateTime                     @default(now())
+  updatedAt                     DateTime                     @updatedAt
+  items                         TrainingPackageItem[]
+  registrationRequests          RegistrationRequest[]
+  enrollments                   Enrollment[]
+  priceChanges                  TrainingPackagePriceChange[]
+  requirementChanges            TrainingPackageItemChange[]
 
   @@index([packageType, isActive])
   @@index([name])
+}
+
+// One row per change to a package session requirement. The item ID is plain text, not a foreign key, so a removed
+// requirement still appears in the history.
+model TrainingPackageItemChange {
+  id                       String          @id @default(cuid())
+  packageId                String
+  packageItemId            String?
+  vehicleType              VehicleType
+  trainingType             TrainingType
+  previousRequiredSessions Int?
+  newRequiredSessions      Int?
+  changedByUserId          String?
+  changedAt                DateTime        @default(now())
+  package                  TrainingPackage @relation(fields: [packageId], references: [id], onDelete: Restrict)
+  changedBy                User?           @relation("PackageRequirementChanger", fields: [changedByUserId], references: [userId], onDelete: SetNull)
+
+  @@index([packageId, changedAt])
+}
+
+// One row per price change made from the admin pricing page. Snapshot prices on applications, enrollments and
+// payments are separate columns and are never changed by this table.
+model TrainingPackagePriceChange {
+  id              String          @id @default(cuid())
+  packageId       String
+  previousPrice   Decimal         @db.Decimal(10, 2)
+  newPrice        Decimal         @db.Decimal(10, 2)
+  changedByUserId String?
+  changedAt       DateTime        @default(now())
+  package         TrainingPackage @relation(fields: [packageId], references: [id], onDelete: Restrict)
+  changedBy       User?           @relation("PackagePriceChanger", fields: [changedByUserId], references: [userId], onDelete: SetNull)
+
+  @@index([packageId, changedAt])
 }
 
 model TrainingPackageItem {
