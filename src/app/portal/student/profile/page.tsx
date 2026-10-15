@@ -36,7 +36,7 @@ export default async function StudentProfilePage() {
             <Field label="Date of birth" value={formatDate(profile.birthday)} />
             <Field label="NIC" value={profile.nicMasked} hint="Shown partly for your privacy. Contact the school to correct it." />
             <Field label="Start date" value={formatDate(profile.startDate)} />
-            <Field label="Email" value={profile.email} hint="To change it, use Settings." />
+            <Field label="Email" value={profile.email ?? "Not set"} hint="To change it, use Settings." />
             <div>
               <dt className="text-[0.8125rem] font-semibold text-muted">Account status</dt>
               <dd className="mt-1">

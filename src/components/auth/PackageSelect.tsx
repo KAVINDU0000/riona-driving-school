@@ -2,32 +2,36 @@
 
 import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import Icon from "@/components/ui/Icon";
-import { findPackage, formatPackagePrice, packageGroups, type PackageOption } from "@/data/packages";
+import { filterAvailablePackageGroups, findPackage, formatPackagePrice, packageGroups, type PackageOption } from "@/data/packages";
 
 interface PackageSelectProps {
   id: string;
   value: string;
   onChange: (id: string) => void;
   invalid?: boolean;
+  /** Ids of the packages active in the database. Only these are offered. */
+  availableIds: readonly string[];
 }
 
 /** Package picker: searchable, grouped and keyboard-friendly. The list opens in place and never has its own scrollbar. */
-export default function PackageSelect({ id, value, onChange, invalid = false }: PackageSelectProps) {
+export default function PackageSelect({ id, value, onChange, invalid = false, availableIds }: PackageSelectProps) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
   const selected = findPackage(value);
 
+  const offered = useMemo(() => filterAvailablePackageGroups(packageGroups, availableIds), [availableIds]);
+
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
-    return packageGroups
+    return offered
       .map((group) => ({
         label: group.label,
         options: group.options.filter((option) => !q || `${option.name} ${option.detail ?? ""}`.toLowerCase().includes(q)),
       }))
       .filter((group) => group.options.length > 0);
-  }, [query]);
+  }, [query, offered]);
 
   const flat: PackageOption[] = groups.flatMap((group) => group.options);
   const activeIndex = Math.min(active, Math.max(flat.length - 1, 0));
@@ -145,7 +149,9 @@ export default function PackageSelect({ id, value, onChange, invalid = false }: 
 
           <div id={`${id}-list`} role="listbox" aria-label="Training packages" className="flex flex-col">
             {groups.length === 0 && (
-              <p className="px-3 py-6 text-center text-[0.875rem] text-muted">No packages match your search.</p>
+              <p className="px-3 py-6 text-center text-[0.875rem] text-muted">
+                {offered.length === 0 ? "No packages are available for online registration right now." : "No packages match your search."}
+              </p>
             )}
             {groups.map((group) => (
               <div key={group.label} role="group" aria-label={group.label} className="flex flex-col gap-0.5 pb-1">

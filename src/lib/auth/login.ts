@@ -36,11 +36,11 @@ const loginSelect = {
   instructorProfile: { select: { status: true } },
 } as const;
 
-/** Student IDs look like STU-001, so they are compared in upper case. Admins sign in with email. */
-async function findLoginUser(role: UserRole, identifier: string) {
-  if (role === UserRole.ADMIN) {
-    return prisma.user.findUnique({ where: { email: identifier.toLowerCase() }, select: loginSelect });
-  }
+/**
+ * Every role signs in with its account ID (STU-001, INS-001, ADMIN-001), compared in upper case. An email
+ * address is never accepted as a login identifier. The role check in signIn still decides who may use which endpoint.
+ */
+async function findLoginUser(identifier: string) {
   return prisma.user.findUnique({ where: { userId: identifier.toUpperCase() }, select: loginSelect });
 }
 
@@ -70,7 +70,7 @@ async function signIn(request: Request, role: UserRole) {
       });
     }
 
-    const user = await findLoginUser(role, identifier);
+    const user = await findLoginUser(identifier);
 
     // Verify even when the account is missing, so response time does not reveal which IDs exist.
     const passwordMatches = await verifyPassword(user?.passwordHash ?? (await getDummyHash()), password);

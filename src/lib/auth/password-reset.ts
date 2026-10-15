@@ -43,7 +43,8 @@ export async function startPasswordReset(rawEmail: string): Promise<void> {
     where: { email },
     select: { userId: true, email: true, status: true },
   });
-  if (!user || user.status !== AccountStatus.ACTIVE) return;
+  // The lookup is by a non-null address, so user.email is always set here; the check keeps the type honest.
+  if (!user || !user.email || user.status !== AccountStatus.ACTIVE) return;
 
   const token = await issuePasswordResetToken(user.userId);
   const delivered = await deliverAuthEmail("password-reset", user.email, token);

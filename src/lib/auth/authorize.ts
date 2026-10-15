@@ -7,7 +7,8 @@ import { hashToken } from "@/lib/auth/tokens";
 
 export type AuthUser = {
   userId: string;
-  email: string;
+  /** Null only for an admin without an email address. Students and instructors always have one (database CHECK). */
+  email: string | null;
   role: UserRole;
 };
 

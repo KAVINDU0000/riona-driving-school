@@ -74,6 +74,18 @@ export function formatPackagePrice(option: Pick<PackageOption, "price" | "pricin
   return isPerSession(option) ? `${formatLkr(option.price)} per session` : formatLkr(option.price);
 }
 
+/**
+ * Keeps only the options whose ids are in `availableIds` (the packages active in the database), and drops
+ * groups left empty. Order, names, prices and the per-session flag are unchanged. This only decides what is
+ * offered; the registration API still checks the package itself.
+ */
+export function filterAvailablePackageGroups(groups: PackageGroup[], availableIds: readonly string[]): PackageGroup[] {
+  const available = new Set(availableIds);
+  return groups
+    .map((group) => ({ ...group, options: group.options.filter((option) => available.has(option.id)) }))
+    .filter((group) => group.options.length > 0);
+}
+
 /** Finds a package option by id, with the name of its group. Returns undefined for unknown ids. */
 export function findPackage(id: string) {
   for (const group of packageGroups) {

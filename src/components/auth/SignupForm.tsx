@@ -87,7 +87,7 @@ function Field({
 }
 
 /** Student registration form. Validates the fields here and again on the server, then posts to /api/registration. */
-export default function SignupForm() {
+export default function SignupForm({ availablePackageIds }: { availablePackageIds: readonly string[] }) {
   const [values, setValues] = useState<Values>(initialValues);
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
@@ -321,6 +321,7 @@ export default function SignupForm() {
             setValues((current) => ({ ...current, packageId }));
           }}
           invalid={Boolean(errors.packageId)}
+          availableIds={availablePackageIds}
         />
       </Field>
 

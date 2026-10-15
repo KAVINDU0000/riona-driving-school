@@ -65,10 +65,10 @@ const roleContent: Record<
       { icon: "car", text: "Schedule instructors and vehicles" },
       { icon: "file-check", text: "Track licence progress" },
     ],
-    identifierLabel: "Admin email",
-    identifierPlaceholder: "Enter admin email",
-    identifierType: "email",
-    identifierIcon: "mail",
+    identifierLabel: "Admin ID",
+    identifierPlaceholder: "Enter admin ID",
+    identifierType: "text",
+    identifierIcon: "id-card",
   },
 };
 

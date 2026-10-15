@@ -70,7 +70,7 @@ export default async function StudentSettingsPage() {
         </h2>
         <p className="mb-5 mt-1 text-[0.875rem] text-muted">We send a link to the new address. Your sign-in email changes only after you open it.</p>
         <div className="max-w-xl">
-          <EmailChangeForm currentEmail={profile.email} />
+          <EmailChangeForm currentEmail={profile.email ?? "Not set"} />
         </div>
       </section>
     </>

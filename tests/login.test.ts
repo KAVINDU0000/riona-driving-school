@@ -33,10 +33,36 @@ describe("login", () => {
     expect(sessionCookieFrom(response)).toBeDefined();
   });
 
-  it("signs in an admin by email", async () => {
-    const response = await adminLogin(postRequest("/api/auth/admin/login", { identifier: "Admin@Riona.lk", password: DEFAULT_PASSWORD }));
+  it("signs in an admin by admin ID, case-insensitively, and sets a session cookie", async () => {
+    const response = await adminLogin(postRequest("/api/auth/admin/login", { identifier: " admin-001 ", password: DEFAULT_PASSWORD }));
     expect(response.status).toBe(200);
     expect((await response.json()).role).toBe("ADMIN");
+    expect(sessionCookieFrom(response)).toBeDefined();
+  });
+
+  it("no longer accepts an admin's email address as the login identifier", async () => {
+    const response = await adminLogin(postRequest("/api/auth/admin/login", { identifier: "admin@riona.lk", password: DEFAULT_PASSWORD }));
+    expect(response.status).toBe(401);
+    expect(sessionCookieFrom(response)).toBeUndefined();
+  });
+
+  it("returns the same generic error for a wrong admin password and an unknown admin ID", async () => {
+    const wrongPassword = await json(await adminLogin(postRequest("/api/auth/admin/login", { identifier: "ADMIN-001", password: "not-the-password" })));
+    const unknownId = await json(await adminLogin(postRequest("/api/auth/admin/login", { identifier: "ADMIN-999", password: DEFAULT_PASSWORD })));
+    expect(wrongPassword.status).toBe(401);
+    expect(unknownId.status).toBe(401);
+    expect(wrongPassword.body).toEqual({ error: "Invalid ID or password." });
+    expect(unknownId.body).toEqual(wrongPassword.body);
+  });
+
+  it("rejects an instructor on the admin endpoint, even with the correct password", async () => {
+    const response = await adminLogin(postRequest("/api/auth/admin/login", { identifier: "INS-001", password: DEFAULT_PASSWORD }));
+    expect(response.status).toBe(401);
+  });
+
+  it("ignores a role sent in the request body on the admin endpoint", async () => {
+    const response = await adminLogin(postRequest("/api/auth/admin/login", { identifier: "STU-001", password: DEFAULT_PASSWORD, role: "ADMIN" }));
+    expect(response.status).toBe(401);
   });
 
   it("signs in an instructor by instructor ID", async () => {
@@ -55,7 +81,7 @@ describe("login", () => {
   });
 
   it("rejects an admin or instructor on the student endpoint", async () => {
-    const adminOnStudent = await studentLogin(postRequest("/api/auth/student/login", { identifier: "admin@riona.lk", password: DEFAULT_PASSWORD }));
+    const adminOnStudent = await studentLogin(postRequest("/api/auth/student/login", { identifier: "ADMIN-001", password: DEFAULT_PASSWORD }));
     const instructorOnStudent = await studentLogin(postRequest("/api/auth/student/login", { identifier: "INS-001", password: DEFAULT_PASSWORD }));
     expect(adminOnStudent.status).toBe(401);
     expect(instructorOnStudent.status).toBe(401);

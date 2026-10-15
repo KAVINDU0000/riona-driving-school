@@ -6,9 +6,9 @@ How to create accounts, configure email, and run the sign-in flows.
 
 | Role | How the account is created | How the user signs in |
 |---|---|---|
-| Admin | One-time command: `pnpm admin:bootstrap` | `/login?role=admin` with email and password |
+| Admin | One-time command: `pnpm admin:bootstrap` | `/login?role=admin` with admin ID and password |
 | Instructor | Admin calls `POST /api/admin/instructors`, which sends an invitation | `/login?role=instructor` with instructor ID and password |
-| Student | **Not implemented.** Public registration does not create accounts yet (see below) | `/login?role=student` with student ID and password |
+| Student | An admin approves the application at `/portal/admin`, which creates the account with the password chosen at signup | `/login?role=student` with student ID and password |
 
 There is no public admin or instructor sign-up.
 
@@ -20,11 +20,23 @@ Run this from an interactive terminal, against the database you intend to use:
 pnpm admin:bootstrap
 ```
 
-It asks for an admin ID (for example `ADMIN-001`), an email, and a password entered twice without echo. The password is never read from arguments, environment variables or piped input.
+It shows the target database (name, host and port only) and asks you to type `<database>@<host>` to confirm it. Then it asks for an admin ID (for example `ADMIN-001`) and a password entered twice without echo. No email address is asked for or stored: admins sign in with their ID only, and an email is never accepted as an admin login. The password is never read from arguments, environment variables or piped input.
 
 - The command refuses to run if any admin already exists. It is not run by builds, migrations or startup.
 - It uses `DATABASE_URL` from `.env.local` (or from the shell, which takes precedence). Check that value before running the command. A `.env.local` that points at a shared or hosted database will create the admin there.
-- To verify: sign in at `/login?role=admin` with the email and password you entered.
+- To verify: sign in at `/login?role=admin` with the admin ID and password you entered.
+
+## Recovering an admin password
+
+An admin without an email cannot use the emailed password reset. If an admin cannot sign in, run this from an interactive terminal:
+
+```bash
+pnpm admin:reset-password
+```
+
+It confirms the target database the same way, then asks for the admin ID and a new password entered twice without echo. Only accounts with the ADMIN role can be reset. The admin is signed out everywhere and unused reset links are voided; the account's ID, email, role and status do not change, so an inactive admin stays inactive. Anyone who can run this command against the database can take over an admin account, so treat database access as admin access.
+
+An admin may also add an email address later through the normal confirmed email change; the address is then used only for the emailed password reset, never for sign-in.
 
 ## Creating an instructor
 

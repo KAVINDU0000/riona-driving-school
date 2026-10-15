@@ -18,6 +18,12 @@ if (!isGuardedTarget) {
 
 const PORT = 3100;
 
+/**
+ * Browser channel. Unset keeps the default, the Microsoft Edge installed on the machine. Set PW_CHANNEL to
+ * another channel to use it, or to an empty value (PW_CHANNEL=) to use Playwright's own Chromium instead.
+ */
+const channel = process.env.PW_CHANNEL ?? "msedge";
+
 export default defineConfig({
   testDir: "./e2e",
   outputDir: "./test-results",
@@ -29,8 +35,8 @@ export default defineConfig({
   globalSetup: "./e2e/global-setup.ts",
   use: {
     baseURL: `http://localhost:${PORT}`,
-    // Uses the Microsoft Edge already installed on this machine. No browser is downloaded.
-    channel: "msedge",
+    // No browser is downloaded: Edge by default, or the cached Playwright Chromium when PW_CHANNEL is empty.
+    ...(channel ? { channel } : {}),
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
   },

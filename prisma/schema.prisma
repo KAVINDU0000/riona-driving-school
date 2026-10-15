@@ -123,7 +123,7 @@ enum AppointmentType {
 
 model User {
   userId                       String                   @id // STU-001, INS-001, ADMIN-001
-  email                        String                   @unique
+  email                        String?                  @unique // Required for students and instructors (CHECK in the migration). Admins may have none.
   passwordHash                 String
   role                         UserRole
   status                       AccountStatus            @default(ACTIVE)
