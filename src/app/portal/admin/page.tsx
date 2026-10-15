@@ -1,33 +1,63 @@
 import type { Metadata } from "next";
-import InstructorForm from "@/components/admin/InstructorForm";
-import RegistrationReview from "@/components/admin/RegistrationReview";
-import PortalFrame from "@/components/portal/PortalFrame";
+import Link from "next/link";
+import AdminFrame from "@/components/admin/AdminFrame";
+import StudentStatCard from "@/components/student/StudentStatCard";
+import { formatDate } from "@/components/student/format";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
+import { getAdminDashboardStats } from "@/lib/admin/dashboard";
 
 export const metadata: Metadata = {
-  title: "Admin Portal | Riyona Driving School",
+  title: "Admin Dashboard | Riyona Driving School",
   robots: { index: false, follow: false },
 };
 
-export default async function AdminPortalPage() {
+/**
+ * Overview of the school. Each number is counted from the database when the page loads. A card links to its
+ * management page only when that page exists. The others say so, rather than linking to nothing.
+ */
+export default async function AdminDashboardPage() {
   await requirePortalUser("ADMIN");
+  const stats = await getAdminDashboardStats();
+
+  const cards: {
+    label: string;
+    value: number;
+    caption: string;
+    icon: string;
+    href?: string;
+  }[] = [
+    { label: "Pending applications", value: stats.pendingApplications, caption: "Waiting for review", icon: "file-check", href: "/portal/admin/registrations" },
+    { label: "Active students", value: stats.activeStudents, caption: "Active accounts with a student profile", icon: "users", href: "/portal/admin/students" },
+    { label: "Active instructors", value: stats.activeInstructors, caption: "Active accounts and profiles", icon: "user", href: "/portal/admin/instructors" },
+    { label: "Today's scheduled lessons", value: stats.todaysScheduledLessons, caption: `School date ${formatDate(stats.today)}`, icon: "calendar" },
+    { label: "Lessons needing action", value: stats.lessonsNeedingAction, caption: "Ended, still scheduled", icon: "clock" },
+    { label: "Upcoming medical appointments", value: stats.upcomingMedicalAppointments, caption: "Scheduled, from now on", icon: "heart-pulse" },
+    { label: "Upcoming exams", value: stats.upcomingExams, caption: "Scheduled, from now on", icon: "badge-check" },
+    { label: "Pending payment reviews", value: stats.pendingPaymentReviews, caption: "Bank slips waiting for review", icon: "wallet" },
+    { label: "Vehicles needing attention", value: stats.vehiclesNeedingAttention, caption: "In maintenance or inactive", icon: "car" },
+  ];
 
   return (
-    <PortalFrame eyebrow="Admin Portal" title="Registrations">
-      <p className="mb-6">Review student applications. Approving creates the student account and enrollment. Rejecting requires a reason.</p>
-      <RegistrationReview />
-
-      <section aria-labelledby="instructor-heading" className="glass mt-6 rounded-[22px] p-5">
-        <h2 id="instructor-heading" className="text-[1.125rem] font-bold text-ink">
-          Add instructor
-        </h2>
-        <p className="mt-2 text-[0.9375rem] text-muted">
-          The instructor sets their own password from the invitation link. The link is valid for a limited time.
-        </p>
-        <div className="mt-5">
-          <InstructorForm />
-        </div>
-      </section>
-    </PortalFrame>
+    <AdminFrame title="Dashboard" description="Current figures from the school's records." active="/portal/admin">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+        {cards.map((card) => {
+          const body = (
+            <StudentStatCard label={card.label} value={card.value} caption={card.caption} icon={card.icon}>
+              {!card.href && <p className="text-[0.75rem] text-muted">Management page not yet available</p>}
+            </StudentStatCard>
+          );
+          return card.href ? (
+            <Link key={card.label} href={card.href} className="block rounded-2xl transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark">
+              {body}
+            </Link>
+          ) : (
+            <div key={card.label}>{body}</div>
+          );
+        })}
+      </div>
+      <p className="mt-6 text-[0.8125rem] text-muted">
+        Outstanding balances are not shown. The school has not defined how amounts owed are calculated.
+      </p>
+    </AdminFrame>
   );
 }

@@ -5,9 +5,9 @@ import ConfirmDialog from "@/components/student/ConfirmDialog";
 import { formatDate, formatDateTime, formatMoney, labels } from "@/components/student/format";
 import StatusBadge from "@/components/student/StatusBadge";
 
-type Filter = "PENDING" | "APPROVED" | "REJECTED" | "ALL";
+type Status = "PENDING" | "APPROVED" | "REJECTED" | "ALL";
 
-const FILTERS: { value: Filter; label: string }[] = [
+const STATUS_TABS: { value: Status; label: string }[] = [
   { value: "PENDING", label: "Pending" },
   { value: "APPROVED", label: "Approved" },
   { value: "REJECTED", label: "Rejected" },
@@ -16,6 +16,17 @@ const FILTERS: { value: Filter; label: string }[] = [
 
 const REASON_MIN = 10;
 const REASON_MAX = 500;
+
+type Filters = {
+  status: Status;
+  q: string;
+  packageId: string;
+  from: string;
+  to: string;
+  order: "oldest" | "newest";
+};
+
+const DEFAULT_FILTERS: Filters = { status: "PENDING", q: "", packageId: "", from: "", to: "", order: "oldest" };
 
 type Summary = {
   id: string;
@@ -35,9 +46,15 @@ type Detail = Summary & {
   additionalNote: string | null;
   packagePriceAtSubmission: string;
   reviewedAt: string | null;
+  reviewedByUserId: string | null;
   rejectionReason: string | null;
   approvedStudentUserId: string | null;
+  payments: { id: string; status: string; amount: string; paymentDate: string; createdAt: string }[];
+  enrollment: { id: string; status: string; enrollmentDate: string } | null;
+  history: { at: string; event: string; detail: string | null }[];
 };
+
+type ListBody = { registrations: Summary[]; total: number; page: number; pageCount: number };
 
 /** Reads the error message the API returns. Responses never include stack traces or internal details. */
 async function errorFrom(response: Response, fallback: string) {
@@ -45,10 +62,21 @@ async function errorFrom(response: Response, fallback: string) {
   return body?.error ?? fallback;
 }
 
-/** Admin review queue: list applications, inspect one, approve or reject it. Every action is checked again on the server. */
-export default function RegistrationReview() {
-  const [filter, setFilter] = useState<Filter>("PENDING");
+function hasActiveFilters(filters: Filters) {
+  return filters.q !== "" || filters.packageId !== "" || filters.from !== "" || filters.to !== "" || filters.order !== "oldest";
+}
+
+/**
+ * Admin review queue: search, filter and page through applications, then inspect one, approve or reject it.
+ * The list and the detail come from the API. Every action is checked again on the server.
+ */
+export default function RegistrationReview({ packages }: { packages: { id: string; name: string }[] }) {
+  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+  const [searchInput, setSearchInput] = useState("");
+  const [page, setPage] = useState(1);
   const [items, setItems] = useState<Summary[]>([]);
+  const [total, setTotal] = useState(0);
+  const [pageCount, setPageCount] = useState(1);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
   const [loadError, setLoadError] = useState("");
@@ -62,14 +90,27 @@ export default function RegistrationReview() {
 
   useEffect(() => {
     let active = true;
-    fetch(`/api/admin/registrations?status=${filter}`)
+    const params = new URLSearchParams({ status: filters.status, order: filters.order, page: String(page) });
+    if (filters.q) params.set("q", filters.q);
+    if (filters.packageId) params.set("package", filters.packageId);
+    if (filters.from) params.set("from", filters.from);
+    if (filters.to) params.set("to", filters.to);
+
+    fetch(`/api/admin/registrations?${params.toString()}`)
       .then(async (response) => {
         if (!response.ok) throw new Error(await errorFrom(response, "The applications could not be loaded."));
-        return (await response.json()) as { registrations: Summary[] };
+        return (await response.json()) as ListBody;
       })
       .then((body) => {
         if (!active) return;
+        // The list can shrink after a decision. If this page no longer exists, move to the last one.
+        if (body.total > 0 && body.page > body.pageCount) {
+          setPage(body.pageCount);
+          return;
+        }
         setItems(body.registrations);
+        setTotal(body.total);
+        setPageCount(body.pageCount);
         setLoadError("");
       })
       .catch((error: unknown) => {
@@ -78,7 +119,7 @@ export default function RegistrationReview() {
     return () => {
       active = false;
     };
-  }, [filter, listVersion]);
+  }, [filters, page, listVersion]);
 
   useEffect(() => {
     if (!selectedId) return;
@@ -106,6 +147,22 @@ export default function RegistrationReview() {
   function refresh() {
     setListVersion((version) => version + 1);
     setDetailVersion((version) => version + 1);
+  }
+
+  function changeFilters(patch: Partial<Filters>) {
+    setPage(1);
+    setFilters((current) => ({ ...current, ...patch }));
+  }
+
+  function applySearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    changeFilters({ q: searchInput.trim() });
+  }
+
+  function clearFilters() {
+    setSearchInput("");
+    setPage(1);
+    setFilters((current) => ({ ...DEFAULT_FILTERS, status: current.status }));
   }
 
   function choose(id: string) {
@@ -162,6 +219,7 @@ export default function RegistrationReview() {
   }
 
   const canReview = detail?.status === "PENDING";
+  const filtered = hasActiveFilters(filters);
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
@@ -169,16 +227,17 @@ export default function RegistrationReview() {
         <h2 id="queue-heading" className="text-[1.125rem] font-bold text-ink">
           Registration queue
         </h2>
-        <div role="tablist" aria-label="Filter applications" className="mt-4 flex flex-wrap gap-2">
-          {FILTERS.map((option) => (
+
+        <div role="tablist" aria-label="Filter applications by status" className="mt-4 flex flex-wrap gap-2">
+          {STATUS_TABS.map((option) => (
             <button
               key={option.value}
               type="button"
               role="tab"
-              aria-selected={filter === option.value}
-              onClick={() => setFilter(option.value)}
+              aria-selected={filters.status === option.value}
+              onClick={() => changeFilters({ status: option.value })}
               className={`rounded-full px-3.5 py-1.5 text-[0.8125rem] font-semibold ring-1 ${
-                filter === option.value ? "bg-gold-soft text-gold-ink ring-gold/60" : "bg-white text-muted ring-line"
+                filters.status === option.value ? "bg-gold-soft text-gold-ink ring-gold/60" : "bg-white text-muted ring-line"
               }`}
             >
               {option.label}
@@ -186,12 +245,107 @@ export default function RegistrationReview() {
           ))}
         </div>
 
+        <form role="search" onSubmit={applySearch} className="mt-5 grid gap-2">
+          <label htmlFor="reg-search" className="text-[0.8125rem] font-semibold text-ink">
+            Search applications
+          </label>
+          <div className="flex gap-2">
+            <input
+              id="reg-search"
+              type="search"
+              value={searchInput}
+              onChange={(event) => setSearchInput(event.target.value)}
+              maxLength={100}
+              placeholder="Name, reference, email, NIC or phone"
+              className="min-w-0 flex-1 rounded-xl border border-line bg-white px-3 py-2 text-[0.9375rem] text-ink focus:border-gold-dark focus:outline-none focus:ring-4 focus:ring-gold/25"
+            />
+            <button type="submit" className="rounded-xl bg-white px-4 py-2 text-[0.875rem] font-semibold text-ink ring-1 ring-line hover:bg-page">
+              Search
+            </button>
+          </div>
+        </form>
+
+        <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="grid gap-1.5">
+            <label htmlFor="reg-package" className="text-[0.8125rem] font-semibold text-ink">
+              Package
+            </label>
+            <select
+              id="reg-package"
+              value={filters.packageId}
+              onChange={(event) => changeFilters({ packageId: event.target.value })}
+              className="rounded-xl border border-line bg-white px-3 py-2 text-[0.9375rem] text-ink"
+            >
+              <option value="">All packages</option>
+              {packages.map((item) => (
+                <option key={item.id} value={item.id}>
+                  {item.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="grid gap-1.5">
+            <label htmlFor="reg-order" className="text-[0.8125rem] font-semibold text-ink">
+              Sort by submission
+            </label>
+            <select
+              id="reg-order"
+              value={filters.order}
+              onChange={(event) => changeFilters({ order: event.target.value as Filters["order"] })}
+              className="rounded-xl border border-line bg-white px-3 py-2 text-[0.9375rem] text-ink"
+            >
+              <option value="oldest">Oldest first</option>
+              <option value="newest">Newest first</option>
+            </select>
+          </div>
+          <div className="grid gap-1.5">
+            <label htmlFor="reg-from" className="text-[0.8125rem] font-semibold text-ink">
+              Submitted from
+            </label>
+            <input
+              id="reg-from"
+              type="date"
+              value={filters.from}
+              max={filters.to || undefined}
+              onChange={(event) => changeFilters({ from: event.target.value })}
+              className="rounded-xl border border-line bg-white px-3 py-2 text-[0.9375rem] text-ink"
+            />
+          </div>
+          <div className="grid gap-1.5">
+            <label htmlFor="reg-to" className="text-[0.8125rem] font-semibold text-ink">
+              Submitted to
+            </label>
+            <input
+              id="reg-to"
+              type="date"
+              value={filters.to}
+              min={filters.from || undefined}
+              onChange={(event) => changeFilters({ to: event.target.value })}
+              className="rounded-xl border border-line bg-white px-3 py-2 text-[0.9375rem] text-ink"
+            />
+          </div>
+        </div>
+        {filtered && (
+          <button type="button" onClick={clearFilters} className="mt-3 text-[0.8125rem] font-semibold text-gold-ink underline-offset-2 hover:underline">
+            Clear search and filters
+          </button>
+        )}
+
         {loadError && <p role="alert" className="mt-4 text-[0.875rem] text-red-700">{loadError}</p>}
 
+        <div className="mt-5 flex flex-wrap items-center justify-between gap-3 text-[0.8125rem] text-muted" aria-live="polite">
+          <span>{total === 1 ? "1 application" : `${total} applications`}</span>
+          <span>
+            Page {page} of {pageCount}
+          </span>
+        </div>
+
         {items.length === 0 && !loadError ? (
-          <p className="mt-6 text-[0.9375rem] text-muted">No applications in this list.</p>
+          <p className="mt-4 text-[0.9375rem] text-muted">
+            {filtered ? "No applications match these filters." : "No applications in this list."}
+          </p>
         ) : (
-          <ul className="mt-4 grid gap-2">
+          <ul className="mt-3 grid gap-2">
             {items.map((item) => (
               <li key={item.id}>
                 <button
@@ -213,6 +367,27 @@ export default function RegistrationReview() {
               </li>
             ))}
           </ul>
+        )}
+
+        {pageCount > 1 && (
+          <nav aria-label="Pages of applications" className="mt-5 flex items-center justify-between gap-3">
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.max(1, current - 1))}
+              disabled={page <= 1}
+              className="rounded-xl bg-white px-4 py-2 text-[0.875rem] font-semibold text-ink ring-1 ring-line hover:bg-page disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              type="button"
+              onClick={() => setPage((current) => Math.min(pageCount, current + 1))}
+              disabled={page >= pageCount}
+              className="rounded-xl bg-white px-4 py-2 text-[0.875rem] font-semibold text-ink ring-1 ring-line hover:bg-page disabled:opacity-50"
+            >
+              Next
+            </button>
+          </nav>
         )}
       </section>
 
@@ -249,10 +424,49 @@ export default function RegistrationReview() {
               <Field label="Price at submission" value={formatMoney(Number(detail.packagePriceAtSubmission))} />
               <Field label="Submitted" value={formatDateTime(new Date(detail.submittedAt))} />
               {detail.reviewedAt && <Field label="Reviewed" value={formatDateTime(new Date(detail.reviewedAt))} />}
+              {detail.reviewedByUserId && <Field label="Reviewed by" value={detail.reviewedByUserId} />}
               {detail.approvedStudentUserId && <Field label="Student ID" value={detail.approvedStudentUserId} />}
               {detail.rejectionReason && <Field label="Rejection reason" value={detail.rejectionReason} />}
             </dl>
             {detail.additionalNote && <Field label="Applicant's note" value={detail.additionalNote} />}
+
+            <section aria-labelledby="history-heading" className="grid gap-2 border-t border-line pt-5">
+              <h3 id="history-heading" className="text-[0.9375rem] font-bold text-ink">
+                History
+              </h3>
+              <ol className="grid gap-2">
+                {detail.history.map((entry, index) => (
+                  <li key={`${entry.at}-${index}`} className="rounded-xl bg-white px-3.5 py-2.5 ring-1 ring-line">
+                    <p className="text-[0.875rem] font-semibold text-ink">{entry.event}</p>
+                    <p className="text-[0.8125rem] text-muted">
+                      {formatDateTime(new Date(entry.at))}
+                      {entry.detail ? ` · ${entry.detail}` : ""}
+                    </p>
+                  </li>
+                ))}
+              </ol>
+              <p className="text-[0.75rem] text-muted">
+                Built from the stored fields of this application. The system keeps no separate audit log yet.
+              </p>
+            </section>
+
+            {detail.payments.length > 0 && (
+              <section aria-labelledby="payments-heading" className="grid gap-2">
+                <h3 id="payments-heading" className="text-[0.9375rem] font-bold text-ink">
+                  Payments recorded
+                </h3>
+                <ul className="grid gap-2">
+                  {detail.payments.map((payment) => (
+                    <li key={payment.id} className="flex flex-wrap justify-between gap-2 text-[0.875rem] text-ink">
+                      <span>{formatMoney(Number(payment.amount))}</span>
+                      <span className="text-muted">
+                        {labels.paymentStatus[payment.status] ?? payment.status} · {formatDate(payment.paymentDate.slice(0, 10))}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
 
             {canReview && (
               <div className="grid gap-4 border-t border-line pt-5">

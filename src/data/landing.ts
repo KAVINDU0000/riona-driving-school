@@ -8,13 +8,14 @@ export const site = {
   whatsapp: "https://wa.me/94718894481",
 };
 
+/** Public site navigation. Each entry is a real route, and the active item is chosen by pathname. */
 export const navLinks = [
-  { label: "Home", href: "#home" },
-  { label: "About", href: "#about" },
-  { label: "Packages", href: "#lessons" },
-  { label: "Past Papers and Tutorials", href: "#learning-hub" },
-  { label: "FAQ", href: "#faq" },
-  { label: "Contact", href: "#contact" },
+  { label: "Home", href: "/" },
+  { label: "About", href: "/about" },
+  { label: "Packages", href: "/packages" },
+  { label: "Vehicles", href: "/vehicles" },
+  { label: "Cash discount", href: "/cash-discount" },
+  { label: "Contact", href: "/contact" },
 ];
 
 export const trustPoints = [

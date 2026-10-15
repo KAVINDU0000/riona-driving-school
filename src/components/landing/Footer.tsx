@@ -1,25 +1,34 @@
 import Image from "next/image";
+import Link from "next/link";
 import { site } from "@/data/landing";
+import { publicContact } from "@/data/public";
 import { Container } from "./primitives";
 
+/** Every link goes to a page that exists. Pages that do not exist yet (privacy, terms) are not listed. */
 const columns = [
   {
-    title: "Driving Lessons",
-    links: ["Car (Auto & Manual)", "Van Lessons", "Motorbike (A/L)", "Three-Wheeler"],
+    title: "Training",
+    links: [
+      { label: "Packages and pricing", href: "/packages" },
+      { label: "Daily individual training", href: "/packages#daily-rates" },
+      { label: "Trial preparation", href: "/packages#trial-preparation" },
+      { label: "Vehicle categories", href: "/vehicles" },
+    ],
   },
   {
-    title: "Learning Resources",
-    links: ["Learner Permit Guide", "Online Practice Papers", "DMT Medical & Registration", "Road Signs & Rules"],
-  },
-  {
-    title: "Contact",
-    links: [site.phone, "Pitipana Junction, Homagama, Sri Lanka"],
+    title: "School",
+    links: [
+      { label: "About the school", href: "/about" },
+      { label: "Cash discount", href: "/cash-discount" },
+      { label: "Apply now", href: "/signup" },
+      { label: "Sign in", href: "/login" },
+    ],
   },
 ];
 
 export default function Footer() {
   return (
-    <footer id="contact" className="border-t border-line bg-white/60 pt-14 pb-8 backdrop-blur">
+    <footer className="border-t border-line bg-white/60 pt-14 pb-8 backdrop-blur">
       <Container>
         <div className="grid gap-10 md:grid-cols-[minmax(0,1.4fr)_repeat(3,minmax(0,1fr))]">
           <div className="flex flex-col gap-4">
@@ -46,23 +55,45 @@ export default function Footer() {
             <div key={col.title}>
               <p className="text-[0.75rem] font-bold uppercase tracking-[0.12em] text-ink">{col.title}</p>
               <ul className="mt-4 space-y-2.5">
-                {col.links.map((l) => (
-                  <li key={l} className="text-[0.8125rem] text-muted">
-                    {l}
+                {col.links.map((link) => (
+                  <li key={link.href}>
+                    <Link
+                      href={link.href}
+                      className="text-[0.8125rem] text-muted transition-colors hover:text-ink focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark"
+                    >
+                      {link.label}
+                    </Link>
                   </li>
                 ))}
               </ul>
             </div>
           ))}
+
+          <div>
+            <p className="text-[0.75rem] font-bold uppercase tracking-[0.12em] text-ink">Contact</p>
+            <ul className="mt-4 space-y-2.5 text-[0.8125rem] text-muted">
+              <li>
+                <a href={site.phoneHref} className="hover:text-ink">
+                  {site.phone}
+                </a>
+              </li>
+              <li>
+                <a href={publicContact.whatsapp} target="_blank" rel="noopener noreferrer" className="hover:text-ink">
+                  WhatsApp
+                </a>
+              </li>
+              <li>{publicContact.address}</li>
+              <li>
+                <Link href="/contact" className="hover:text-ink">
+                  Contact page
+                </Link>
+              </li>
+            </ul>
+          </div>
         </div>
 
         <div className="mt-12 flex flex-col gap-3 border-t border-line pt-6 text-[0.75rem] text-muted sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} Riyona Driving School. All rights reserved.</p>
-          <div className="flex gap-5">
-            <span>Privacy</span>
-            <span>Terms</span>
-            <span>Sitemap</span>
-          </div>
         </div>
       </Container>
     </footer>
