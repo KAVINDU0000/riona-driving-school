@@ -83,8 +83,13 @@ export default function AccountMenu() {
 
   return (
     <div className="flex items-center gap-1">
-      <Link href={state.portalPath} className={linkClass}>
-        My portal
+      <Link
+        href={state.portalPath}
+        aria-label="Open my portal"
+        title="My portal"
+        className="inline-flex h-10 w-10 items-center justify-center rounded-full bg-gold-soft text-ink ring-1 ring-gold transition-colors hover:bg-gold focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark"
+      >
+        <Icon name="user" className="h-[18px] w-[18px]" />
       </Link>
       <button type="button" onClick={signOut} disabled={signingOut} className={`${linkClass} disabled:opacity-60`}>
         {signingOut ? "Signing out…" : "Sign out"}

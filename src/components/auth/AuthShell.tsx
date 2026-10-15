@@ -1,7 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
-import AccountMenu from "@/components/auth/AccountMenu";
 import Icon from "@/components/ui/Icon";
 import { Container, Eyebrow, IconTile } from "@/components/landing/primitives";
 import { site } from "@/data/landing";
@@ -68,7 +67,6 @@ export default function AuthShell({
                 <Icon name="arrow-left" className="h-4 w-4" />
                 Back to home
               </Link>
-              <AccountMenu />
             </div>
           </nav>
         </div>

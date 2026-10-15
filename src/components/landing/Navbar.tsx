@@ -75,6 +75,9 @@ export default function Navbar() {
               >
                 WhatsApp
               </a>
+              <div className="flex justify-center pt-2">
+                <AccountMenu />
+              </div>
             </div>
           </details>
         </nav>
