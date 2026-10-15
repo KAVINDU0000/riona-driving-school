@@ -9,6 +9,7 @@
     "lint": "eslint",
     "test": "vitest run",
     "test:e2e": "playwright test",
+    "db:check": "tsx scripts/check-db-target.ts",
     "admin:bootstrap": "tsx scripts/create-admin.ts",
     "admin:reset-password": "tsx scripts/reset-admin-password.ts"
   },
