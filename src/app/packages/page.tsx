@@ -7,7 +7,6 @@ import PublicFrame from "@/components/public/PublicFrame";
 import TrustStrip from "@/components/landing/TrustStrip";
 import { Container, IconTile, Surface } from "@/components/landing/primitives";
 import Icon from "@/components/ui/Icon";
-import { site } from "@/data/landing";
 import { packageDiscountNote } from "@/data/public";
 import { getPublicPackageCatalog } from "@/lib/packages/catalog";
 import { formatLkr } from "@/lib/packages/format";
@@ -18,9 +17,6 @@ export const metadata: Metadata = {
   description:
     "Regular training packages, trial preparation packages and daily individual training rates from Riyona Driving School.",
 };
-
-const GOLD_BUTTON =
-  "inline-flex items-center rounded-xl bg-gold px-5 py-3 text-[0.9375rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] hover:bg-gold-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark";
 
 const WHITE_BUTTON =
   "inline-flex items-center rounded-xl bg-white px-5 py-3 text-[0.9375rem] font-semibold text-ink ring-1 ring-line hover:bg-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark";
@@ -38,16 +34,6 @@ export default async function PackagesPage() {
         eyebrow="Training packages"
         title="Packages and prices"
         description="Choose a main package to see the options in it. Applying does not reserve a lesson or confirm availability."
-        actions={
-          <>
-            <Link href="/signup" className={GOLD_BUTTON}>
-              Apply now
-            </Link>
-            <a href={site.whatsapp} target="_blank" rel="noopener noreferrer" className={WHITE_BUTTON}>
-              WhatsApp a question
-            </a>
-          </>
-        }
       />
 
       <Container>

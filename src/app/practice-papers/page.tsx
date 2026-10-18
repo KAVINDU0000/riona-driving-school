@@ -13,12 +13,6 @@ export const metadata: Metadata = {
 
 const PAPER_PATH = "/practice-papers/driving-licence-past-paper.pdf";
 
-const GOLD_BUTTON =
-  "inline-flex items-center justify-center rounded-xl bg-gold px-5 py-3 text-[0.9375rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] hover:bg-gold-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark";
-
-const WHITE_BUTTON =
-  "inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-[0.9375rem] font-semibold text-ink ring-1 ring-line hover:bg-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark";
-
 const SECTION_LABEL =
   "text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-gold-ink";
 
@@ -29,21 +23,6 @@ export default function PracticePapersPage() {
         eyebrow="Practice papers"
         title="Practice the written test"
         description="Take a timed quiz, or read the past paper. Answer each question, then check your mark at the end."
-        actions={
-          <>
-            <a href={PAPER_PATH} download className={GOLD_BUTTON}>
-              Download paper
-            </a>
-            <a
-              href={PAPER_PATH}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={WHITE_BUTTON}
-            >
-              Open in new tab
-            </a>
-          </>
-        }
       />
 
       <Container>
@@ -100,7 +79,7 @@ export default function PracticePapersPage() {
             />
           </Surface>
           <p className="mx-auto mt-4 max-w-3xl text-center text-[0.8125rem] text-muted">
-            If the paper does not show here, use the download button above.
+            If the paper does not show here, try a different browser.
           </p>
         </section>
       </Container>

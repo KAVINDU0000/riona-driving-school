@@ -65,8 +65,8 @@ export default function AboutPage() {
 
             <div className="justify-self-center rounded-2xl bg-white/[0.06] p-6 ring-1 ring-white/10 backdrop-blur">
               <div className="grid place-items-center gap-4 text-center">
-                <div className="relative h-24 w-24 overflow-hidden rounded-2xl bg-white p-2">
-                  <Image src="/riyona-logo.png" alt="Riyona Driving School logo" fill sizes="96px" className="object-contain p-2" />
+                <div className="relative h-24 w-24">
+                  <Image src="/images/logo-riyona-circle.png" alt="Riyona Driving School logo" fill sizes="96px" className="object-contain" />
                 </div>
                 <div>
                   <p className="text-[1.125rem] font-bold">Riyona Driving School</p>

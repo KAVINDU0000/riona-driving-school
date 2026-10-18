@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { connection } from "next/server";
+import PackageRatesDialog from "@/components/public/PackageRatesDialog";
 import PageHero from "@/components/public/PageHero";
 import PublicFrame from "@/components/public/PublicFrame";
 import TrustStrip from "@/components/landing/TrustStrip";
@@ -14,16 +15,13 @@ import {
   dailyRateFor,
   fixedPackagesFor,
 } from "@/lib/packages/public";
-import { site, vehicles } from "@/data/landing";
+import { vehicles } from "@/data/landing";
 
 export const metadata: Metadata = {
   title: "Vehicle Categories | Riyona Driving School",
   description:
     "Car, van, motorbike and three-wheeler training at Riyona Driving School, with the packages and rates for each.",
 };
-
-const HERO_BUTTON =
-  "inline-flex items-center rounded-xl bg-white px-5 py-3 text-[0.9375rem] font-semibold text-ink ring-1 ring-line hover:bg-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark";
 
 const APPLY_BUTTON =
   "inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-4 py-2.5 text-[0.875rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] transition-colors hover:bg-gold-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark";
@@ -43,21 +41,6 @@ export default async function VehiclesPage() {
         eyebrow="Vehicle categories"
         title="Choose your vehicle"
         description="Each category has its own training. The packages and daily rates shown for a category are the ones in the school's price list."
-        actions={
-          <>
-            <Link href="/packages" className={HERO_BUTTON}>
-              All packages and prices
-            </Link>
-            <a
-              href={site.whatsapp}
-              target="_blank"
-              rel="noopener noreferrer"
-              className={HERO_BUTTON}
-            >
-              WhatsApp a question
-            </a>
-          </>
-        }
       />
 
       <Container>
@@ -74,17 +57,14 @@ export default async function VehiclesPage() {
           </h2>
         </div>
 
-        <ul className="mt-10 grid items-start gap-5 sm:grid-cols-2 xl:grid-cols-4">
+        <ul className="mt-10 grid items-stretch gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {vehicles.map((vehicle, index) => {
             const daily = dailyRateFor(allPackages, vehicle.key);
             const packages = fixedPackagesFor(allPackages, vehicle.key);
             return (
               <li key={vehicle.key} id={vehicle.key} className="scroll-mt-32">
-                <Surface
-                  lift
-                  className="group flex flex-col overflow-hidden p-0"
-                >
-                  <div className="relative aspect-[4/3] overflow-hidden bg-page">
+                <Surface lift className="group flex h-full flex-col p-0">
+                  <div className="relative aspect-[4/3] overflow-hidden rounded-t-2xl bg-page">
                     {vehicle.image && (
                       <Image
                         src={vehicle.image}
@@ -127,63 +107,25 @@ export default async function VehiclesPage() {
                       ))}
                     </ul>
 
-                    {(daily || packages.length > 0) && (
-                      <details className="group/details mt-1 overflow-hidden rounded-2xl border border-line bg-page/60 transition-shadow open:bg-white open:shadow-card">
-                        <summary className="flex cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-[0.8125rem] font-semibold text-ink transition-colors hover:text-gold-ink [&::-webkit-details-marker]:hidden">
-                          Packages and rates
-                          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white ring-1 ring-line transition-colors group-open/details:bg-gold group-open/details:ring-gold">
-                            <svg
-                              aria-hidden="true"
-                              viewBox="0 0 24 24"
-                              className="h-3.5 w-3.5 text-ink transition-transform duration-300 group-open/details:rotate-180"
-                              fill="none"
-                              stroke="currentColor"
-                              strokeWidth={2.2}
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                            >
-                              <path d="m6 9 6 6 6-6" />
-                            </svg>
-                          </span>
-                        </summary>
-                        <div className="group-open/details:animate-panel-in max-h-72 overflow-y-auto border-t border-line">
-                          {daily && (
-                            <div className="border-l-[3px] border-gold bg-gold-soft/40 px-4 py-3">
-                              <p className="text-[0.6875rem] font-semibold uppercase tracking-[0.1em] text-muted">
-                                Daily individual training
-                              </p>
-                              <p className="mt-1 flex flex-wrap items-baseline gap-x-2 text-[0.875rem] font-bold text-ink">
-                                {formatPackagePrice(daily)}
-                                {daily.detail && (
-                                  <span className="text-[0.75rem] font-normal text-muted">
-                                    {daily.detail}
-                                  </span>
-                                )}
-                              </p>
-                            </div>
-                          )}
-                          {packages.length > 0 && (
-                            <ul>
-                              {packages.map((option) => (
-                                <li
-                                  key={option.id}
-                                  className="flex items-start justify-between gap-4 border-t border-line px-3.5 py-2.5 first:border-t-0"
-                                >
-                                  <span className="min-w-0 text-[0.8125rem] leading-snug text-ink">
-                                    {option.name}
-                                  </span>
-                                  <span className="shrink-0 whitespace-nowrap text-right text-[0.8125rem] font-bold text-ink">
-                                    {formatPackagePrice(option)}
-                                  </span>
-                                </li>
-                              ))}
-                            </ul>
-                          )}
-                        </div>
-                      </details>
-                    )}
-
-                    <div className="mt-auto flex flex-col gap-1 pt-2">
+                    <div className="mt-auto flex flex-col gap-2 pt-3">
+                      {(daily || packages.length > 0) && (
+                        <PackageRatesDialog
+                          vehicleTitle={vehicle.title}
+                          daily={
+                            daily
+                              ? {
+                                  price: formatPackagePrice(daily),
+                                  detail: daily.detail ?? null,
+                                }
+                              : null
+                          }
+                          packages={packages.map((option) => ({
+                            id: String(option.id),
+                            name: option.name,
+                            price: formatPackagePrice(option),
+                          }))}
+                        />
+                      )}
                       <Link href="/signup" className={APPLY_BUTTON}>
                         Apply
                         <span aria-hidden="true">→</span>

@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import ContactForm from "@/components/public/ContactForm";
 import PageHero from "@/components/public/PageHero";
 import PublicFrame from "@/components/public/PublicFrame";
@@ -30,23 +29,6 @@ export default function ContactPage() {
         eyebrow="Contact"
         title="Contact Riyona Driving School"
         description="Call or message us on WhatsApp, or send a short message below and our team receives it on WhatsApp. To start a registration request, apply online."
-        actions={
-          <>
-            <a
-              href={site.phoneHref}
-              className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-[0.9375rem] font-semibold text-ink ring-1 ring-line hover:bg-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark"
-            >
-              <Icon name="phone" className="h-4 w-4" />
-              Call {site.phone}
-            </a>
-            <Link
-              href="/signup"
-              className="inline-flex items-center rounded-xl bg-gold px-5 py-3 text-[0.9375rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] hover:bg-gold-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark"
-            >
-              Apply now
-            </Link>
-          </>
-        }
       />
 
       <Container>

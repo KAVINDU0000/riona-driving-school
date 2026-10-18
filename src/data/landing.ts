@@ -15,6 +15,8 @@ export const navLinks = [
   { label: "Packages", href: "/packages" },
   { label: "Vehicles", href: "/vehicles" },
   { label: "Driving Signs & Road Rules", href: "/road-signs" },
+  { label: "Past Papers", href: "/practice-papers" },
+  { label: "Driving Test", href: "/practice-papers#quizzes" },
   { label: "Cash discount", href: "/cash-discount" },
   { label: "Contact", href: "/contact" },
 ];

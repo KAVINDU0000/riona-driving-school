@@ -30,16 +30,6 @@ export default function CashDiscountPage() {
         eyebrow="Cash discount"
         title="Pay in cash, save on your package"
         description="How the cash discount works. Ask the school for the full terms before you pay."
-        actions={
-          <>
-            <Link href="/packages" className={GOLD_BUTTON}>
-              View packages
-            </Link>
-            <Link href="/contact" className={WHITE_BUTTON}>
-              Ask the school
-            </Link>
-          </>
-        }
       />
 
       <Container>
