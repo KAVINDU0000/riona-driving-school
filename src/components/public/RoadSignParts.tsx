@@ -8,6 +8,26 @@ import {
 } from "@/data/road-rules";
 import { SIGN_NAMES_SI } from "@/data/road-signs-si";
 import { SINHALA_DANGER_SIGNS } from "@/data/road-signs-sinhala-danger";
+import { SINHALA_PROHIBITORY_SIGNS } from "@/data/road-signs-sinhala-prohibitory";
+import { SINHALA_MANDATORY_SIGNS } from "@/data/road-signs-sinhala-mandatory";
+import { SINHALA_PRIORITY_SIGNS } from "@/data/road-signs-sinhala-priority";
+import { SINHALA_RESTRICTIVE_SIGNS } from "@/data/road-signs-sinhala-restrictive";
+import { SINHALA_USEFUL_SIGNS } from "@/data/road-signs-sinhala-useful";
+import { SINHALA_MARKINGS_SIGNS } from "@/data/road-signs-sinhala-markings";
+import { SINHALA_LIGHTS_SIGNS } from "@/data/road-signs-sinhala-lights";
+
+const SINHALA_SIGNS_BY_CATEGORY: Record<
+  string,
+  { image: string; name: string }[]
+> = {
+  prohibitory: SINHALA_PROHIBITORY_SIGNS,
+  restrictive: SINHALA_RESTRICTIVE_SIGNS,
+  mandatory: SINHALA_MANDATORY_SIGNS,
+  priority: SINHALA_PRIORITY_SIGNS,
+  useful: SINHALA_USEFUL_SIGNS,
+  markings: SINHALA_MARKINGS_SIGNS,
+  lights: SINHALA_LIGHTS_SIGNS,
+};
 
 /** The official sign picture for a sign name, or null when the sign has none. Decorative; the name is always written out. */
 function SignPicture({ name, className }: { name: string; className: string }) {
@@ -211,8 +231,43 @@ export function CategoryIcon({
 }
 
 /** All signs in one category, as tiles. Warning signs are drawn; other shape-based signs use their shape. */
+/** A grid of sign pictures with their Sinhala names only. Used for categories that have a Sinhala picture list. */
+function SinhalaSignGrid({
+  signs,
+}: {
+  signs: { image: string; name: string }[];
+}) {
+  return (
+    <ul className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      {signs.map((sign) => (
+        <li key={sign.image}>
+          <Surface className="flex h-full items-center gap-4 p-4">
+            <Image
+              src={sign.image}
+              alt=""
+              width={240}
+              height={160}
+              className="h-24 w-28 shrink-0 object-contain"
+            />
+            <span
+              lang="si"
+              className="text-[0.9375rem] font-semibold leading-snug text-ink"
+            >
+              {sign.name}
+            </span>
+          </Surface>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function CategorySignGrid({ category }: { category: SignCategory }) {
   if (category.glyph === "none") {
+    const sinhalaList = SINHALA_SIGNS_BY_CATEGORY[category.id];
+    if (sinhalaList) {
+      return <SinhalaSignGrid signs={sinhalaList} />;
+    }
     return (
       <ul className="mt-10 grid gap-3 md:grid-cols-2">
         {category.signs.map((name) => (
@@ -271,28 +326,61 @@ export function CategorySignGrid({ category }: { category: SignCategory }) {
     );
   }
 
+  // Categories with a Sinhala picture list show only that list; the English tiles are replaced by it.
+  const sinhalaSigns = SINHALA_SIGNS_BY_CATEGORY[category.id];
+
   return (
-    <ul className="mt-10 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-      {category.signs.map((name) => (
-        <li key={name}>
-          <Surface className="flex h-full items-center gap-4 p-4">
-            {SIGN_IMAGES[name] ? (
-              <SignPicture name={name} className="h-12 w-12" />
-            ) : (
-              <SignShape glyph={category.glyph} />
-            )}
-            <div className="flex flex-col gap-1">
-              <span className="text-[0.9375rem] font-semibold leading-snug text-ink">
-                {name}
-              </span>
-              <SinhalaName
-                name={name}
-                className="text-[0.875rem] leading-snug text-muted"
-              />
-            </div>
-          </Surface>
-        </li>
-      ))}
-    </ul>
+    <>
+      {!sinhalaSigns && (
+        <ul className="mt-10 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {category.signs.map((name) => (
+            <li key={name}>
+              <Surface className="flex h-full items-center gap-4 p-4">
+                {SIGN_IMAGES[name] ? (
+                  <SignPicture name={name} className="h-12 w-12" />
+                ) : (
+                  <SignShape glyph={category.glyph} />
+                )}
+                <div className="flex flex-col gap-1">
+                  <span className="text-[0.9375rem] font-semibold leading-snug text-ink">
+                    {name}
+                  </span>
+                  <SinhalaName
+                    name={name}
+                    className="text-[0.875rem] leading-snug text-muted"
+                  />
+                </div>
+              </Surface>
+            </li>
+          ))}
+        </ul>
+      )}
+      {sinhalaSigns && (
+        <ul className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+          {sinhalaSigns.map((sign) => (
+            <li key={sign.image}>
+              <Surface
+                lift
+                className="flex h-full flex-col items-center gap-3 p-4 text-center"
+              >
+                <Image
+                  src={sign.image}
+                  alt=""
+                  width={96}
+                  height={96}
+                  className="h-20 w-20 shrink-0 object-contain"
+                />
+                <span
+                  lang="si"
+                  className="text-[0.875rem] font-semibold leading-snug text-ink"
+                >
+                  {sign.name}
+                </span>
+              </Surface>
+            </li>
+          ))}
+        </ul>
+      )}
+    </>
   );
 }
