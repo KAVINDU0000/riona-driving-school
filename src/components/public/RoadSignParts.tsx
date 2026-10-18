@@ -15,6 +15,7 @@ import { SINHALA_RESTRICTIVE_SIGNS } from "@/data/road-signs-sinhala-restrictive
 import { SINHALA_USEFUL_SIGNS } from "@/data/road-signs-sinhala-useful";
 import { SINHALA_MARKINGS_SIGNS } from "@/data/road-signs-sinhala-markings";
 import { SINHALA_LIGHTS_SIGNS } from "@/data/road-signs-sinhala-lights";
+import { SINHALA_POLICE_SIGNS } from "@/data/road-signs-sinhala-police";
 
 const SINHALA_SIGNS_BY_CATEGORY: Record<
   string,
@@ -27,6 +28,7 @@ const SINHALA_SIGNS_BY_CATEGORY: Record<
   useful: SINHALA_USEFUL_SIGNS,
   markings: SINHALA_MARKINGS_SIGNS,
   lights: SINHALA_LIGHTS_SIGNS,
+  police: SINHALA_POLICE_SIGNS,
 };
 
 /** The official sign picture for a sign name, or null when the sign has none. Decorative; the name is always written out. */
@@ -127,6 +129,19 @@ export function SignShape({
 }
 
 /** Icon for a category card. Danger signs use a drawn sign; the other categories use their sign shape or a small drawing. */
+/** One clear sign picture per category, shown on the Road Signs index cards. */
+const CATEGORY_PICTURE: Record<string, string> = {
+  warning: "/road-signs/DWS-32.png",
+  prohibitory: "/road-signs/prohibitory/01.png",
+  restrictive: "/road-signs/restrictive/01.png",
+  mandatory: "/road-signs/mandatory/01.png",
+  priority: "/road-signs/priority/01.png",
+  useful: "/road-signs/useful/04.png",
+  markings: "/road-signs/markings/03.png",
+  lights: "/road-signs/lights/03.png",
+  police: "/road-signs/police/02.png",
+};
+
 export function CategoryIcon({
   category,
   className = "h-12 w-12",
@@ -134,6 +149,18 @@ export function CategoryIcon({
   category: SignCategory;
   className?: string;
 }) {
+  const picture = CATEGORY_PICTURE[category.id];
+  if (picture) {
+    return (
+      <Image
+        src={picture}
+        alt=""
+        width={96}
+        height={96}
+        className={`shrink-0 object-contain ${className}`}
+      />
+    );
+  }
   if (category.id === "warning") {
     return (
       <DangerSignImage name="Pedestrian crossing ahead" className={className} />

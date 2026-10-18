@@ -17,8 +17,8 @@ export default function LearningHub() {
             </h2>
           </div>
           <p className="text-[0.9375rem] leading-[1.7] text-muted">
-            Access high-quality theoretical resources, official DMT test preparation materials, and practical video
-            lessons from anywhere.
+            Access high-quality theoretical resources, official DMT test
+            preparation materials, and practical video lessons from anywhere.
           </p>
         </div>
 
@@ -38,10 +38,14 @@ export default function LearningHub() {
               </span>
             </div>
             <div className="flex flex-1 flex-col gap-4 p-7">
-              <h3 className="text-[1.375rem] font-bold leading-[1.25] text-ink">{featured.title}</h3>
-              <p className="text-[0.9375rem] leading-[1.7] text-muted">{featured.body}</p>
+              <h3 className="text-[1.375rem] font-bold leading-[1.25] text-ink">
+                {featured.title}
+              </h3>
+              <p className="text-[0.9375rem] leading-[1.7] text-muted">
+                {featured.body}
+              </p>
               <a
-                href="#faq"
+                href="/practice-papers"
                 className="mt-auto inline-flex w-fit items-center gap-2 rounded-xl bg-gold px-5 py-3 text-[0.875rem] font-semibold text-ink transition-colors hover:bg-gold-dark"
               >
                 Start Practice Paper
@@ -58,11 +62,22 @@ export default function LearningHub() {
                   <Icon name={item.icon} className="h-5 w-5" />
                 </IconTile>
                 <div className="flex flex-col gap-2">
-                  <h3 className="text-[1rem] font-bold text-ink">{item.title}</h3>
-                  <p className="text-[0.8125rem] leading-[1.6] text-muted">{item.body}</p>
-                  <a href="#faq" className="mt-1 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-gold-ink hover:text-ink">
+                  <h3 className="text-[1rem] font-bold text-ink">
+                    {item.title}
+                  </h3>
+                  <p className="text-[0.8125rem] leading-[1.6] text-muted">
+                    {item.body}
+                  </p>
+                  <a
+                    href={item.href}
+                    className="mt-1 inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-gold-ink hover:text-ink"
+                  >
                     {item.cta}
-                    <Icon name="arrow-up-right" className="h-3.5 w-3.5" strokeWidth={2} />
+                    <Icon
+                      name="arrow-up-right"
+                      className="h-3.5 w-3.5"
+                      strokeWidth={2}
+                    />
                   </a>
                 </div>
               </Surface>

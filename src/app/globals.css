@@ -23,8 +23,10 @@
   --font-sans: var(--font-outfit), ui-sans-serif, system-ui, sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, monospace;
 
-  --shadow-card: 0 1px 2px rgb(16 27 48 / 0.04), 0 12px 32px -12px rgb(16 27 48 / 0.12);
-  --shadow-float: 0 2px 6px rgb(16 27 48 / 0.06), 0 20px 48px -16px rgb(16 27 48 / 0.18);
+  --shadow-card:
+    0 1px 2px rgb(16 27 48 / 0.04), 0 12px 32px -12px rgb(16 27 48 / 0.12);
+  --shadow-float:
+    0 2px 6px rgb(16 27 48 / 0.06), 0 20px 48px -16px rgb(16 27 48 / 0.18);
 }
 
 html {
@@ -83,10 +85,26 @@ html {
   pointer-events: none;
   overflow: hidden;
   background:
-    radial-gradient(70% 45% at 12% 0%, rgb(255 255 255 / 0.08) 0%, transparent 70%),
-    radial-gradient(45% 38% at 92% 14%, rgb(230 150 28 / 0.2) 0%, transparent 65%),
-    radial-gradient(50% 40% at 6% 72%, rgb(15 138 95 / 0.1) 0%, transparent 70%),
-    radial-gradient(55% 45% at 95% 90%, rgb(255 255 255 / 0.2) 0%, transparent 70%);
+    radial-gradient(
+      70% 45% at 12% 0%,
+      rgb(255 255 255 / 0.08) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      45% 38% at 92% 14%,
+      rgb(230 150 28 / 0.2) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      50% 40% at 6% 72%,
+      rgb(15 138 95 / 0.1) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      55% 45% at 95% 90%,
+      rgb(255 255 255 / 0.2) 0%,
+      transparent 70%
+    );
 }
 
 /* Faint blueprint grid, about 4% visible */
@@ -99,7 +117,11 @@ html {
     linear-gradient(90deg, rgb(16 27 48 / 0.035) 1px, transparent 1px);
   background-size: 64px 64px;
   mask-image: radial-gradient(ellipse at 50% 30%, black 20%, transparent 75%);
-  -webkit-mask-image: radial-gradient(ellipse at 50% 30%, black 20%, transparent 75%);
+  -webkit-mask-image: radial-gradient(
+    ellipse at 50% 30%,
+    black 20%,
+    transparent 75%
+  );
 }
 
 /* One soft blurred gold orb, very low opacity */
@@ -111,7 +133,11 @@ html {
   right: -160px;
   top: 38%;
   border-radius: 9999px;
-  background: radial-gradient(circle, rgb(255 201 51 / 0.14) 0%, transparent 65%);
+  background: radial-gradient(
+    circle,
+    rgb(255 201 51 / 0.14) 0%,
+    transparent 65%
+  );
   filter: blur(40px);
 }
 
@@ -125,7 +151,8 @@ body {
 
 /* Sinhala text: Outfit has no Sinhala letters, so the Sinhala font is used for any element marked lang="si". */
 [lang="si"] {
-  font-family: var(--font-sinhala), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  font-family:
+    var(--font-sinhala), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
 /* Eyebrow label shared by every section header */
@@ -145,25 +172,53 @@ body {
   pointer-events: none;
   overflow: hidden;
   background:
-    radial-gradient(70% 55% at 0% 0%, rgb(59 110 165 / 0.08) 0%, transparent 70%),
-    radial-gradient(40% 40% at 100% 14%, rgb(255 201 51 / 0.05) 0%, transparent 65%);
+    radial-gradient(
+      70% 55% at 0% 0%,
+      rgb(59 110 165 / 0.08) 0%,
+      transparent 70%
+    ),
+    radial-gradient(
+      40% 40% at 100% 14%,
+      rgb(255 201 51 / 0.05) 0%,
+      transparent 65%
+    );
 }
 
 .soft-glow {
-  background: radial-gradient(50% 50% at 12% 18%, rgb(255 201 51 / 0.05) 0%, transparent 65%);
+  background: radial-gradient(
+    50% 50% at 12% 18%,
+    rgb(255 201 51 / 0.05) 0%,
+    transparent 65%
+  );
 }
 
 /* Soft colour wash behind the hero and journey sections */
 .glow-hero {
   background:
-    radial-gradient(60% 55% at 8% 14%, rgb(255 201 51 / 0.16) 0%, transparent 62%),
-    radial-gradient(45% 45% at 92% 6%, rgb(15 138 95 / 0.07) 0%, transparent 60%);
+    radial-gradient(
+      60% 55% at 8% 14%,
+      rgb(255 201 51 / 0.16) 0%,
+      transparent 62%
+    ),
+    radial-gradient(
+      45% 45% at 92% 6%,
+      rgb(15 138 95 / 0.07) 0%,
+      transparent 60%
+    );
 }
 
 .glow-journey {
   background:
-    radial-gradient(42% 46% at 50% 0%, rgb(15 138 95 / 0.1) 0%, transparent 65%),
-    radial-gradient(38% 40% at 18% 8%, rgb(255 201 51 / 0.12) 0%, transparent 65%);
+    radial-gradient(
+      42% 46% at 50% 0%,
+      rgb(15 138 95 / 0.1) 0%,
+      transparent 65%
+    ),
+    radial-gradient(
+      38% 40% at 18% 8%,
+      rgb(255 201 51 / 0.12) 0%,
+      transparent 65%
+    );
 }
 
 @keyframes fadeUp {
@@ -179,6 +234,21 @@ body {
 
 .animate-fadeUp {
   animation: fadeUp 0.6s ease-out both;
+}
+
+@keyframes panelIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-panel-in {
+  animation: panelIn 0.22s ease-out both;
 }
 
 @media (prefers-reduced-motion: reduce) {

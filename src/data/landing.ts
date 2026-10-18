@@ -20,10 +20,26 @@ export const navLinks = [
 ];
 
 export const trustPoints = [
-  { icon: "shield-check", title: "Government Approved", sub: "Registered with DMT Sri Lanka" },
-  { icon: "user", title: "Expert Instructors", sub: "Trained & certified staff" },
-  { icon: "car", title: "Dual-Control Vehicles", sub: "Safety first on every lesson" },
-  { icon: "calendar", title: "Flexible Scheduling", sub: "Evenings & weekends" },
+  {
+    icon: "shield-check",
+    title: "Government Approved",
+    sub: "Registered with DMT Sri Lanka",
+  },
+  {
+    icon: "user",
+    title: "Expert Instructors",
+    sub: "Trained & certified staff",
+  },
+  {
+    icon: "car",
+    title: "Dual-Control Vehicles",
+    sub: "Safety first on every lesson",
+  },
+  {
+    icon: "calendar",
+    title: "Flexible Scheduling",
+    sub: "Evenings & weekends",
+  },
 ];
 
 export const learningStages = [
@@ -104,7 +120,11 @@ export const vehicles = [
     tag: "Light Commercial",
     title: "Van Lessons",
     body: "Training for light commercial vans, covering load awareness, wider-body manoeuvring and the handling you need for work vehicles.",
-    points: ["Load and blind-spot awareness", "Wider-body manoeuvring", "Dual-control van available"],
+    points: [
+      "Load and blind-spot awareness",
+      "Wider-body manoeuvring",
+      "Dual-control van available",
+    ],
     image: "/images/van.png",
   },
   {
@@ -113,7 +133,11 @@ export const vehicles = [
     tag: "A/L Bike",
     title: "Motorbike Lessons (A/L)",
     body: "Balance, braking and cornering skills on a motorbike, taught from the ground up with a focus on road safety.",
-    points: ["Balance and low-speed control", "Braking and cornering technique", "Protective gear advice"],
+    points: [
+      "Balance and low-speed control",
+      "Braking and cornering technique",
+      "Protective gear advice",
+    ],
     image: "/images/motorbike.png",
   },
   {
@@ -122,7 +146,11 @@ export const vehicles = [
     tag: "Tuk-Tuk",
     title: "Three-Wheeler Lessons",
     body: "Learn the three-wheeler controls, tight-space turns and traffic handling required for the three-wheeler licence.",
-    points: ["Tight-space turning", "Traffic and junction handling", "Licence test preparation"],
+    points: [
+      "Tight-space turning",
+      "Traffic and junction handling",
+      "Licence test preparation",
+    ],
     image: "/images/three-wheeler.png",
   },
 ];
@@ -139,51 +167,85 @@ export const resources = {
       title: "Student Portal",
       body: "Manage scheduled lessons, track progress, access feedback, and view your learning materials in one place.",
       cta: "Access Portal Dashboard",
+      href: "#faq",
     },
     {
       icon: "play",
       title: "Video Tutorials & Theory",
       body: "Watch step-by-step lesson videos covering road signs, junctions, parking and exam-day tips.",
       cta: "Watch Our Learning Videos",
+      href: "#faq",
     },
     {
       icon: "signpost",
       title: "Driving Signs & Road Rules",
       body: "Browse the complete road sign library, with examples of every sign in the official DMT theory test.",
       cta: "Browse Signs Library",
+      href: "/road-signs",
     },
   ],
 };
 
 export const licenceSteps = [
-  { n: "01", title: "NTMI Medical Fitness", body: "Complete your official NTMI medical fitness test at a government-approved centre.", note: "Step 1 · Medical Fitness" },
-  { n: "02", title: "DMT Written Exam", body: "Take the DMT computerised written test on road rules, signs and safe driving.", note: "Learner's Permit issued" },
-  { n: "03", title: "3-Month Training Yard", body: "Master the core driving skills at our training yard, then move onto public roads.", note: "Hands-on road training" },
-  { n: "04", title: "DMT Werahera Trial", body: "Pass the practical trial at Werahera with your instructor, then receive your licence.", note: "Official Licence Received" },
+  {
+    n: "01",
+    title: "NTMI Medical Fitness",
+    body: "Complete your official NTMI medical fitness test at a government-approved centre.",
+    note: "Step 1 · Medical Fitness",
+  },
+  {
+    n: "02",
+    title: "DMT Written Exam",
+    body: "Take the DMT computerised written test on road rules, signs and safe driving.",
+    note: "Learner's Permit issued",
+  },
+  {
+    n: "03",
+    title: "3-Month Training Yard",
+    body: "Master the core driving skills at our training yard, then move onto public roads.",
+    note: "Hands-on road training",
+  },
+  {
+    n: "04",
+    title: "DMT Werahera Trial",
+    body: "Pass the practical trial at Werahera with your instructor, then receive your licence.",
+    note: "Official Licence Received",
+  },
 ];
 
 export const safetyPrinciples = [
   { icon: "eye", title: "Road Awareness", sub: "Read the road ahead" },
-  { icon: "shield", title: "Defensive Driving", sub: "Anticipate other drivers" },
+  {
+    icon: "shield",
+    title: "Defensive Driving",
+    sub: "Anticipate other drivers",
+  },
   { icon: "car", title: "Vehicle Handling", sub: "Control in every condition" },
-  { icon: "users", title: "Responsible Driving", sub: "Respect every road user" },
+  {
+    icon: "users",
+    title: "Responsible Driving",
+    sub: "Respect every road user",
+  },
 ];
 
 export const testimonials = [
   {
-    quote: "The instructors were really patient and helpful. Building my confidence from day one, the lessons on Colombo junctions were a game changer.",
+    quote:
+      "The instructors were really patient and helpful. Building my confidence from day one, the lessons on Colombo junctions were a game changer.",
     name: "Tharindu Weerasinghe",
     role: "Car · Automatic",
     initials: "TW",
   },
   {
-    quote: "Absolutely worth every rupee. My instructor was calm, clear and made learning stress-free. The Werahera test-day transport was fantastic.",
+    quote:
+      "Absolutely worth every rupee. My instructor was calm, clear and made learning stress-free. The Werahera test-day transport was fantastic.",
     name: "Dinesh Cooray",
     role: "Car · Manual",
     initials: "DC",
   },
   {
-    quote: "Good communication, professional staff and very flexible lesson times for a working professional. Riyona helped me transform my very first drive.",
+    quote:
+      "Good communication, professional staff and very flexible lesson times for a working professional. Riyona helped me transform my very first drive.",
     name: "Kenneth Padmasiri",
     role: "Car · Automatic",
     initials: "KP",
