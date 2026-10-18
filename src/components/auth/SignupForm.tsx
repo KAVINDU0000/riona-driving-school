@@ -89,8 +89,8 @@ function Field({
 }
 
 /** Student registration form. Validates the fields here and again on the server, then posts to /api/registration. */
-export default function SignupForm({ catalog }: { catalog: CatalogGroup[] }) {
-  const [values, setValues] = useState<Values>(initialValues);
+export default function SignupForm({ catalog, initialPackageId = "" }: { catalog: CatalogGroup[]; initialPackageId?: string }) {
+  const [values, setValues] = useState<Values>({ ...initialValues, packageId: initialPackageId });
   const [errors, setErrors] = useState<Errors>({});
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");

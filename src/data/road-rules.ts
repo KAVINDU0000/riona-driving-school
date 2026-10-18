@@ -1,0 +1,315 @@
+/*
+ * Road signs and road rules for the public "Driving Signs & Road Rules" page. This is a general guide to Sri Lankan
+ * traffic rules. Sign names are written for this page. The speed limits come from the 2012 gazette and later news
+ * reports; the Department of Motor Traffic (DMT) reviews them, so the page tells readers to check the current official
+ * rules before they drive or sit a test.
+ */
+
+/** How a sign is drawn on the page. The shape and colour show the type of sign. */
+export type SignGlyph = "diamond" | "circle" | "triangle" | "octagon" | "square" | "none";
+
+export type SignCategory = {
+  id: string;
+  number: string;
+  title: string;
+  intro: string;
+  glyph: SignGlyph;
+  signs: string[];
+};
+
+export const SIGN_SHAPES: { glyph: SignGlyph; title: string; body: string }[] = [
+  {
+    glyph: "diamond",
+    title: "Yellow diamond",
+    body: "A warning. Something is ahead, such as a bend, a junction, a crossing or a hazard.",
+  },
+  {
+    glyph: "circle",
+    title: "Red-bordered circle",
+    body: "A rule. It tells you what you must not do, may not exceed, or must do, such as a speed limit or a turn.",
+  },
+  {
+    glyph: "triangle",
+    title: "Red-bordered triangle",
+    body: "Give way. Let traffic on the other road go first.",
+  },
+  {
+    glyph: "octagon",
+    title: "Red octagon",
+    body: "Stop. Come to a complete stop before you continue.",
+  },
+  {
+    glyph: "square",
+    title: "Blue square or rectangle",
+    body: "Information and facilities, such as parking, hospitals, bus lanes and expressways.",
+  },
+];
+
+/** Danger warnings are yellow diamonds. Each sign is named as it appears in the category. */
+export const SIGN_CATEGORIES: SignCategory[] = [
+  {
+    id: "warning",
+    number: "01",
+    title: "Danger warning signs",
+    intro: "Yellow diamonds that warn you of a hazard or a change in the road ahead. Slow down and be ready to act.",
+    glyph: "diamond",
+    signs: [
+      "Left bend ahead",
+      "Right bend ahead",
+      "Double bend to the left ahead",
+      "Double bend to the right ahead",
+      "Hairpin bend to the right ahead",
+      "Hairpin bend to the left ahead",
+      "Dual carriageway ends",
+      "Dual carriageway starts ahead",
+      "Road narrows ahead",
+      "Road narrows on the left side ahead",
+      "Road narrows on the right side ahead",
+      "Cross roads ahead",
+      "Staggered junction ahead, side road to the left",
+      "Staggered junction ahead, side road to the right",
+      "T-junction ahead",
+      "Y-junction ahead",
+      "Traffic from the left merges ahead",
+      "Traffic from the left joins at a right angle",
+      "Traffic from the right merges ahead",
+      "Traffic from the right joins at a right angle",
+      "Narrow bridge ahead",
+      "Two-way traffic ahead",
+      "Stop ahead",
+      "Give way ahead",
+      "Roundabout ahead",
+      "Traffic light signals ahead",
+      "Dangerous descent ahead",
+      "Dangerous ascent ahead",
+      "Slippery road ahead",
+      "Loose gravel ahead",
+      "Falling rocks ahead",
+      "Pedestrian crossing ahead",
+      "Children crossing ahead",
+      "Blind people crossing ahead",
+      "Road work ahead",
+      "Level crossing with gates ahead",
+      "Level crossing without gates ahead",
+      "Bus lane ahead",
+      "Cycle lane ahead",
+      "Cyclists crossing ahead",
+      "Cattle crossing ahead",
+      "Road ahead on a quay",
+      "Dangerous side slopes ahead",
+      "Road hump ahead",
+      "Uneven road ahead",
+      "Dip ahead",
+      "Humped bridge ahead",
+      "Tunnel ahead",
+    ],
+  },
+  {
+    id: "prohibitory",
+    number: "02",
+    title: "Regulatory signs: prohibitory",
+    intro: "Red-bordered circles that tell you what you must not do.",
+    glyph: "circle",
+    signs: [
+      "No entry",
+      "No left turn",
+      "No right turn",
+      "No U-turn",
+      "No overtaking",
+      "No horning",
+      "Road closed for all vehicles",
+      "Road closed for motor vehicles",
+      "Road closed for buses",
+      "Road closed for lorries",
+      "Road closed for articulated vehicles",
+      "Road closed for power-driven agricultural vehicles",
+      "Road closed for pedestrians",
+      "Road closed for cycles",
+      "Road closed for motorcycles",
+      "No parking",
+      "No parking and no standing",
+      "No parking on odd days",
+      "No parking on even days",
+    ],
+  },
+  {
+    id: "restrictive",
+    number: "03",
+    title: "Restrictive signs",
+    intro: "Red-bordered circles that set a limit on width, height, weight or speed.",
+    glyph: "circle",
+    signs: [
+      "Width limit",
+      "Height limit",
+      "Weight limit",
+      "Weight limit on one axle",
+      "Speed limit within built-up areas (50 km/h, except three-wheelers and land vehicles)",
+      "End of speed limit",
+    ],
+  },
+  {
+    id: "mandatory",
+    number: "04",
+    title: "Mandatory signs",
+    intro: "Red-bordered circles with a black arrow. They tell you which way you must go or how you must pass.",
+    glyph: "circle",
+    signs: [
+      "Turn left",
+      "Turn right",
+      "Keep straight ahead",
+      "Turn left ahead",
+      "Turn right ahead",
+      "Pass on the left side",
+      "Pass on the right side",
+      "Compulsory roundabout",
+    ],
+  },
+  {
+    id: "priority",
+    number: "05",
+    title: "Priority signs",
+    intro: "Signs that decide who goes first at a junction or on a narrow road.",
+    glyph: "triangle",
+    signs: [
+      "Stop to give priority to vehicles on the adjacent road",
+      "Give way to vehicles on the adjacent road",
+      "Priority road: vehicles on the major road have priority",
+      "End of priority for vehicles on the major road",
+      "Priority for oncoming traffic",
+      "Priority over oncoming traffic vehicles",
+    ],
+  },
+  {
+    id: "useful",
+    number: "06",
+    title: "Other signs useful for drivers",
+    intro: "Blue signs that show facilities, lanes and routes.",
+    glyph: "square",
+    signs: [
+      "Pedestrian crossing",
+      "One-way traffic flow",
+      "Hospital",
+      "Parking",
+      "Parking for disabled persons",
+      "Bus stop",
+      "Bus-only lane begins or continues",
+      "Bus-only lane ends",
+      "Cycle-only lane begins or continues",
+      "Cycle-only lane ends",
+      "Cycle and pedestrian lane begins or continues",
+      "Cycle and pedestrian lane ends",
+      "Pedestrian underpass",
+      "Pedestrian overpass",
+      "Entrance to an expressway",
+      "End of expressway",
+      "Street for pedestrians only",
+      "Road for motor vehicles only",
+    ],
+  },
+  {
+    id: "markings",
+    number: "07",
+    title: "Road markings",
+    intro: "Lines, arrows and words painted on the road. They have the same force as signs.",
+    glyph: "none",
+    signs: [
+      "Centre line, solid: do not cross or overtake over it",
+      "Centre line, broken: overtaking is allowed when it is safe",
+      "Centre line, broken and solid together: the lane nearer the solid line may not cross it",
+      "Double continuous centre line: no crossing either way",
+      "Lane dividing lines",
+      "Edge lines of the carriageway",
+      "Stop line: stop behind it at a junction or light",
+      "Zebra crossing: give way to pedestrians on it",
+      "Hatched lines for traffic in the opposite direction",
+      "Hatched lines for traffic in the same direction",
+      "Double yellow lines: no parking or stopping",
+      "Lane arrow: compulsory straight ahead",
+      "Lane arrow: compulsory left turn",
+      "Lane arrow: compulsory right turn",
+      "Bus lane marking",
+      "Cycle lane marking",
+      "Word markings such as STOP, SLOW and BUS LANE",
+    ],
+  },
+  {
+    id: "lights",
+    number: "08",
+    title: "Traffic light signals",
+    intro: "What each light means for a driver.",
+    glyph: "none",
+    signs: [
+      "Red: stop behind the stop line and wait",
+      "Red and amber together: wait; do not move until the green light",
+      "Green: go only when the way ahead is clear",
+      "Amber: stop if you can do so safely",
+      "Flashing amber: proceed with caution",
+      "Pedestrian signal, red figure: do not cross",
+      "Pedestrian signal, green figure: you may cross",
+    ],
+  },
+  {
+    id: "police",
+    number: "09",
+    title: "Hand signals by police officers",
+    intro: "Signals from a police officer at a junction or road works. Follow the officer's signal over the traffic lights.",
+    glyph: "none",
+    signs: [
+      "Traffic approaching from the front: stop",
+      "All traffic: stop",
+      "Traffic approaching from the front and from behind: stop",
+      "Traffic from the right: proceed",
+      "Traffic from the front: proceed",
+      "Traffic from the left: proceed",
+    ],
+  },
+];
+
+export const SPEED_LIMITS: { place: string; limit: string; note: string }[] = [
+  { place: "Built-up areas and towns", limit: "50 km/h", note: "Motor vehicles on the listed roads. Lower limits apply to some vehicles and in some places." },
+  { place: "Roads outside built-up areas", limit: "70 km/h", note: "Most motor vehicles. Motor coaches and lorries have a lower limit." },
+  { place: "Southern Expressway", limit: "100 km/h", note: "The maximum on this expressway. Follow the signs for the limit on each section." },
+];
+
+export const ROAD_RULES: { title: string; body: string }[] = [
+  {
+    title: "Drive on the left",
+    body: "Sri Lankan traffic keeps to the left. Overtake on the right, and give way when you move onto a road.",
+  },
+  {
+    title: "Wear a seat belt",
+    body: "Everyone in the front seat must wear a seat belt. Check the rules for the back seats before you drive.",
+  },
+  {
+    title: "Helmets on motorcycles",
+    body: "Riders and pillion passengers must wear a helmet that is fastened and in good condition.",
+  },
+  {
+    title: "Keep your phone away",
+    body: "Do not hold or use a phone while you drive. Pull over safely if you need to make a call.",
+  },
+  {
+    title: "Never drive after drinking",
+    body: "Alcohol slows reactions and can lead to heavy penalties. If you have been drinking, do not drive.",
+  },
+  {
+    title: "Carry your documents",
+    body: "Carry your driving licence and the vehicle documents whenever you drive, and show them when asked.",
+  },
+  {
+    title: "Give way to pedestrians",
+    body: "Slow down and stop for people on zebra crossings. Take extra care near schools, bus stops and markets.",
+  },
+  {
+    title: "Obey traffic lights",
+    body: "Stop on red and do not move until the light is green. On amber, stop if you can do so safely.",
+  },
+  {
+    title: "Use your indicators",
+    body: "Signal before you turn, change lane or pull out. Other road users rely on your signals.",
+  },
+  {
+    title: "Respect no-parking zones",
+    body: "Do not park where the signs or road markings forbid it. Keep clear of junctions and bus stops.",
+  },
+];

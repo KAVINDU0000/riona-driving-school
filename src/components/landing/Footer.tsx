@@ -10,8 +10,8 @@ const columns = [
     title: "Training",
     links: [
       { label: "Packages and pricing", href: "/packages" },
-      { label: "Daily individual training", href: "/packages#daily-rates" },
-      { label: "Trial preparation", href: "/packages#trial-preparation" },
+      { label: "Daily individual training", href: "/packages/daily-rates" },
+      { label: "Trial preparation", href: "/packages/trial-preparation" },
       { label: "Vehicle categories", href: "/vehicles" },
     ],
   },

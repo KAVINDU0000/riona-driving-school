@@ -1,4 +1,5 @@
 import { isPerSession, type CatalogGroup, type CatalogPackage } from "@/lib/packages/format";
+import { vehicles } from "@/data/landing";
 import { dailyPackageIdByVehicle, packageNameKeywordByVehicle } from "@/data/public";
 
 /** Every active package from the catalog, flattened. */
@@ -21,4 +22,14 @@ export function fixedPackagesFor(packages: CatalogPackage[], vehicleKey: string)
   const keyword = packageNameKeywordByVehicle[vehicleKey];
   if (!keyword) return [];
   return packages.filter((option) => !isPerSession(option) && option.name.includes(keyword));
+}
+
+/** The vehicle category a package belongs to, found by the keyword in its name, or null when none matches. */
+export function vehicleForPackage(option: Pick<CatalogPackage, "name">): (typeof vehicles)[number] | null {
+  return (
+    vehicles.find((vehicle) => {
+      const keyword = packageNameKeywordByVehicle[vehicle.key];
+      return Boolean(keyword) && option.name.includes(keyword);
+    }) ?? null
+  );
 }

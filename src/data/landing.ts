@@ -14,6 +14,7 @@ export const navLinks = [
   { label: "About", href: "/about" },
   { label: "Packages", href: "/packages" },
   { label: "Vehicles", href: "/vehicles" },
+  { label: "Driving Signs & Road Rules", href: "/road-signs" },
   { label: "Cash discount", href: "/cash-discount" },
   { label: "Contact", href: "/contact" },
 ];

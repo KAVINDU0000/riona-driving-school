@@ -29,7 +29,7 @@ export default function ContactPage() {
       <PageHero
         eyebrow="Contact"
         title="Contact Riyona Driving School"
-        description="Call or message us on WhatsApp, or send a short message below and it will open in WhatsApp. To start a registration request, apply online."
+        description="Call or message us on WhatsApp, or send a short message below and our team receives it on WhatsApp. To start a registration request, apply online."
         actions={
           <>
             <a
@@ -101,7 +101,7 @@ export default function ContactPage() {
           <Surface className="p-6 md:p-8">
             <h2 className="text-[1.5rem] font-bold tracking-[-0.02em] text-ink">Send us a message</h2>
             <p className="mt-2 text-[0.9375rem] leading-[1.7] text-muted">
-              Fill in the form and it opens WhatsApp with your details. Our team replies there.
+              Fill in the form and our team receives it on WhatsApp. They reply there.
             </p>
             <div className="mt-6">
               <ContactForm vehicles={vehicleOptions} />
