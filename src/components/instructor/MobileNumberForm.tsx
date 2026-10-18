@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
+import { BUTTON_INK, FIELD, LABEL } from "@/components/admin/admin-ui";
 
 /** Mobile number editing. The server enforces the same rule, so this only gives quicker feedback. */
 export default function MobileNumberForm({ current }: { current: string }) {
@@ -49,7 +50,7 @@ export default function MobileNumberForm({ current }: { current: string }) {
           {error}
         </p>
       )}
-      <label className="grid gap-1.5 text-[0.8125rem] font-semibold text-ink">
+      <label className={`grid gap-1.5 ${LABEL}`}>
         Mobile number
         <input
           type="tel"
@@ -59,7 +60,7 @@ export default function MobileNumberForm({ current }: { current: string }) {
           onChange={(event) => setValue(event.target.value)}
           placeholder="0712345678"
           aria-describedby="mobile-hint"
-          className="w-full rounded-xl border border-line bg-white px-3 py-2 text-[0.9375rem] font-normal text-ink focus:border-gold-dark focus:outline-none focus:ring-4 focus:ring-gold/25"
+          className={FIELD}
         />
       </label>
       <p id="mobile-hint" className="text-[0.8125rem] text-muted">
@@ -68,7 +69,7 @@ export default function MobileNumberForm({ current }: { current: string }) {
       <button
         type="submit"
         disabled={busy}
-        className="justify-self-start rounded-xl bg-gold px-6 py-3 text-[0.9375rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] hover:bg-gold-dark disabled:opacity-60"
+        className={`${BUTTON_INK} justify-self-start`}
       >
         {busy ? "Saving…" : "Save mobile number"}
       </button>

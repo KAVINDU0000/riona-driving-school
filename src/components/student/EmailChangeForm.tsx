@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { BUTTON_INK, FIELD, LABEL } from "@/components/admin/admin-ui";
 
 const inputClass =
   "w-full rounded-xl border border-line bg-white px-4 py-3 text-[0.9375rem] text-ink focus:border-gold-dark focus:outline-none focus:ring-4 focus:ring-gold/25 disabled:opacity-60";
@@ -8,8 +9,11 @@ const inputClass =
 /**
  * Starts an email change. The address changes only after the link sent to the new address is confirmed.
  * When email delivery is unavailable the server answers 503, and the form says so instead of reporting success.
+ * `staff` uses the admin field, label and button styles (the instructor profile). The student page keeps its own look.
  */
-export default function EmailChangeForm({ currentEmail }: { currentEmail: string }) {
+export default function EmailChangeForm({ currentEmail, staff = false }: { currentEmail: string; staff?: boolean }) {
+  const fieldClass = staff ? FIELD : inputClass;
+  const labelClass = staff ? LABEL : "text-[0.8125rem] font-semibold text-ink";
   const [newEmail, setNewEmail] = useState("");
   const [password, setPassword] = useState("");
   const [pending, setPending] = useState(false);
@@ -59,16 +63,16 @@ export default function EmailChangeForm({ currentEmail }: { currentEmail: string
         Your current address is <span className="font-semibold text-ink">{currentEmail}</span>. It changes only after you confirm the new address.
       </p>
       <div className="flex flex-col gap-2">
-        <label htmlFor="new-email" className="text-[0.8125rem] font-semibold text-ink">
+        <label htmlFor="new-email" className={labelClass}>
           New email address
         </label>
-        <input id="new-email" type="email" autoComplete="off" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} disabled={pending} className={inputClass} />
+        <input id="new-email" type="email" autoComplete="off" value={newEmail} onChange={(e) => setNewEmail(e.target.value)} disabled={pending} className={fieldClass} />
       </div>
       <div className="flex flex-col gap-2">
-        <label htmlFor="email-password" className="text-[0.8125rem] font-semibold text-ink">
+        <label htmlFor="email-password" className={labelClass}>
           Current password
         </label>
-        <input id="email-password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={pending} className={inputClass} />
+        <input id="email-password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} disabled={pending} className={fieldClass} />
       </div>
 
       {error && (
@@ -86,7 +90,7 @@ export default function EmailChangeForm({ currentEmail }: { currentEmail: string
         <button
           type="submit"
           disabled={pending}
-          className="rounded-xl bg-white px-6 py-3 text-[0.9375rem] font-semibold text-ink ring-1 ring-line hover:ring-ink/30 disabled:cursor-not-allowed disabled:opacity-60"
+          className={staff ? BUTTON_INK : "rounded-xl bg-white px-6 py-3 text-[0.9375rem] font-semibold text-ink ring-1 ring-line hover:ring-ink/30 disabled:cursor-not-allowed disabled:opacity-60"}
         >
           {pending ? "Sending…" : "Send verification link"}
         </button>

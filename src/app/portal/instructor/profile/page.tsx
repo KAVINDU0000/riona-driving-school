@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import EmailChangeForm from "@/components/student/EmailChangeForm";
 import { formatDate } from "@/components/student/format";
-import InstructorFrame from "@/components/instructor/InstructorFrame";
+import InstructorSideFrame from "@/components/instructor/InstructorSideFrame";
 import PasswordChangeForm from "@/components/student/PasswordChangeForm";
 import MobileNumberForm from "@/components/instructor/MobileNumberForm";
 import StatusBadge from "@/components/student/StatusBadge";
@@ -13,6 +13,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/** Admin card: white, bordered, soft shadow. */
+const CARD = "rounded-2xl border border-line bg-white p-6 shadow-[0_1px_2px_rgba(16,27,48,0.04)]";
+
 /**
  * The instructor's profile. The fields are read-only here, because the school sets them. Password and email changes
  * use the same secure flows as every other account, which check the current password and verify the new address.
@@ -22,9 +25,9 @@ export default async function InstructorProfilePage() {
   const account = await getInstructorAccount(user.userId);
 
   return (
-    <InstructorFrame title="Profile" description="Your instructor details and account security." active="/portal/instructor">
+    <InstructorSideFrame title="Profile" description="Your instructor details and account security." active="/portal/instructor/profile">
       <div className="grid gap-6 xl:grid-cols-2">
-        <section aria-labelledby="profile-heading" className="glass rounded-[22px] p-6">
+        <section aria-labelledby="profile-heading" className={CARD}>
           <h2 id="profile-heading" className="text-[1.125rem] font-bold text-ink">
             Your details
           </h2>
@@ -46,7 +49,7 @@ export default async function InstructorProfilePage() {
         </section>
 
         <div className="grid content-start gap-6">
-          <section aria-labelledby="mobile-heading" className="glass rounded-[22px] p-6">
+          <section aria-labelledby="mobile-heading" className={CARD}>
             <h2 id="mobile-heading" className="text-[1.125rem] font-bold text-ink">
               Mobile number
             </h2>
@@ -54,25 +57,25 @@ export default async function InstructorProfilePage() {
               <MobileNumberForm current={account.phoneNumber} />
             </div>
           </section>
-          <section aria-labelledby="password-heading" className="glass rounded-[22px] p-6">
+          <section aria-labelledby="password-heading" className={CARD}>
             <h2 id="password-heading" className="text-[1.125rem] font-bold text-ink">
               Password
             </h2>
             <div className="mt-4">
-              <PasswordChangeForm />
+              <PasswordChangeForm staff />
             </div>
           </section>
-          <section aria-labelledby="email-heading" className="glass rounded-[22px] p-6">
+          <section aria-labelledby="email-heading" className={CARD}>
             <h2 id="email-heading" className="text-[1.125rem] font-bold text-ink">
               Email address
             </h2>
             <div className="mt-4">
-              <EmailChangeForm currentEmail={account.email} />
+              <EmailChangeForm currentEmail={account.email} staff />
             </div>
           </section>
         </div>
       </div>
-    </InstructorFrame>
+    </InstructorSideFrame>
   );
 }
 

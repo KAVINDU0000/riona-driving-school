@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import AdminEmptyState from "@/components/admin/AdminEmptyState";
+import AdminStatCard from "@/components/admin/AdminStatCard";
 import InstructorFrame from "@/components/instructor/InstructorFrame";
 import LessonItem from "@/components/instructor/LessonItem";
-import EmptyState from "@/components/student/EmptyState";
-import StudentStatCard from "@/components/student/StudentStatCard";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
 import { getDashboardSummary } from "@/lib/instructor/lessons";
 import { vehicleWarning } from "@/lib/instructor/lesson-rules";
@@ -14,6 +14,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/** Admin list row: bordered white card, gold border on hover. */
+const ROW = "flex flex-col gap-1 rounded-2xl border border-line bg-white p-4 shadow-[0_1px_2px_rgba(16,27,48,0.04)] transition-all hover:border-gold/60 hover:shadow-[0_12px_28px_-18px_rgba(16,27,48,0.45)]";
+
 /** Today's lessons, pending actions and upcoming schedule for the signed-in instructor. Every figure is read from lesson records. */
 export default async function InstructorDashboardPage() {
   const user = await requirePortalUser("INSTRUCTOR");
@@ -22,10 +25,10 @@ export default async function InstructorDashboardPage() {
   return (
     <InstructorFrame title="Dashboard" description="Today's lessons, anything that needs your action, and your upcoming schedule." active="/portal/instructor">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <StudentStatCard label="Today's lessons" value={data.todayCount} caption="Excludes cancelled lessons" icon="calendar" />
-        <StudentStatCard label="Upcoming" value={data.upcomingCount} caption="Scheduled after today" icon="car" />
-        <StudentStatCard label="Completed today" value={data.completedToday} caption={formatDate(data.today)} icon="check-circle" />
-        <StudentStatCard label="Needs action" value={data.pendingActions.length} caption="Ended, still open" icon="badge-check" />
+        <AdminStatCard label="Today's lessons" value={data.todayCount} caption="Excludes cancelled lessons" icon="calendar" />
+        <AdminStatCard label="Upcoming" value={data.upcomingCount} caption="Scheduled after today" icon="car" />
+        <AdminStatCard label="Completed today" value={data.completedToday} caption={formatDate(data.today)} icon="check-circle" />
+        <AdminStatCard label="Needs action" value={data.pendingActions.length} caption="Ended, still open" icon="badge-check" />
       </div>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
@@ -37,7 +40,7 @@ export default async function InstructorDashboardPage() {
             </Link>
           </div>
           {data.todaysLessons.length === 0 ? (
-            <EmptyState title="No lessons today" body="Lessons assigned to you for today appear here." />
+            <AdminEmptyState title="No lessons today" body="Lessons assigned to you for today appear here." />
           ) : (
             <ul className="grid gap-3">
               {data.todaysLessons.map((lesson) => (
@@ -51,12 +54,12 @@ export default async function InstructorDashboardPage() {
           <section aria-labelledby="pending-heading" className="grid gap-4">
             <h2 id="pending-heading" className="text-[1.125rem] font-bold text-ink">Needs your action</h2>
             {data.pendingActions.length === 0 ? (
-              <EmptyState title="Nothing to action" body="Lessons that have ended but still need attendance or an outcome appear here." />
+              <AdminEmptyState title="Nothing to action" body="Lessons that have ended but still need attendance or an outcome appear here." />
             ) : (
               <ul className="grid gap-3">
                 {data.pendingActions.map(({ lesson, needs }) => (
                   <li key={lesson.id}>
-                    <Link href={`/portal/instructor/lessons/${lesson.id}`} className="glass flex flex-col gap-1 rounded-2xl p-4 hover:bg-white">
+                    <Link href={`/portal/instructor/lessons/${lesson.id}`} className={ROW}>
                       <span className="text-[0.9375rem] font-bold text-ink">
                         {formatDate(lesson.lessonDate)} · {lesson.startTime}
                       </span>
@@ -74,7 +77,7 @@ export default async function InstructorDashboardPage() {
           <section aria-labelledby="upcoming-heading" className="grid gap-4">
             <h2 id="upcoming-heading" className="text-[1.125rem] font-bold text-ink">Upcoming lessons</h2>
             {data.upcoming.length === 0 ? (
-              <EmptyState title="No upcoming lessons" body="Scheduled lessons after today appear here." />
+              <AdminEmptyState title="No upcoming lessons" body="Scheduled lessons after today appear here." />
             ) : (
               <ul className="grid gap-3">
                 {data.upcoming.map((lesson) => (
@@ -87,11 +90,11 @@ export default async function InstructorDashboardPage() {
           <section aria-labelledby="vehicles-heading" className="grid gap-4">
             <h2 id="vehicles-heading" className="text-[1.125rem] font-bold text-ink">Vehicles on your lessons</h2>
             {data.vehicles.length === 0 ? (
-              <EmptyState title="No vehicles assigned" body="Vehicles on your scheduled lessons appear here." />
+              <AdminEmptyState title="No vehicles assigned" body="Vehicles on your scheduled lessons appear here." />
             ) : (
               <ul className="grid gap-2">
                 {data.vehicles.map((vehicle) => (
-                  <li key={vehicle.id} className="glass rounded-2xl p-4 text-[0.9375rem] text-ink">
+                  <li key={vehicle.id} className="rounded-2xl border border-line bg-white p-4 text-[0.9375rem] text-ink shadow-[0_1px_2px_rgba(16,27,48,0.04)]">
                     <span className="font-semibold">{vehicle.label}</span>
                     <span className="ml-2 text-[0.8125rem] text-muted">{vehicle.registrationNumber}</span>
                     {vehicleWarning(vehicle.status) && <p className="mt-1 text-[0.8125rem] text-amber-800">{vehicleWarning(vehicle.status)}</p>}

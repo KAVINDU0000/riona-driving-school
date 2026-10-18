@@ -10,7 +10,7 @@ export default function LessonItem({ lesson, showDate = false }: { lesson: Instr
     <li>
       <Link
         href={`/portal/instructor/lessons/${lesson.id}`}
-        className="glass flex flex-col gap-3 rounded-2xl p-4 transition-colors hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark sm:flex-row sm:items-center sm:justify-between"
+        className="flex flex-col gap-3 rounded-2xl border border-line bg-white p-4 shadow-[0_1px_2px_rgba(16,27,48,0.04)] transition-all hover:border-gold/60 hover:shadow-[0_12px_28px_-18px_rgba(16,27,48,0.45)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark sm:flex-row sm:items-center sm:justify-between"
       >
         <div className="min-w-0">
           <p className="text-[0.9375rem] font-bold text-ink">
