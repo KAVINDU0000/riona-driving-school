@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AdminFrame from "@/components/admin/AdminFrame";
-import StudentStatCard from "@/components/student/StudentStatCard";
+import AdminStatCard from "@/components/admin/AdminStatCard";
 import { formatDate } from "@/components/student/format";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
 import { getAdminDashboardStats } from "@/lib/admin/dashboard";
@@ -42,16 +42,22 @@ export default async function AdminDashboardPage() {
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {cards.map((card) => {
           const body = (
-            <StudentStatCard label={card.label} value={card.value} caption={card.caption} icon={card.icon}>
-              {!card.href && <p className="text-[0.75rem] text-muted">Management page not yet available</p>}
-            </StudentStatCard>
+            <AdminStatCard label={card.label} value={card.value} caption={card.caption} icon={card.icon} linked={Boolean(card.href)}>
+              {!card.href && <p className="text-[0.75rem] font-medium text-muted">Management page not yet available</p>}
+            </AdminStatCard>
           );
           return card.href ? (
-            <Link key={card.label} href={card.href} className="block rounded-2xl transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark">
+            <Link
+              key={card.label}
+              href={card.href}
+              className="block h-full rounded-2xl focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark"
+            >
               {body}
             </Link>
           ) : (
-            <div key={card.label}>{body}</div>
+            <div key={card.label} className="h-full">
+              {body}
+            </div>
           );
         })}
       </div>

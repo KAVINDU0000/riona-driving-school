@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { BUTTON_PRIMARY, FIELD, LABEL } from "@/components/admin/admin-ui";
 
 type InstructorDetails = {
   instructorId: string;
@@ -12,8 +13,7 @@ type InstructorDetails = {
 
 const EMPTY_DETAILS: InstructorDetails = { instructorId: "", email: "", fullName: "", phoneNumber: "", hireDate: "" };
 
-const INPUT_CLASS =
-  "w-full rounded-xl border border-line bg-white px-3 py-2 text-[0.9375rem] text-ink focus:border-gold-dark focus:outline-none focus:ring-4 focus:ring-gold/25";
+const INPUT_CLASS = FIELD;
 
 /**
  * Admin form that creates an instructor account and sends the invitation. The account has no usable password
@@ -69,7 +69,7 @@ export default function InstructorForm() {
         </p>
       )}
 
-      <label className="grid gap-1.5 text-[0.8125rem] font-semibold text-ink">
+      <label className={`grid gap-1.5 ${LABEL}`}>
         Instructor ID
         <input
           required
@@ -80,7 +80,7 @@ export default function InstructorForm() {
           className={INPUT_CLASS}
         />
       </label>
-      <label className="grid gap-1.5 text-[0.8125rem] font-semibold text-ink">
+      <label className={`grid gap-1.5 ${LABEL}`}>
         Full name
         <input
           required
@@ -89,7 +89,7 @@ export default function InstructorForm() {
           className={INPUT_CLASS}
         />
       </label>
-      <label className="grid gap-1.5 text-[0.8125rem] font-semibold text-ink">
+      <label className={`grid gap-1.5 ${LABEL}`}>
         Email (for the invitation)
         <input
           required
@@ -100,7 +100,7 @@ export default function InstructorForm() {
           className={INPUT_CLASS}
         />
       </label>
-      <label className="grid gap-1.5 text-[0.8125rem] font-semibold text-ink">
+      <label className={`grid gap-1.5 ${LABEL}`}>
         Mobile number
         <input
           required
@@ -111,7 +111,7 @@ export default function InstructorForm() {
           className={INPUT_CLASS}
         />
       </label>
-      <label className="grid gap-1.5 text-[0.8125rem] font-semibold text-ink">
+      <label className={`grid gap-1.5 ${LABEL}`}>
         Hire date
         <input
           required
@@ -126,7 +126,7 @@ export default function InstructorForm() {
         <button
           type="submit"
           disabled={busy}
-          className="inline-flex items-center justify-center rounded-xl bg-gold px-6 py-3 text-[0.9375rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] hover:bg-gold-dark disabled:opacity-60"
+          className={BUTTON_PRIMARY}
         >
           {busy ? "Creating…" : "Create instructor and send invitation"}
         </button>

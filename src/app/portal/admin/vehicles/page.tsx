@@ -4,11 +4,30 @@ import AdminFrame from "@/components/admin/AdminFrame";
 import { listVehicles, vehicleListQuery } from "@/lib/admin/vehicles";
 import { VEHICLE_STATUS_LABELS, VEHICLE_STATUS_STYLES, VEHICLE_TYPE_LABELS } from "@/lib/admin/vehicle-labels";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
+import Icon from "@/components/ui/Icon";
+import { BUTTON_PRIMARY, BUTTON_SECONDARY, FIELD, LABEL, ROW_LINK, SELECT_FIELD } from "@/components/admin/admin-ui";
 
 export const metadata: Metadata = {
   title: "Vehicles | Admin Portal | Riyona Driving School",
   robots: { index: false, follow: false },
 };
+
+function ChevronIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 20 20"
+      className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m5 7.5 5 5 5-5" />
+    </svg>
+  );
+}
 
 /** Fleet list with search and filters. Each row links to the vehicle's own page. The API checks the admin role again. */
 export default async function AdminVehiclesPage({
@@ -36,69 +55,109 @@ export default async function AdminVehiclesPage({
           <h2 id="fleet-heading" className="text-[1.125rem] font-bold text-ink">
             Fleet ({result.total})
           </h2>
-          <Link
-            href="/portal/admin/vehicles/new"
-            className="rounded-xl bg-gold px-5 py-2.5 text-[0.9375rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] hover:bg-gold-dark"
-          >
+          <Link href="/portal/admin/vehicles/new" className={BUTTON_PRIMARY}>
             Add vehicle
           </Link>
         </div>
 
-        <form method="get" action="/portal/admin/vehicles" className="mt-5 grid gap-3 md:grid-cols-[1fr_auto_auto_auto] md:items-end">
-          <label className="grid gap-2 text-[0.8125rem] font-semibold text-ink">
-            Search
-            <input
-              name="q"
-              defaultValue={query.q}
-              placeholder="Registration, make or model"
-              className="rounded-xl border border-line bg-white px-3 py-2.5 text-[0.9375rem] font-normal text-ink"
-            />
-          </label>
-          <label className="grid gap-2 text-[0.8125rem] font-semibold text-ink">
-            Type
-            <select name="type" defaultValue={query.type ?? ""} className="rounded-xl border border-line bg-white px-3 py-2.5 text-[0.9375rem] font-normal text-ink">
-              <option value="">All types</option>
-              {Object.entries(VEHICLE_TYPE_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label className="grid gap-2 text-[0.8125rem] font-semibold text-ink">
-            Status
-            <select name="status" defaultValue={query.status ?? ""} className="rounded-xl border border-line bg-white px-3 py-2.5 text-[0.9375rem] font-normal text-ink">
-              <option value="">All statuses</option>
-              {Object.entries(VEHICLE_STATUS_LABELS).map(([value, label]) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </label>
-          <button type="submit" className="rounded-xl px-5 py-2.5 text-[0.9375rem] font-semibold text-ink ring-1 ring-line hover:bg-page">
+        <form
+          method="get"
+          action="/portal/admin/vehicles"
+          role="search"
+          className="mt-5 grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,11rem)_minmax(0,11rem)_auto] md:items-end"
+        >
+          <div className="grid gap-1.5">
+            <label htmlFor="vehicle-q" className={LABEL}>
+              Search
+            </label>
+            <div className="relative">
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 24 24"
+                className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.5-3.5" />
+              </svg>
+              <input
+                id="vehicle-q"
+                name="q"
+                type="search"
+                defaultValue={query.q}
+                maxLength={100}
+                placeholder="Registration, make or model"
+                className={`${FIELD} h-11 pl-10`}
+              />
+            </div>
+          </div>
+          <div className="grid gap-1.5">
+            <label htmlFor="vehicle-type" className={LABEL}>
+              Type
+            </label>
+            <div className="relative">
+              <select id="vehicle-type" name="type" defaultValue={query.type ?? ""} className={`${SELECT_FIELD} h-11`}>
+                <option value="">All types</option>
+                {Object.entries(VEHICLE_TYPE_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <ChevronIcon />
+            </div>
+          </div>
+          <div className="grid gap-1.5">
+            <label htmlFor="vehicle-status" className={LABEL}>
+              Status
+            </label>
+            <div className="relative">
+              <select id="vehicle-status" name="status" defaultValue={query.status ?? ""} className={`${SELECT_FIELD} h-11`}>
+                <option value="">All statuses</option>
+                {Object.entries(VEHICLE_STATUS_LABELS).map(([value, label]) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              <ChevronIcon />
+            </div>
+          </div>
+          <button type="submit" className={`${BUTTON_SECONDARY} h-11 px-6`}>
             Apply
           </button>
         </form>
 
         {result.vehicles.length === 0 ? (
-          <p className="mt-6 text-[0.9375rem] text-muted">No vehicles match these filters.</p>
+          <div className="mt-6 rounded-2xl border border-dashed border-line bg-white/60 px-5 py-10 text-center">
+            <p className="text-[0.9375rem] font-semibold text-ink">No vehicles match these filters.</p>
+          </div>
         ) : (
-          <ul className="mt-5 grid gap-2">
+          <ul className="mt-5 grid gap-2.5">
             {result.vehicles.map((vehicle) => (
               <li key={vehicle.id}>
-                <Link
-                  href={`/portal/admin/vehicles/${vehicle.id}`}
-                  className="grid gap-2 rounded-2xl bg-white p-4 ring-1 ring-line transition-colors hover:bg-page md:grid-cols-[1.4fr_1fr_1fr_auto] md:items-center"
-                >
-                  <span className="font-semibold text-ink">{vehicle.registrationNumber}</span>
-                  <span className="text-[0.875rem] text-muted">
-                    {VEHICLE_TYPE_LABELS[vehicle.vehicleType]}
-                    {vehicle.make || vehicle.model ? ` · ${[vehicle.make, vehicle.model].filter(Boolean).join(" ")}` : ""}
+                <Link href={`/portal/admin/vehicles/${vehicle.id}`} className={`${ROW_LINK} items-center`}>
+                  <span
+                    aria-hidden="true"
+                    className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-page text-ink-soft ring-1 ring-line"
+                  >
+                    <Icon name="car" className="h-[18px] w-[18px]" />
                   </span>
-                  <span className="text-[0.8125rem] text-muted">{vehicle.scheduledLessons} scheduled lesson(s)</span>
-                  <span className={`justify-self-start rounded-full px-3 py-1 text-[0.75rem] font-semibold ${VEHICLE_STATUS_STYLES[vehicle.status]}`}>
-                    {VEHICLE_STATUS_LABELS[vehicle.status]}
+                  <span className="grid min-w-0 flex-1 gap-1 md:grid-cols-[1.2fr_1fr_auto] md:items-center md:gap-4">
+                    <span className="min-w-0">
+                      <span className="block truncate font-mono font-semibold text-ink">{vehicle.registrationNumber}</span>
+                      <span className="block truncate text-[0.8125rem] text-muted">
+                        {VEHICLE_TYPE_LABELS[vehicle.vehicleType]}
+                        {vehicle.make || vehicle.model ? ` · ${[vehicle.make, vehicle.model].filter(Boolean).join(" ")}` : ""}
+                      </span>
+                    </span>
+                    <span className="text-[0.8125rem] text-muted">{vehicle.scheduledLessons} scheduled lesson(s)</span>
+                    <span className={`justify-self-start rounded-full px-3 py-1 text-[0.75rem] font-semibold md:justify-self-end ${VEHICLE_STATUS_STYLES[vehicle.status]}`}>
+                      {VEHICLE_STATUS_LABELS[vehicle.status]}
+                    </span>
                   </span>
                 </Link>
               </li>

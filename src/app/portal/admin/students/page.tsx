@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import AdminFrame from "@/components/admin/AdminFrame";
 import { DirectoryPager, DirectorySearch } from "@/components/admin/DirectoryControls";
+import { ROW_LINK, initialsOf } from "@/components/admin/admin-ui";
 import StatusBadge from "@/components/student/StatusBadge";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
 import { directoryQuery, listStudents, type DirectoryStatus } from "@/lib/admin/directory";
@@ -57,27 +58,36 @@ export default async function AdminStudentsPage({
         {result.students.length === 0 ? (
           <p className="mt-6 text-[0.9375rem] text-muted">No students match these filters.</p>
         ) : (
-          <ul className="mt-4 grid gap-2">
+          <ul className="mt-5 grid gap-2.5">
             {result.students.map((student) => (
               <li key={student.studentId}>
-                <Link
-                  href={`/portal/admin/students/${encodeURIComponent(student.studentId)}`}
-                  className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white p-3.5 ring-1 ring-line transition-colors hover:bg-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark"
-                >
-                  <span className="grid gap-0.5">
-                    <span className="font-semibold text-ink">{student.fullName}</span>
-                    <span className="text-[0.8125rem] text-muted">
-                      {student.studentId} · {student.email ?? "No email"} · {student.phoneNumber} · NIC {student.nicMasked}
-                    </span>
+                <Link href={`/portal/admin/students/${encodeURIComponent(student.studentId)}`} className={ROW_LINK}>
+                  <span
+                    aria-hidden="true"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-page text-[0.8125rem] font-bold text-ink-soft ring-1 ring-line"
+                  >
+                    {initialsOf(student.fullName)}
                   </span>
-                  <span className="flex items-center gap-2">
-                    <span className="text-[0.8125rem] text-muted">
-                      {student.activeEnrollments === 1 ? "1 active enrollment" : `${student.activeEnrollments} active enrollments`}
+                  <span className="min-w-0 flex-1">
+                    <span className="flex flex-wrap items-center justify-between gap-2">
+                      <span className="truncate font-semibold text-ink">{student.fullName}</span>
+                      <StatusBadge
+                        status={student.accountStatus}
+                        label={student.accountStatus === "ACTIVE" ? "Active" : "Inactive"}
+                      />
                     </span>
-                    <StatusBadge
-                      status={student.accountStatus}
-                      label={student.accountStatus === "ACTIVE" ? "Active" : "Inactive"}
-                    />
+                    <span className="mt-0.5 block font-mono text-[0.75rem] text-muted">{student.studentId}</span>
+                    <span className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.8125rem] text-muted">
+                      <span>{student.email ?? "No email"}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>{student.phoneNumber}</span>
+                      <span aria-hidden="true">·</span>
+                      <span>NIC {student.nicMasked}</span>
+                      <span aria-hidden="true">·</span>
+                      <span className="rounded-md bg-page px-2 py-0.5 font-medium text-ink-soft ring-1 ring-line">
+                        {student.activeEnrollments === 1 ? "1 active enrollment" : `${student.activeEnrollments} active enrollments`}
+                      </span>
+                    </span>
                   </span>
                 </Link>
               </li>

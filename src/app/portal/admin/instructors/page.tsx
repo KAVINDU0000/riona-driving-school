@@ -3,6 +3,7 @@ import Link from "next/link";
 import AdminFrame from "@/components/admin/AdminFrame";
 import InstructorForm from "@/components/admin/InstructorForm";
 import { DirectoryPager, DirectorySearch } from "@/components/admin/DirectoryControls";
+import { ROW_LINK, initialsOf } from "@/components/admin/admin-ui";
 import StatusBadge from "@/components/student/StatusBadge";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
 import { directoryQuery, listInstructors, type DirectoryStatus } from "@/lib/admin/directory";
@@ -71,28 +72,35 @@ export default async function AdminInstructorsPage({
         {result.instructors.length === 0 ? (
           <p className="mt-6 text-[0.9375rem] text-muted">No instructors match these filters.</p>
         ) : (
-          <ul className="mt-4 grid gap-2">
+          <ul className="mt-5 grid gap-2.5">
             {result.instructors.map((instructor) => {
               const active = instructor.accountStatus === "ACTIVE" && instructor.profileStatus === "ACTIVE";
               return (
                 <li key={instructor.instructorId}>
-                  <Link
-                    href={`/portal/admin/instructors/${encodeURIComponent(instructor.instructorId)}`}
-                    className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-white p-3.5 ring-1 ring-line transition-colors hover:bg-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark"
-                  >
-                    <span className="grid gap-0.5">
-                      <span className="font-semibold text-ink">{instructor.fullName}</span>
-                      <span className="text-[0.8125rem] text-muted">
-                        {instructor.instructorId} · {instructor.email ?? "No email"} · {instructor.phoneNumber}
-                      </span>
+                  <Link href={`/portal/admin/instructors/${encodeURIComponent(instructor.instructorId)}`} className={ROW_LINK}>
+                    <span
+                      aria-hidden="true"
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-page text-[0.8125rem] font-bold text-ink-soft ring-1 ring-line"
+                    >
+                      {initialsOf(instructor.fullName)}
                     </span>
-                    <span className="flex items-center gap-2">
-                      <span className="text-[0.8125rem] text-muted">
-                        {instructor.upcomingScheduledLessons === 1
-                          ? "1 upcoming lesson"
-                          : `${instructor.upcomingScheduledLessons} upcoming lessons`}
+                    <span className="min-w-0 flex-1">
+                      <span className="flex flex-wrap items-center justify-between gap-2">
+                        <span className="truncate font-semibold text-ink">{instructor.fullName}</span>
+                        <StatusBadge status={active ? "ACTIVE" : "INACTIVE"} label={active ? "Active" : "Inactive"} />
                       </span>
-                      <StatusBadge status={active ? "ACTIVE" : "INACTIVE"} label={active ? "Active" : "Inactive"} />
+                      <span className="mt-0.5 block font-mono text-[0.75rem] text-muted">{instructor.instructorId}</span>
+                      <span className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-[0.8125rem] text-muted">
+                        <span>{instructor.email ?? "No email"}</span>
+                        <span aria-hidden="true">·</span>
+                        <span>{instructor.phoneNumber}</span>
+                        <span aria-hidden="true">·</span>
+                        <span className="rounded-md bg-page px-2 py-0.5 font-medium text-ink-soft ring-1 ring-line">
+                          {instructor.upcomingScheduledLessons === 1
+                            ? "1 upcoming lesson"
+                            : `${instructor.upcomingScheduledLessons} upcoming lessons`}
+                        </span>
+                      </span>
                     </span>
                   </Link>
                 </li>

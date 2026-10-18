@@ -7,6 +7,10 @@ import { formatDate, formatDateTime, labels } from "@/components/student/format"
 import StatusBadge from "@/components/student/StatusBadge";
 import type { RequirementStatus } from "@/lib/admin/requirements";
 import { formatLkr } from "@/lib/packages/format";
+import { BUTTON_PRIMARY, BUTTON_SECONDARY, FIELD, LABEL, SELECT_FIELD } from "@/components/admin/admin-ui";
+
+/** Compact control for the requirement table, sized to sit inside a row. */
+const COMPACT_FIELD = `${FIELD} h-10 w-28 py-2`;
 
 export type RequirementRowView = {
   vehicleType: string;
@@ -179,6 +183,23 @@ export default function PackageManager({
   );
 }
 
+function ChevronIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      viewBox="0 0 20 20"
+      className="pointer-events-none absolute right-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="m5 7.5 5 5 5-5" />
+    </svg>
+  );
+}
+
 function PackageRowForm({
   row,
   onMessage,
@@ -246,7 +267,7 @@ function PackageRowForm({
   }
 
   return (
-    <li className="rounded-2xl bg-white p-4 ring-1 ring-line">
+    <li className="rounded-2xl border border-line bg-white p-5 shadow-[0_1px_2px_rgba(16,27,48,0.04)]">
       <form onSubmit={onSubmit} className="grid gap-4" aria-label={`Edit ${row.name}`}>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -265,7 +286,7 @@ function PackageRowForm({
 
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end">
           <div className="grid gap-1.5">
-            <label htmlFor={`price-${row.id}`} className="text-[0.8125rem] font-semibold text-ink">
+            <label htmlFor={`price-${row.id}`} className={LABEL}>
               Price (LKR)
             </label>
             <input
@@ -274,11 +295,11 @@ function PackageRowForm({
               value={price}
               onChange={(event) => setPrice(event.target.value)}
               disabled={busy}
-              className="rounded-xl border border-line bg-white px-3 py-2 text-[0.9375rem] text-ink"
+              className={`${FIELD} h-11`}
             />
           </div>
           <div className="grid gap-1.5">
-            <label htmlFor={`order-${row.id}`} className="text-[0.8125rem] font-semibold text-ink">
+            <label htmlFor={`order-${row.id}`} className={LABEL}>
               Sort order
             </label>
             <input
@@ -290,11 +311,17 @@ function PackageRowForm({
               value={sortOrder}
               onChange={(event) => setSortOrder(event.target.value)}
               disabled={busy}
-              className="rounded-xl border border-line bg-white px-3 py-2 text-[0.9375rem] text-ink"
+              className={`${FIELD} h-11`}
             />
           </div>
-          <label className="flex items-center gap-2 text-[0.875rem] font-semibold text-ink">
-            <input type="checkbox" checked={isActive} onChange={(event) => setIsActive(event.target.checked)} disabled={busy} />
+          <label className="flex h-11 items-center gap-2.5 text-[0.875rem] font-semibold text-ink">
+            <input
+              type="checkbox"
+              checked={isActive}
+              onChange={(event) => setIsActive(event.target.checked)}
+              disabled={busy}
+              className="h-4 w-4 rounded border-line accent-[var(--color-gold-dark)]"
+            />
             Offered to new applicants
           </label>
         </div>
@@ -310,11 +337,7 @@ function PackageRowForm({
             {row.applications} application{row.applications === 1 ? "" : "s"} · {row.enrollments} enrollment
             {row.enrollments === 1 ? "" : "s"}
           </p>
-          <button
-            type="submit"
-            disabled={busy}
-            className="rounded-xl bg-gold px-5 py-2.5 text-[0.875rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] hover:bg-gold-dark disabled:opacity-60"
-          >
+          <button type="submit" disabled={busy} className={BUTTON_PRIMARY}>
             Save price and availability
           </button>
         </div>
@@ -460,7 +483,7 @@ function RequirementsEditor({
   }
 
   return (
-    <details className="mt-4 rounded-xl bg-page px-4 py-3">
+    <details className="mt-4 rounded-2xl bg-page px-4 py-3 ring-1 ring-line">
       <summary className="cursor-pointer text-[0.9375rem] font-semibold text-ink">Session requirements</summary>
       <div className="mt-3 grid gap-4">
         <p className="text-[0.8125rem] text-muted">{hint}</p>
@@ -504,7 +527,7 @@ function RequirementsEditor({
                           ),
                         )
                       }
-                      className="w-24 rounded-lg border border-line bg-white px-2 py-1 text-ink"
+                      className={`${COMPACT_FIELD} w-24 px-3`}
                     />
                   </td>
                   <td className="border-b border-line px-2 py-2 text-right">
@@ -525,31 +548,37 @@ function RequirementsEditor({
 
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto_auto] sm:items-end">
           <div className="grid gap-1.5">
-            <label htmlFor={`vehicle-${row.id}`} className="text-[0.8125rem] font-semibold text-ink">
+            <label htmlFor={`vehicle-${row.id}`} className={LABEL}>
               Vehicle
             </label>
-            <select id={`vehicle-${row.id}`} value={vehicle} onChange={(event) => setVehicle(event.target.value)} className="rounded-xl border border-line bg-white px-3 py-2 text-[0.9375rem] text-ink">
-              {VEHICLES.map((value) => (
-                <option key={value} value={value}>
-                  {labels.vehicleType[value]}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select id={`vehicle-${row.id}`} value={vehicle} onChange={(event) => setVehicle(event.target.value)} className={`${SELECT_FIELD} h-11`}>
+                {VEHICLES.map((value) => (
+                  <option key={value} value={value}>
+                    {labels.vehicleType[value]}
+                  </option>
+                ))}
+              </select>
+              <ChevronIcon />
+            </div>
           </div>
           <div className="grid gap-1.5">
-            <label htmlFor={`training-${row.id}`} className="text-[0.8125rem] font-semibold text-ink">
+            <label htmlFor={`training-${row.id}`} className={LABEL}>
               Training
             </label>
-            <select id={`training-${row.id}`} value={training} onChange={(event) => setTraining(event.target.value)} className="rounded-xl border border-line bg-white px-3 py-2 text-[0.9375rem] text-ink">
-              {TRAININGS.map((value) => (
-                <option key={value} value={value}>
-                  {labels.trainingType[value]}
-                </option>
-              ))}
-            </select>
+            <div className="relative">
+              <select id={`training-${row.id}`} value={training} onChange={(event) => setTraining(event.target.value)} className={`${SELECT_FIELD} h-11`}>
+                {TRAININGS.map((value) => (
+                  <option key={value} value={value}>
+                    {labels.trainingType[value]}
+                  </option>
+                ))}
+              </select>
+              <ChevronIcon />
+            </div>
           </div>
           <div className="grid gap-1.5">
-            <label htmlFor={`new-count-${row.id}`} className="text-[0.8125rem] font-semibold text-ink">
+            <label htmlFor={`new-count-${row.id}`} className={LABEL}>
               Total sessions
             </label>
             <input
@@ -560,10 +589,10 @@ function RequirementsEditor({
               step={1}
               value={count}
               onChange={(event) => setCount(event.target.value)}
-              className="w-28 rounded-xl border border-line bg-white px-3 py-2 text-[0.9375rem] text-ink"
+              className={`${FIELD} h-11 w-28`}
             />
           </div>
-          <button type="button" onClick={addRow} disabled={busy} className="rounded-xl bg-white px-4 py-2.5 text-[0.875rem] font-semibold text-ink ring-1 ring-line hover:bg-page disabled:opacity-60">
+          <button type="button" onClick={addRow} disabled={busy} className={`${BUTTON_SECONDARY} h-11 px-5`}>
             Add row
           </button>
         </div>
@@ -576,7 +605,7 @@ function RequirementsEditor({
 
         <div className="flex flex-wrap items-center justify-between gap-3">
           <form onSubmit={onSave}>
-            <button type="submit" disabled={busy} className="rounded-xl bg-white px-4 py-2.5 text-[0.875rem] font-semibold text-ink ring-1 ring-line hover:bg-page disabled:opacity-60">
+            <button type="submit" disabled={busy} className={`${BUTTON_SECONDARY} h-11 px-5`}>
               Save requirements
             </button>
           </form>
@@ -585,7 +614,7 @@ function RequirementsEditor({
               type="button"
               onClick={() => setConfirming(true)}
               disabled={busy || !canConfirm}
-              className="rounded-xl bg-gold px-5 py-2.5 text-[0.875rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] hover:bg-gold-dark disabled:opacity-60"
+              className={BUTTON_PRIMARY}
             >
               Confirm requirements
             </button>
