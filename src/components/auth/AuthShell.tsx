@@ -21,6 +21,8 @@ interface AuthShellProps {
   scrollableCard?: boolean;
   /** On large screens, keep the whole page fixed to the viewport with no page scrollbar. */
   fixedPage?: boolean;
+  /** "soft" uses a lighter, more transparent backdrop with less yellow, for the login and sign-up pages. */
+  tone?: "default" | "soft";
 }
 
 /** Shared frame for the role login pages: landing header, atmosphere, copy column and form card. */
@@ -35,7 +37,9 @@ export default function AuthShell({
   align = "center",
   scrollableCard = false,
   fixedPage = false,
+  tone = "default",
 }: AuthShellProps) {
+  const isSoft = tone === "soft";
   // Viewport height minus the header, footer and main padding, so the card scrolls inside the screen.
   const scrollClasses = scrollableCard
     ? "lg:max-h-[calc(100dvh-15rem)] lg:overflow-y-auto lg:overscroll-contain lg:[scrollbar-gutter:stable_both-edges] thin-scroll"
@@ -44,7 +48,7 @@ export default function AuthShell({
 
   return (
     <div className={`flex min-h-screen flex-col ${pageFixed ? "lg:h-screen lg:overflow-hidden" : ""}`}>
-      <div className="page-atmosphere" aria-hidden="true" />
+      <div className={isSoft ? "soft-atmosphere" : "page-atmosphere"} aria-hidden="true" />
 
       <header className="sticky top-0 z-50 pt-5">
         <div className="w-full px-4 md:px-8">
@@ -76,7 +80,7 @@ export default function AuthShell({
       </header>
 
       <main
-        className={`glow-hero flex-1 pt-10 pb-16 md:pt-14 md:pb-20 ${
+        className={`${isSoft ? "soft-glow" : "glow-hero"} flex-1 pt-10 pb-16 md:pt-14 md:pb-20 ${
           pageFixed ? "lg:flex lg:min-h-0 lg:flex-col lg:justify-center lg:py-8" : ""
         }`}
       >
@@ -92,7 +96,11 @@ export default function AuthShell({
           >
             {/* Copy */}
             <div className="flex flex-col items-start">
-              <span className="inline-flex items-center gap-2 rounded-full bg-gold-soft px-3.5 py-1.5 ring-1 ring-gold/60">
+              <span
+                className={`inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 ${
+                  isSoft ? "bg-white/60 ring-1 ring-line" : "bg-gold-soft ring-1 ring-gold/60"
+                }`}
+              >
                 <Icon name="badge-check" className="h-4 w-4 text-gold-ink" />
                 <Eyebrow className="mb-0">{eyebrow}</Eyebrow>
               </span>
@@ -120,7 +128,7 @@ export default function AuthShell({
 
             {/* Form card */}
             <div
-              className={`glass rounded-[28px] p-6 shadow-[0_20px_50px_-20px_rgb(40_60_90/0.25)] md:p-10 ${scrollClasses} ${cardClassName}`}
+              className={`${isSoft ? "glass-soft" : "glass"} rounded-[28px] p-6 shadow-[0_20px_50px_-20px_rgb(40_60_90/0.25)] md:p-10 ${scrollClasses} ${cardClassName}`}
             >
               {children}
 

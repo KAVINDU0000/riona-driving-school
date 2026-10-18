@@ -85,13 +85,14 @@ export default function RoleLoginForm({ initialRole, notice }: RoleLoginFormProp
 
   return (
     <>
-      <AuthBackground />
+      <AuthBackground variant="soft" />
 
       <AuthShell
         eyebrow={content.eyebrow}
         title={content.title}
         body={content.body}
         points={content.points}
+        tone="soft"
         fixedPage
         cardClassName="lg:-translate-x-10 xl:-translate-x-20"
       >

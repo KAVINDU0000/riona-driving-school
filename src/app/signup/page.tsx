@@ -19,8 +19,9 @@ export default async function SignupPage() {
 
   return (
     <>
-      <AuthBackground intensity="strong" />
+      <AuthBackground variant="soft" />
       <AuthShell
+        tone="soft"
         align="start"
         eyebrow="New Student"
         title="Start Your Journey"

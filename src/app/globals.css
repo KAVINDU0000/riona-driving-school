@@ -42,6 +42,17 @@ html {
     0 10px 35px -14px rgb(40 60 90 / 0.1);
 }
 
+/* Lighter, more see-through glass for the login and sign-up cards */
+.glass-soft {
+  background: rgb(255 255 255 / 0.55);
+  backdrop-filter: blur(14px) saturate(1.05);
+  -webkit-backdrop-filter: blur(14px) saturate(1.05);
+  border: 1px solid rgb(255 255 255 / 0.6);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.8),
+    0 10px 35px -14px rgb(40 60 90 / 0.1);
+}
+
 /* Glass that lifts slightly on hover, used for interactive cards */
 .glass-lift {
   transition:
@@ -119,6 +130,22 @@ body {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-gold-ink);
+}
+
+/* Login and sign-up backdrop: cool blue wash with only a faint gold touch */
+.soft-atmosphere {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+  background:
+    radial-gradient(70% 55% at 0% 0%, rgb(59 110 165 / 0.08) 0%, transparent 70%),
+    radial-gradient(40% 40% at 100% 14%, rgb(255 201 51 / 0.05) 0%, transparent 65%);
+}
+
+.soft-glow {
+  background: radial-gradient(50% 50% at 12% 18%, rgb(255 201 51 / 0.05) 0%, transparent 65%);
 }
 
 /* Soft colour wash behind the hero and journey sections */

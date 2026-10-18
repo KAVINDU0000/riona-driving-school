@@ -4,7 +4,14 @@ import Image from "next/image";
 import { useEffect, useRef } from "react";
 
 /** Full-page driving artwork behind the auth pages, with a light veil and a gentle pointer parallax. Decorative only. */
-export default function AuthBackground({ intensity = "soft" }: { intensity?: "soft" | "strong" }) {
+export default function AuthBackground({
+  intensity = "soft",
+  variant = "default",
+}: {
+  intensity?: "soft" | "strong";
+  /** "soft" lets more of the road photo show through, for the login and sign-up pages. */
+  variant?: "default" | "soft";
+}) {
   const artRef = useRef<HTMLDivElement>(null);
 
   // The artwork shifts slightly with the pointer. Skipped when reduced motion is requested.
@@ -28,7 +35,9 @@ export default function AuthBackground({ intensity = "soft" }: { intensity?: "so
       </div>
       <div
         className={`absolute inset-0 ${
-          intensity === "strong"
+          variant === "soft"
+            ? "bg-[linear-gradient(105deg,rgb(248_251_255/0.7)_0%,rgb(236_243_252/0.45)_40%,rgb(236_243_252/0.08)_100%)]"
+            : intensity === "strong"
             ? "bg-[linear-gradient(90deg,rgb(238_243_250/0.94)_0%,rgb(238_243_250/0.84)_50%,rgb(238_243_250/0.5)_100%)]"
             : "bg-[linear-gradient(90deg,rgb(238_243_250/0.85)_0%,rgb(238_243_250/0.5)_45%,rgb(238_243_250/0.1)_100%)]"
         }`}
