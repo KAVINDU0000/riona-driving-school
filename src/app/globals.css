@@ -123,6 +123,11 @@ body {
   overflow-x: clip;
 }
 
+/* Sinhala text: Outfit has no Sinhala letters, so the Sinhala font is used for any element marked lang="si". */
+[lang="si"] {
+  font-family: var(--font-sinhala), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
 /* Eyebrow label shared by every section header */
 .eyebrow {
   font-size: 0.6875rem;

@@ -45,6 +45,68 @@ export const SIGN_SHAPES: { glyph: SignGlyph; title: string; body: string }[] = 
   },
 ];
 
+/*
+ * Sign pictures from the school's "Sign Board Details" list, keyed by the sign name used in the categories below. The
+ * code after the name is the sign number on that list. A sign without an entry shows its drawn shape instead.
+ */
+export const SIGN_IMAGES: Record<string, string> = {
+  "Left bend ahead": "/road-signs/DWS-01.png",
+  "Right bend ahead": "/road-signs/DWS-02.png",
+  "Double bend to the left ahead": "/road-signs/DWS-03.png",
+  "Double bend to the right ahead": "/road-signs/DWS-04.png",
+  "Hairpin bend to the right ahead": "/road-signs/DWS-05.png",
+  "Hairpin bend to the left ahead": "/road-signs/DWS-06.png",
+  "Cross roads ahead": "/road-signs/DWS-12.png",
+  "T-junction ahead": "/road-signs/DWS-15.png",
+  "Traffic from the left merges ahead": "/road-signs/DWS-17.png",
+  "Traffic from the left joins at a right angle": "/road-signs/DWS-18.png",
+  "Traffic from the right merges ahead": "/road-signs/DWS-19.png",
+  "Traffic from the right joins at a right angle": "/road-signs/DWS-20.png",
+  "Narrow bridge ahead": "/road-signs/DWS-21.png",
+  "Roundabout ahead": "/road-signs/DWS-25.png",
+  "Pedestrian crossing ahead": "/road-signs/DWS-32.png",
+  "Children crossing ahead": "/road-signs/DWS-33.png",
+  "Pass on the left side": "/road-signs/MNS-06.png",
+  "Pass on the right side": "/road-signs/MNS-07.png",
+  "Side obstacle markers": "/road-signs/MS-03.png",
+  "Chevron markers (double)": "/road-signs/MS-05.png",
+  "Pedestrian crossing": "/road-signs/OSD-01.png",
+  "Hospital": "/road-signs/OSD-03.png",
+  "Bus stop": "/road-signs/OSD-06.png",
+  "Cycle-only lane begins or continues": "/road-signs/OSD-09.png",
+  "Parking": "/road-signs/OSD-04.png",
+};
+
+/* Danger warning pictures made by the school (infographic set). Used where the official list above has no picture. */
+const DANGER_INFOGRAPHIC_IMAGES: Record<string, string> = {
+  "Road narrows ahead": "/road-signs/infographic/road-narrows-ahead.png",
+  "Road work ahead": "/road-signs/infographic/road-work-ahead.png",
+  "Two-way traffic ahead": "/road-signs/infographic/two-way-traffic-ahead.png",
+  "Uneven road ahead": "/road-signs/infographic/uneven-road-ahead.png",
+  "Slippery road ahead": "/road-signs/infographic/slippery-road-ahead.png",
+  "School zone ahead": "/road-signs/infographic/school-zone-ahead.png",
+  "Animal crossing ahead": "/road-signs/infographic/animal-crossing-ahead.png",
+  "Wild animals ahead": "/road-signs/infographic/wild-animals-ahead.png",
+  "Low clearance ahead": "/road-signs/infographic/low-clearance-ahead.png",
+  "Narrow road ahead": "/road-signs/infographic/narrow-road-ahead.png",
+  "Railway crossing ahead": "/road-signs/infographic/railway-crossing-ahead.png",
+  "Dual carriageway starts ahead": "/road-signs/infographic/dual-carriageway-starts-ahead.png",
+  "Airport ahead": "/road-signs/infographic/airport-ahead.png",
+  "Side winds ahead": "/road-signs/infographic/side-winds-ahead.png",
+  "Winding road ahead": "/road-signs/infographic/winding-road-ahead.png",
+  "Y-junction ahead": "/road-signs/infographic/y-junction-ahead.png",
+  "Traffic light signals ahead": "/road-signs/infographic/traffic-light-signals-ahead.png",
+  "Road narrows on the left side ahead": "/road-signs/infographic/road-narrows-left-side-ahead.png",
+  "Road narrows on the right side ahead": "/road-signs/infographic/road-narrows-right-side-ahead.png",
+  "Loose gravel ahead": "/road-signs/infographic/loose-gravel-ahead.png",
+  "Dangerous ascent ahead": "/road-signs/infographic/dangerous-ascent-ahead.png",
+  "Dangerous descent ahead": "/road-signs/infographic/dangerous-descent-ahead.png",
+};
+
+for (const [name, src] of Object.entries(DANGER_INFOGRAPHIC_IMAGES)) {
+  SIGN_IMAGES[name] ??= src;
+}
+
 /** Danger warnings are yellow diamonds. Each sign is named as it appears in the category. */
 export const SIGN_CATEGORIES: SignCategory[] = [
   {
@@ -102,6 +164,15 @@ export const SIGN_CATEGORIES: SignCategory[] = [
       "Dip ahead",
       "Humped bridge ahead",
       "Tunnel ahead",
+      "School zone ahead",
+      "Animal crossing ahead",
+      "Wild animals ahead",
+      "Low clearance ahead",
+      "Narrow road ahead",
+      "Railway crossing ahead",
+      "Airport ahead",
+      "Side winds ahead",
+      "Winding road ahead",
     ],
   },
   {
@@ -213,6 +284,8 @@ export const SIGN_CATEGORIES: SignCategory[] = [
     intro: "Lines, arrows and words painted on the road. They have the same force as signs.",
     glyph: "none",
     signs: [
+      "Side obstacle markers",
+      "Chevron markers (double)",
       "Centre line, solid: do not cross or overtake over it",
       "Centre line, broken: overtaking is allowed when it is safe",
       "Centre line, broken and solid together: the lane nearer the solid line may not cross it",

@@ -31,7 +31,6 @@ export default async function PackagesPage() {
   await connection();
   const groups = await getPublicPackageCatalog();
   const byLabel = new Map(groups.map((group) => [group.label, group]));
-  const shown = PACKAGE_GROUPS.filter((main) => byLabel.has(main.label));
 
   return (
     <PublicFrame>
@@ -56,18 +55,12 @@ export default async function PackagesPage() {
           <TrustStrip />
         </div>
 
-        {shown.length === 0 && (
-          <p className="mt-12 text-[0.9375rem] text-muted">
-            No packages are offered online right now. Contact the school for the current packages and fees.
-          </p>
-        )}
-
         <ul className="mt-12 grid gap-6 md:grid-cols-2">
-          {shown.map((main) => {
-            const group = byLabel.get(main.label)!;
-            const from = Math.min(...group.options.map((option) => option.price));
-            const perSession = group.options.every((option) => option.pricing === "per-session");
-            const count = group.options.length;
+          {PACKAGE_GROUPS.map((main) => {
+            const options = byLabel.get(main.label)?.options ?? [];
+            const count = options.length;
+            const from = count > 0 ? Math.min(...options.map((option) => option.price)) : null;
+            const perSession = count > 0 && options.every((option) => option.pricing === "per-session");
             return (
               <li key={main.slug}>
                 <Link href={`/packages/${main.slug}`} className="group block h-full focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark">
@@ -84,13 +77,19 @@ export default async function PackagesPage() {
                       <h2 className="text-[1.375rem] font-bold leading-snug text-ink">{main.label}</h2>
                       <p className="mt-2 text-[0.9375rem] leading-[1.7] text-muted">{main.note}</p>
                     </div>
-                    <p className="mt-auto flex flex-wrap items-baseline gap-x-2 text-ink">
-                      <span className="text-[0.8125rem] font-semibold text-muted">From</span>
-                      <span className="text-[1.5rem] font-bold tracking-[-0.02em]">{formatLkr(from)}</span>
-                      <span className="text-[0.8125rem] font-semibold text-muted">
-                        {perSession ? "per session" : "total package fee"}
-                      </span>
-                    </p>
+                    {from === null ? (
+                      <p className="mt-auto text-[0.9375rem] font-semibold text-muted">
+                        Not offered online right now. Ask the school for the current fee.
+                      </p>
+                    ) : (
+                      <p className="mt-auto flex flex-wrap items-baseline gap-x-2 text-ink">
+                        <span className="text-[0.8125rem] font-semibold text-muted">From</span>
+                        <span className="text-[1.5rem] font-bold tracking-[-0.02em]">{formatLkr(from)}</span>
+                        <span className="text-[0.8125rem] font-semibold text-muted">
+                          {perSession ? "per session" : "total package fee"}
+                        </span>
+                      </p>
+                    )}
                     <span className="text-[0.9375rem] font-semibold text-gold-ink group-hover:underline">View packages →</span>
                   </Surface>
                 </Link>

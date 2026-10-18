@@ -45,10 +45,10 @@ const GLYPHS: Record<string, ReactNode> = {
       <Arrow x={14} y={16} dir="left" />
     </g>
   ),
-  "Double bend to left ahead": <polyline points="18,36 18,28 30,24 30,12" {...STROKE} />,
-  "Double bend to right ahead": <polyline points="30,36 30,28 18,24 18,12" {...STROKE} />,
-  "Hairpin bend to right ahead": <path d="M18 36 V16 Q18 12 24 12 Q30 12 30 18 V30" {...STROKE} />,
-  "Hairpin bend to left ahead": <path d="M30 36 V16 Q30 12 24 12 Q18 12 18 18 V30" {...STROKE} />,
+  "Double bend to the left ahead": <polyline points="18,36 18,28 30,24 30,12" {...STROKE} />,
+  "Double bend to the right ahead": <polyline points="30,36 30,28 18,24 18,12" {...STROKE} />,
+  "Hairpin bend to the right ahead": <path d="M18 36 V16 Q18 12 24 12 Q30 12 30 18 V30" {...STROKE} />,
+  "Hairpin bend to the left ahead": <path d="M30 36 V16 Q30 12 24 12 Q18 12 18 18 V30" {...STROKE} />,
   "Dual carriageway starts ahead": (
     <g {...STROKE}>
       <line x1="24" y1="36" x2="24" y2="26" />
@@ -243,7 +243,7 @@ const GLYPHS: Record<string, ReactNode> = {
       <polyline points="16,30 22,20 32,30 26,20 22,20" />
     </g>
   ),
-  "Cyclist crossing ahead": (
+  "Cyclists crossing ahead": (
     <g>
       <circle cx="16" cy="32" r="5" {...STROKE} strokeWidth={2.5} />
       <circle cx="32" cy="32" r="5" {...STROKE} strokeWidth={2.5} />

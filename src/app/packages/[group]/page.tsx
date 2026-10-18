@@ -27,8 +27,7 @@ export default async function PackageGroupPage({ params }: { params: Promise<{ g
 
   await connection();
   const groups = await getPublicPackageCatalog();
-  const found = groups.find((item) => item.label === main.label);
-  if (!found) notFound();
+  const options = groups.find((item) => item.label === main.label)?.options ?? [];
 
   return (
     <PublicFrame>
@@ -47,13 +46,19 @@ export default async function PackageGroupPage({ params }: { params: Promise<{ g
       />
 
       <Container>
-        <ul className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          {found.options.map((option) => (
-            <li key={option.id}>
-              <PackageCard option={option} vehicle={vehicleForPackage(option)} />
-            </li>
-          ))}
-        </ul>
+        {options.length === 0 ? (
+          <p className="mt-12 text-[0.9375rem] text-muted">
+            This package is not offered online right now. Contact the school for the current packages and fees.
+          </p>
+        ) : (
+          <ul className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+            {options.map((option) => (
+              <li key={option.id}>
+                <PackageCard option={option} vehicle={vehicleForPackage(option)} />
+              </li>
+            ))}
+          </ul>
+        )}
       </Container>
     </PublicFrame>
   );
