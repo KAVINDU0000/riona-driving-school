@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import PracticeQuizRunner from "@/components/public/PracticeQuizRunner";
 import PublicFrame from "@/components/public/PublicFrame";
 import { Container } from "@/components/landing/primitives";
+import DocumentCard from "@/components/public/DocumentCard";
 import { PRACTICE_QUIZZES } from "@/data/practice-quizzes";
 
 export const metadata: Metadata = {
@@ -11,9 +12,6 @@ export const metadata: Metadata = {
   description:
     "A timed practice quiz for the driving licence written test in Sri Lanka, from Riyona Driving School.",
 };
-
-const SECTION_LABEL =
-  "text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-gold-ink";
 
 export default async function PracticeQuizPage({
   params,
@@ -47,12 +45,11 @@ export default async function PracticeQuizPage({
             ← Back to quizzes
           </Link>
 
-          <div className="flex flex-col gap-3">
-            <p className={SECTION_LABEL}>{`Practice quiz ${index + 1}`}</p>
-            <h1 className="text-[1.75rem] font-bold tracking-[-0.02em] text-ink md:text-[2.25rem]">
-              Driving licence written test
-            </h1>
-          </div>
+          <DocumentCard
+            icon={<span className="text-[0.9375rem] font-extrabold">{index + 1}</span>}
+            title="Driving licence written test"
+            meta={`Practice quiz ${index + 1} · 40 questions · 1 hour`}
+          />
 
           <PracticeQuizRunner quizIndex={index} medium={medium} />
         </div>

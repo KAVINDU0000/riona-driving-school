@@ -51,10 +51,10 @@ export default async function PackageGroupPage({ params }: { params: Promise<{ g
             This package is not offered online right now. Contact the school for the current packages and fees.
           </p>
         ) : (
-          <ul className="mt-12 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          <ul className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 lg:gap-8 xl:grid-cols-4">
             {options.map((option) => (
-              <li key={option.id}>
-                <PackageCard option={option} vehicle={vehicleForPackage(option)} />
+              <li key={option.id} className="flex">
+                <PackageCard option={option} vehicle={vehicleForPackage(option)} group={main.slug} />
               </li>
             ))}
           </ul>

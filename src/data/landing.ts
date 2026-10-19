@@ -5,7 +5,7 @@ export const site = {
   name: "Riyona Driving School",
   phone: "+94 71 889 4481",
   phoneHref: "tel:+94718894481",
-  whatsapp: "https://wa.me/94717066759",
+  whatsapp: "https://wa.me/94770427496",
 };
 
 /** Public site navigation. Each entry is a real route, and the active item is chosen by pathname. */
@@ -15,8 +15,7 @@ export const navLinks = [
   { label: "Packages", href: "/packages" },
   { label: "Vehicles", href: "/vehicles" },
   { label: "Driving Signs & Road Rules", href: "/road-signs" },
-  { label: "Past Papers", href: "/practice-papers" },
-  { label: "Driving Test", href: "/practice-papers#quizzes" },
+  { label: "Practice Papers", href: "/practice-papers" },
   { label: "Cash discount", href: "/cash-discount" },
   { label: "Contact", href: "/contact" },
 ];
@@ -169,14 +168,14 @@ export const resources = {
       title: "Student Portal",
       body: "Manage scheduled lessons, track progress, access feedback, and view your learning materials in one place.",
       cta: "Access Portal Dashboard",
-      href: "#faq",
+      href: "/login",
     },
     {
       icon: "play",
       title: "Video Tutorials & Theory",
       body: "Watch step-by-step lesson videos covering road signs, junctions, parking and exam-day tips.",
       cta: "Watch Our Learning Videos",
-      href: "#faq",
+      href: "/road-signs",
     },
     {
       icon: "signpost",

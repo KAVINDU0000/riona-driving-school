@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 import Icon from "@/components/ui/Icon";
 import { Container, Eyebrow } from "./primitives";
 
@@ -36,13 +37,13 @@ export default function Hero() {
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-4">
-              <a
-                href="#lessons"
+              <Link
+                href="/packages"
                 className="inline-flex items-center gap-2 rounded-xl bg-gold px-6 py-3.5 text-[0.9375rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] transition-colors hover:bg-gold-dark"
               >
                 Explore Packages
                 <Icon name="arrow-right" className="h-4 w-4" strokeWidth={2} />
-              </a>
+              </Link>
             </div>
 
             <p className="mt-6 flex items-center gap-2 text-[0.8125rem] text-muted">

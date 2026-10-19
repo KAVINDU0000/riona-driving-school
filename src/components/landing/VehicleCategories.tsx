@@ -86,7 +86,7 @@ export default function VehicleCategories() {
               ))}
             </ul>
             <a
-              href="#learning-hub"
+              href={`/vehicles#${active.key}`}
               className="mt-2 inline-flex w-fit items-center gap-2 rounded-xl bg-gold px-5 py-3 text-[0.875rem] font-semibold text-ink transition-colors hover:bg-gold-dark"
             >
               Explore {active.label} Lessons

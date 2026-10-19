@@ -14,7 +14,6 @@ const TEXT = {
     coverDetail: "20 road signs · 20 road rules",
     bookDetail: "40 questions · 1 hour",
     chooseLanguage: "Choose a language to start",
-    shelfHint: "Hover over a book to open it, or tap it on a phone.",
   },
 };
 
@@ -33,8 +32,6 @@ export default function PracticeQuizzes() {
 
   return (
     <div className="flex flex-col gap-10">
-      <p className="text-center text-[0.875rem] text-muted">{t.shelfHint}</p>
-
       <div className="grid justify-items-center gap-10 md:grid-cols-3">
         {PRACTICE_QUIZZES.map((_, index) => {
           const isOpen = openIndex === index;

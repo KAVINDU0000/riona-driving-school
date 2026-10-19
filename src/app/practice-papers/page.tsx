@@ -2,7 +2,12 @@ import type { Metadata } from "next";
 import PageHero from "@/components/public/PageHero";
 import PracticeQuizzes from "@/components/public/PracticeQuizzes";
 import PublicFrame from "@/components/public/PublicFrame";
-import { Container, Surface } from "@/components/landing/primitives";
+import { Container } from "@/components/landing/primitives";
+import DocumentCard, {
+  CARD_BUTTON_OUTLINE,
+  CARD_BUTTON_SOLID,
+} from "@/components/public/DocumentCard";
+import PaperViewer from "@/components/public/PaperViewer";
 import Icon from "@/components/ui/Icon";
 
 export const metadata: Metadata = {
@@ -11,7 +16,11 @@ export const metadata: Metadata = {
     "Practice quizzes and a past paper for the driving licence written test in Sri Lanka, from Riyona Driving School.",
 };
 
-const PAPER_PATH = "/practice-papers/driving-licence-past-paper.pdf";
+// Watermarked copy with the school logo on every page. The original PDF is kept unchanged.
+const PAPER_PATH = "/practice-papers/driving-licence-past-paper-watermarked.pdf";
+// Page images rendered from the watermarked PDF, shown by PaperViewer.
+const PAPER_PAGES_PATH = "/practice-papers/pages";
+const PAPER_PAGE_COUNT = 27;
 
 const SECTION_LABEL =
   "text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-gold-ink";
@@ -68,19 +77,39 @@ export default function PracticePapersPage() {
             </p>
           </div>
 
-          <Surface
-            lift
-            className="mx-auto mt-8 max-w-3xl overflow-hidden p-2 md:p-3"
-          >
-            <iframe
-              src={PAPER_PATH}
-              title="Driving licence examination past paper"
-              className="h-[min(58vh,560px)] min-h-[380px] w-full rounded-xl border border-line bg-white"
-            />
-          </Surface>
-          <p className="mx-auto mt-4 max-w-3xl text-center text-[0.8125rem] text-muted">
-            If the paper does not show here, try a different browser.
-          </p>
+          <div className="mt-8">
+            <DocumentCard
+              icon={<Icon name="book" className="h-5 w-5" />}
+              title="Driving licence past paper"
+              meta={`${PAPER_PAGE_COUNT} pages · Riyona Driving School`}
+              actions={
+                <>
+                  <a
+                    href={PAPER_PATH}
+                    target="_blank"
+                    rel="noopener"
+                    className={CARD_BUTTON_OUTLINE}
+                  >
+                    Open full screen
+                    <Icon name="external-link" className="h-3.5 w-3.5" />
+                  </a>
+                  <a
+                    href={PAPER_PATH}
+                    download="Riyona-driving-licence-past-paper.pdf"
+                    className={CARD_BUTTON_SOLID}
+                  >
+                    Download PDF
+                  </a>
+                </>
+              }
+            >
+              <PaperViewer
+                basePath={PAPER_PAGES_PATH}
+                pageCount={PAPER_PAGE_COUNT}
+                title="Driving licence examination past paper"
+              />
+            </DocumentCard>
+          </div>
         </section>
       </Container>
     </PublicFrame>

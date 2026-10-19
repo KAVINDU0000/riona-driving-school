@@ -17,31 +17,37 @@ export type SignCategory = {
   signs: string[];
 };
 
-export const SIGN_SHAPES: { glyph: SignGlyph; title: string; body: string }[] = [
+/** One card per sign shape: the shape's name, the type of sign it means, and what the sign tells the driver. */
+export const SIGN_SHAPES: { glyph: SignGlyph; shape: string; type: string; body: string }[] = [
   {
     glyph: "diamond",
-    title: "Yellow diamond",
-    body: "A warning. Something is ahead, such as a bend, a junction, a crossing or a hazard.",
+    shape: "Yellow diamond",
+    type: "Warning signs",
+    body: "Warn you of a hazard or road condition ahead, such as a bend, junction, crossing or other danger.",
   },
   {
     glyph: "circle",
-    title: "Red-bordered circle",
-    body: "A rule. It tells you what you must not do, may not exceed, or must do, such as a speed limit or a turn.",
+    shape: "Red-bordered circle",
+    type: "Regulatory signs (Prohibition or restriction)",
+    body: "Indicate something you must not do, or a limitation such as a speed limit or turning restriction.",
   },
   {
     glyph: "triangle",
-    title: "Red-bordered triangle",
-    body: "Give way. Let traffic on the other road go first.",
+    shape: "Red-bordered triangle",
+    type: "Give way signs",
+    body: "Tell you to give way and let other traffic go first at junctions or other locations.",
   },
   {
     glyph: "octagon",
-    title: "Red octagon",
-    body: "Stop. Come to a complete stop before you continue.",
+    shape: "Red octagon",
+    type: "Stop sign",
+    body: "You must stop completely and give way before continuing, where required by the rules.",
   },
   {
     glyph: "square",
-    title: "Blue square or rectangle",
-    body: "Information and facilities, such as parking, hospitals, bus lanes and expressways.",
+    shape: "Blue square or rectangle",
+    type: "Information signs",
+    body: "Provide information and indicate facilities or services, such as parking, hospitals, bus lanes and expressways.",
   },
 ];
 
@@ -344,45 +350,65 @@ export const SPEED_LIMITS: { place: string; limit: string; note: string }[] = [
   { place: "Southern Expressway", limit: "100 km/h", note: "The maximum on this expressway. Follow the signs for the limit on each section." },
 ];
 
-export const ROAD_RULES: { title: string; body: string }[] = [
+export const ROAD_RULES: { icon: string; title: string; body: string }[] = [
   {
+    icon: "car",
     title: "Drive on the left",
-    body: "Sri Lankan traffic keeps to the left. Overtake on the right, and give way when you move onto a road.",
+    body: "Drive on the left side of the road. Overtake on the right when it is safe and permitted. Check mirrors and blind spots before changing lanes.",
   },
   {
+    icon: "shield-check",
     title: "Wear a seat belt",
-    body: "Everyone in the front seat must wear a seat belt. Check the rules for the back seats before you drive.",
+    body: "Wear your seat belt correctly. On Sri Lankan expressways, all occupants must wear seat belts, including passengers in the rear seats.",
   },
   {
-    title: "Helmets on motorcycles",
-    body: "Riders and pillion passengers must wear a helmet that is fastened and in good condition.",
+    icon: "shield",
+    title: "Wear a proper helmet",
+    body: "Motorcycle riders and pillion passengers must wear a properly fitted, securely fastened helmet that meets the required standards.",
   },
   {
-    title: "Keep your phone away",
-    body: "Do not hold or use a phone while you drive. Pull over safely if you need to make a call.",
+    icon: "eye",
+    title: "Do not use a phone while driving",
+    body: "Do not hold or use a mobile phone while driving. Stop in a safe, permitted place before making a call or sending a message.",
   },
   {
-    title: "Never drive after drinking",
-    body: "Alcohol slows reactions and can lead to heavy penalties. If you have been drinking, do not drive.",
+    icon: "heart-pulse",
+    title: "Never drive under the influence",
+    body: "Never drive after drinking alcohol or using drugs that impair your ability to drive. Arrange a safe alternative such as a designated driver or public transport.",
   },
   {
-    title: "Carry your documents",
-    body: "Carry your driving licence and the vehicle documents whenever you drive, and show them when asked.",
+    icon: "id-card",
+    title: "Keep required documents valid",
+    body: "Carry your valid driving licence and ensure the vehicle has a valid revenue licence, insurance and any required emission or fitness certificates.",
   },
   {
-    title: "Give way to pedestrians",
-    body: "Slow down and stop for people on zebra crossings. Take extra care near schools, bus stops and markets.",
+    icon: "users",
+    title: "Protect pedestrians",
+    body: "Slow down near pedestrian crossings, schools and busy public areas. Watch for pedestrians and stop when required to let them cross safely.",
   },
   {
-    title: "Obey traffic lights",
-    body: "Stop on red and do not move until the light is green. On amber, stop if you can do so safely.",
+    icon: "signpost",
+    title: "Obey traffic lights and police directions",
+    body: "Follow traffic lights, road signs and road markings. Stop at a red light, and obey directions given by a police officer even when they differ from the usual signal.",
   },
   {
+    icon: "lightbulb",
     title: "Use your indicators",
-    body: "Signal before you turn, change lane or pull out. Other road users rely on your signals.",
+    body: "Signal before turning, changing lanes or moving away from the roadside. Check mirrors and make sure the manoeuvre is safe.",
   },
   {
-    title: "Respect no-parking zones",
-    body: "Do not park where the signs or road markings forbid it. Keep clear of junctions and bus stops.",
+    icon: "map-pin",
+    title: "Park only where permitted",
+    body: "Do not park where signs or road markings forbid it. Keep clear of junctions, pedestrian crossings, bus stops and other places where parking is prohibited.",
+  },
+  {
+    icon: "clock",
+    title: "Follow speed limits",
+    body: "Obey the posted speed limit and adjust your speed for traffic, weather and road conditions. Speed limits vary by road type and vehicle class.",
+  },
+  {
+    icon: "flag",
+    title: "Give way safely",
+    body: "Follow give way signs, junction rules and roundabout markings. Check carefully and let other traffic go first when required.",
   },
 ];

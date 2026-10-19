@@ -10,6 +10,7 @@ import {
   SIGN_CATEGORIES,
   SIGN_SHAPES,
   SPEED_LIMITS,
+  type SignGlyph,
 } from "@/data/road-rules";
 import { CATEGORY_TITLES_SI } from "@/data/road-signs-categories-si";
 
@@ -24,6 +25,16 @@ const SECTION_LABEL =
 
 const GOLD_BUTTON =
   "inline-flex items-center justify-center rounded-xl bg-gold px-5 py-3 text-[0.9375rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] hover:bg-gold-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark";
+
+/** Background for the shape name pill, matching the sign's colour. */
+const SHAPE_PILL: Record<SignGlyph, string> = {
+  diamond: "bg-yellow-100",
+  circle: "bg-red-50 ring-1 ring-red-200",
+  triangle: "bg-red-50 ring-1 ring-red-200",
+  octagon: "bg-red-50 ring-1 ring-red-200",
+  square: "bg-sky-100",
+  none: "bg-page",
+};
 
 const WHITE_BUTTON =
   "inline-flex items-center justify-center rounded-xl bg-white px-5 py-3 text-[0.9375rem] font-semibold text-ink ring-1 ring-line hover:bg-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark";
@@ -101,13 +112,20 @@ export default function RoadSignsPage() {
           <ul className="mt-10 grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
             {SIGN_SHAPES.map((item) => (
               <li key={item.glyph}>
-                <Surface lift className="flex h-full flex-col gap-4 p-5">
-                  <SignShape glyph={item.glyph} className="h-20 w-20" />
-                  <div>
-                    <h3 className="text-[1rem] font-bold text-ink">
-                      {item.title}
+                <Surface lift className="flex h-full flex-col gap-5 p-5">
+                  <div className="flex h-24 items-center justify-center">
+                    <SignShape glyph={item.glyph} className="h-20 w-20" />
+                  </div>
+                  <span
+                    className={`inline-flex w-full items-center justify-center rounded-full px-3 py-1.5 text-center text-[0.8125rem] font-bold text-ink ${SHAPE_PILL[item.glyph]}`}
+                  >
+                    {item.shape}
+                  </span>
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-[1rem] font-bold leading-snug text-ink">
+                      {item.type}
                     </h3>
-                    <p className="mt-1.5 text-[0.875rem] leading-[1.6] text-muted">
+                    <p className="text-[0.875rem] leading-[1.6] text-muted">
                       {item.body}
                     </p>
                   </div>
@@ -165,21 +183,24 @@ export default function RoadSignsPage() {
               Key rules for drivers in Sri Lanka
             </h2>
           </div>
-          <ul className="mt-10 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {ROAD_RULES.map((rule) => (
+          <ul className="mt-10 grid gap-[clamp(16px,1.5vw,28px)] md:grid-cols-2 xl:grid-cols-3">
+            {ROAD_RULES.map((rule, index) => (
               <li key={rule.title}>
-                <Surface lift className="flex h-full items-start gap-4 p-5">
-                  <IconTile>
-                    <Icon name="check-circle" className="h-5 w-5" />
-                  </IconTile>
-                  <div>
-                    <h3 className="text-[1rem] font-bold text-ink">
-                      {rule.title}
-                    </h3>
-                    <p className="mt-1.5 text-[0.875rem] leading-[1.6] text-muted">
-                      {rule.body}
-                    </p>
+                <Surface lift className="flex h-full flex-col gap-4 p-6">
+                  <div className="flex items-start justify-between">
+                    <IconTile>
+                      <Icon name={rule.icon} className="h-5 w-5" />
+                    </IconTile>
+                    <span className="text-[0.75rem] font-semibold text-muted">
+                      {String(index + 1).padStart(2, "0")}
+                    </span>
                   </div>
+                  <h3 className="text-[1.0625rem] font-bold leading-[1.3] text-ink">
+                    {rule.title}
+                  </h3>
+                  <p className="text-[0.875rem] leading-[1.65] text-muted">
+                    {rule.body}
+                  </p>
                 </Surface>
               </li>
             ))}
