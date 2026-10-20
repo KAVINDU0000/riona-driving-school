@@ -12,10 +12,14 @@ export interface SelectedPackage {
   detail?: string;
   price: number;
   group?: string;
+  /** Regular packages may be paid in two parts. The first amount is typed by the applicant. */
+  instalments?: boolean;
 }
 
 interface PaymentFormProps {
   pkg: SelectedPackage;
+  /** Set when the applicant is paying the remaining balance. The amount is fixed to this value. */
+  balanceDue?: number;
   /** The application reference, when the page already has it (the status page). Signup keeps it in the browser session. */
   applicationReference?: string;
   /** Set when the applicant resubmits from the status page, so the details they already gave are filled in again. */
@@ -24,12 +28,14 @@ interface PaymentFormProps {
   initialBank?: { paymentMethod?: string; bankName?: string; accountName?: string; branch?: string };
   /** Called after the server accepts a slip, so the status page can show the new state. */
   onSubmitted?: () => void;
+  /** Set on the student portal's balance page. The student's User ID is shown and only the password is asked for. */
+  signedInUserId?: string;
 }
 
 type BankFields = { bankName: string; accountName: string; accountNumber: string; branch: string };
 type ApplicantFields = { referenceNumber: string; email: string; password: string };
 type FormErrors = Partial<
-  Record<keyof BankFields | keyof ApplicantFields | "paymentDate" | "slip" | "reference", string>
+  Record<keyof BankFields | keyof ApplicantFields | "paymentDate" | "slip" | "reference" | "amount", string>
 >;
 
 /** The payment method values the server accepts, matched to the options shown on this page. */
@@ -64,12 +70,15 @@ function Field({ id, label, error, children }: { id: string; label: string; erro
  */
 export default function PaymentForm({
   pkg,
+  balanceDue,
   applicationReference,
   initialEmail,
   initialPassword,
   initialBank,
   onSubmitted,
+  signedInUserId,
 }: PaymentFormProps) {
+  const [amount, setAmount] = useState("");
   const [applicant, setApplicant] = useState<Omit<ApplicantFields, "referenceNumber">>({
     email: initialEmail ?? "",
     password: initialPassword ?? "",
@@ -129,6 +138,12 @@ export default function PaymentForm({
     if (!/^\d{6,20}$/.test(bank.accountNumber.replace(/\s/g, ""))) nextErrors.accountNumber = "Enter a valid account number (digits only).";
     if (!bank.branch.trim()) nextErrors.branch = "Enter your bank branch.";
     if (!paymentDate) nextErrors.paymentDate = "Select the date you made the payment.";
+    if (balanceDue === undefined && pkg.instalments) {
+      const value = Number(amount);
+      if (!/^\d{1,8}(\.\d{1,2})?$/.test(amount.trim()) || value <= 0 || value > pkg.price) {
+        nextErrors.amount = `Enter an amount above zero and no more than ${formatLkr(pkg.price)}.`;
+      }
+    }
     if (!slip) nextErrors.slip = errors.slip ?? "Upload a photo or PDF of your payment slip.";
     return nextErrors;
   }
@@ -147,6 +162,9 @@ export default function PaymentForm({
     body.append("password", applicant.password);
     body.append("paymentMethod", SERVER_METHOD[method] ?? "BANK_TRANSFER");
     body.append("paymentDate", paymentDate);
+    // The balance is fixed; a Regular first payment is what the applicant typed; other packages pay the full price.
+    const payingNow = balanceDue ?? (pkg.instalments ? Number(amount) : pkg.price);
+    body.append("amount", payingNow.toFixed(2));
     body.append("reference", reference.trim());
     body.append("bankName", bank.bankName.trim());
     body.append("accountName", bank.accountName.trim());
@@ -209,7 +227,13 @@ export default function PaymentForm({
   if (sessionReference === null && !applicationReference) return null;
 
   return (
-    <form onSubmit={handleSubmit} noValidate autoComplete="off" className="flex flex-col gap-6">
+    <form
+      onSubmit={handleSubmit}
+      noValidate
+      autoComplete="off"
+      // Balance mode fits in one screen: bank details on the left, payment details and slip on the right.
+      className={balanceDue === undefined ? "flex flex-col gap-6" : "flex flex-col gap-6 lg:grid lg:grid-cols-2 lg:items-start lg:gap-x-8"}
+    >
       {!referenceNumber && (
         <div role="status" className="rounded-xl bg-red-50 px-4 py-3 text-[0.875rem] leading-relaxed text-red-700">
           <p className="font-semibold">We could not find your application in this browser.</p>
@@ -220,73 +244,113 @@ export default function PaymentForm({
         </div>
       )}
 
-      {/* Selected package */}
-      <div className="rounded-2xl bg-page p-5 ring-1 ring-line">
-        <p className="text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-muted">Your selected package</p>
-        <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
-          <div>
-            <p className="text-[1.0625rem] font-bold text-ink">
-              {pkg.name}
-              {pkg.detail ? ` (${pkg.detail})` : ""}
-            </p>
-            {pkg.group && <p className="mt-0.5 text-[0.8125rem] text-muted">{pkg.group}</p>}
+      {/* Paying the balance: the applicant has just logged in on the status page, so the package and sign-in details
+          are not asked for again. The email and password are still sent with the slip. */}
+      {balanceDue === undefined && (
+        <>
+          {/* Selected package */}
+          <div className="rounded-2xl bg-page p-5 ring-1 ring-line">
+            <p className="text-[0.6875rem] font-bold uppercase tracking-[0.14em] text-muted">Your selected package</p>
+            <div className="mt-2 flex flex-wrap items-end justify-between gap-3">
+              <div>
+                <p className="text-[1.0625rem] font-bold text-ink">
+                  {pkg.name}
+                  {pkg.detail ? ` (${pkg.detail})` : ""}
+                </p>
+                {pkg.group && <p className="mt-0.5 text-[0.8125rem] text-muted">{pkg.group}</p>}
+              </div>
+              <p className="text-[1.375rem] font-bold text-success">{formatLkr(pkg.price)}</p>
+            </div>
           </div>
-          <p className="text-[1.375rem] font-bold text-success">{formatLkr(pkg.price)}</p>
-        </div>
-      </div>
 
-      {/* Confirm the application */}
-      <div className="flex flex-col gap-5">
-        <div>
-          <h2 className="text-[1.0625rem] font-bold text-ink">1. Confirm your application</h2>
-          <p className="mt-1 text-[0.8125rem] text-muted">Enter the email and password you chose at signup.</p>
-        </div>
-
-        <div className="grid gap-5 sm:grid-cols-2">
-          <Field id="email" label="Email *" error={errors.email}>
-            <div className="relative">
-              <Icon name="user" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" />
-              <input
-                id="email"
-                name="email"
-                type="email"
-                autoComplete="email"
-                placeholder="The email you used at signup"
-                value={applicant.email}
-                onChange={updateApplicant("email")}
-                aria-invalid={Boolean(errors.email)}
-                className={`${inputBase} ${errors.email ? "border-red-400" : "border-line"}`}
-              />
+          {/* Confirm the application */}
+          <div className="flex flex-col gap-5">
+            <div>
+              <h2 className="text-[1.0625rem] font-bold text-ink">1. Confirm your application</h2>
+              <p className="mt-1 text-[0.8125rem] text-muted">Enter the email and password you chose at signup.</p>
             </div>
-          </Field>
 
-          <Field id="password" label="Password *" error={errors.password}>
-            <div className="relative">
-              <Icon name="id-card" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" />
-              <input
-                id="password"
-                name="password"
-                type="password"
-                autoComplete="current-password"
-                placeholder="The password you chose at signup"
-                value={applicant.password}
-                onChange={updateApplicant("password")}
-                aria-invalid={Boolean(errors.password)}
-                className={`${inputBase} ${errors.password ? "border-red-400" : "border-line"}`}
-              />
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field id="email" label="Email *" error={errors.email}>
+                <div className="relative">
+                  <Icon name="user" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" />
+                  <input
+                    id="email"
+                    name="email"
+                    type="email"
+                    autoComplete="email"
+                    placeholder="The email you used at signup"
+                    value={applicant.email}
+                    onChange={updateApplicant("email")}
+                    aria-invalid={Boolean(errors.email)}
+                    className={`${inputBase} ${errors.email ? "border-red-400" : "border-line"}`}
+                  />
+                </div>
+              </Field>
+
+              <Field id="password" label="Password *" error={errors.password}>
+                <div className="relative">
+                  <Icon name="id-card" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" />
+                  <input
+                    id="password"
+                    name="password"
+                    type="password"
+                    autoComplete="current-password"
+                    placeholder="The password you chose at signup"
+                    value={applicant.password}
+                    onChange={updateApplicant("password")}
+                    aria-invalid={Boolean(errors.password)}
+                    className={`${inputBase} ${errors.password ? "border-red-400" : "border-line"}`}
+                  />
+                </div>
+              </Field>
             </div>
-          </Field>
+          </div>
+        </>
+      )}
+
+      {balanceDue !== undefined && signedInUserId && (
+        <div className="flex flex-col gap-5 lg:col-span-2">
+          <div>
+            <h2 className="text-[1.0625rem] font-bold text-ink">Confirm it is you</h2>
+            <p className="mt-1 text-[0.8125rem] text-muted">Enter the password you use to sign in to the student portal.</p>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2">
+            <div className="flex flex-col gap-2">
+              <span className="text-[0.8125rem] font-semibold text-ink">User ID</span>
+              <div className="relative">
+                <Icon name="user" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" />
+                <div className={`${inputBase} flex items-center border-line bg-page text-muted`}>{signedInUserId}</div>
+              </div>
+            </div>
+            <Field id="password" label="Password *" error={errors.password}>
+              <div className="relative">
+                <Icon name="id-card" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" />
+                <input
+                  id="password"
+                  name="password"
+                  type="password"
+                  autoComplete="current-password"
+                  placeholder="Your password"
+                  value={applicant.password}
+                  onChange={updateApplicant("password")}
+                  aria-invalid={Boolean(errors.password)}
+                  className={`${inputBase} ${errors.password ? "border-red-400" : "border-line"}`}
+                />
+              </div>
+            </Field>
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Student's own bank details */}
       <div className="flex flex-col gap-5">
         <div>
-          <h2 className="text-[1.0625rem] font-bold text-ink">2. Your bank details</h2>
+          <h2 className="text-[1.0625rem] font-bold text-ink">{balanceDue === undefined ? "2" : "1"}. Your bank details</h2>
           <p className="mt-1 text-[0.8125rem] text-muted">Enter the details of the bank account you pay from.</p>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className={balanceDue === undefined ? "grid gap-5 sm:grid-cols-2" : "grid gap-4"}>
           <Field id="bankName" label="Bank name *" error={errors.bankName}>
             <div className="relative">
               <Icon name="wallet" className="pointer-events-none absolute left-4 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-muted" />
@@ -352,7 +416,7 @@ export default function PaymentForm({
 
       {/* Payment details */}
       <div className="flex flex-col gap-5">
-        <h2 className="text-[1.0625rem] font-bold text-ink">3. Payment details</h2>
+        <h2 className="text-[1.0625rem] font-bold text-ink">{balanceDue === undefined ? "3" : "2"}. Payment details</h2>
 
         <fieldset className="flex flex-col gap-2">
           <legend className="text-[0.8125rem] font-semibold text-ink">Payment method</legend>
@@ -384,13 +448,34 @@ export default function PaymentForm({
           </div>
         </fieldset>
 
-        <div className="grid gap-5 sm:grid-cols-2">
-          <div className="flex flex-col gap-2">
-            <span className="text-[0.8125rem] font-semibold text-ink">Amount to pay</span>
-            <div className="flex h-12 items-center rounded-xl border border-line bg-page px-4 text-[0.9375rem] font-semibold text-ink">
-              {formatLkr(pkg.price)}
+        <div className={balanceDue === undefined ? "grid gap-5 sm:grid-cols-2" : "grid gap-4"}>
+          {balanceDue !== undefined ? null : pkg.instalments ? (
+            <div className="flex flex-col gap-2">
+              <label htmlFor="amount" className="text-[0.8125rem] font-semibold text-ink">
+                Amount you are paying now *
+              </label>
+              <input
+                id="amount"
+                inputMode="decimal"
+                value={amount}
+                onChange={(event: ChangeEvent<HTMLInputElement>) => setAmount(event.target.value)}
+                placeholder={`Up to ${formatLkr(pkg.price)}`}
+                aria-invalid={Boolean(errors.amount)}
+                className={`${inputBase} h-12 pl-4 ${errors.amount ? "border-red-400" : "border-line"}`}
+              />
+              <p className="text-[0.75rem] text-muted">
+                Pay all of it now, or part now and the rest later. The rest must be paid before the package period ends.
+              </p>
+              {errors.amount && <p className="text-[0.75rem] text-red-700">{errors.amount}</p>}
             </div>
-          </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              <span className="text-[0.8125rem] font-semibold text-ink">Amount to pay</span>
+              <div className="flex h-12 items-center rounded-xl border border-line bg-page px-4 text-[0.9375rem] font-semibold text-ink">
+                {formatLkr(pkg.price)}
+              </div>
+            </div>
+          )}
 
           <Field id="paymentDate" label="Payment date *" error={errors.paymentDate}>
             <div className="relative">
@@ -449,30 +534,34 @@ export default function PaymentForm({
         </Field>
       </div>
 
-      <button
-        type="submit"
-        disabled={submitting || !referenceNumber}
-        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-6 py-3.5 text-[0.9375rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0"
-      >
-        {submitting ? "Sending…" : "Submit payment"}
-        {!submitting && <Icon name="arrow-right" className="h-4 w-4" strokeWidth={2} />}
-      </button>
+      <div className={`flex flex-col gap-4 ${balanceDue === undefined ? "" : "lg:col-span-2"}`}>
+        <button
+          type="submit"
+          disabled={submitting || !referenceNumber}
+          className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-6 py-3.5 text-[0.9375rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] transition-all duration-300 hover:-translate-y-0.5 hover:bg-gold-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark disabled:cursor-wait disabled:opacity-70 disabled:hover:translate-y-0"
+        >
+          {submitting ? "Sending…" : "Submit payment"}
+          {!submitting && <Icon name="arrow-right" className="h-4 w-4" strokeWidth={2} />}
+        </button>
 
-      {serverError && (
-        <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-[0.8125rem] font-medium text-red-700">
-          {serverError}
-        </p>
-      )}
+        {serverError && (
+          <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-[0.8125rem] font-medium text-red-700">
+            {serverError}
+          </p>
+        )}
 
-      <div className="rounded-2xl bg-page p-4 ring-1 ring-line">
-        <p className="flex items-center gap-2 text-[0.875rem] font-semibold text-ink">
-          <Icon name="info" className="h-4 w-4 text-gold-ink" />
-          What happens next?
-        </p>
-        <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-muted">
-          The driving school reviews your payment slip. Your student ID is issued after approval and sent to you by
-          WhatsApp or phone.
-        </p>
+        {balanceDue === undefined && (
+          <div className="rounded-2xl bg-page p-4 ring-1 ring-line">
+            <p className="flex items-center gap-2 text-[0.875rem] font-semibold text-ink">
+              <Icon name="info" className="h-4 w-4 text-gold-ink" />
+              What happens next?
+            </p>
+            <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-muted">
+              The driving school reviews your payment slip. Your student ID is issued after approval and sent to you by
+              WhatsApp or phone.
+            </p>
+          </div>
+        )}
       </div>
     </form>
   );

@@ -72,6 +72,8 @@ function paymentForm(overrides: Record<string, string | File | null> = {}) {
     password: PASSWORD,
     paymentMethod: "BANK_TRANSFER",
     paymentDate: "2026-10-10",
+    // The full Regular price: a single payment, which the existing assertions expect.
+    amount: "26000",
     reference: "TXN-9981",
     bankName: "Bank of Ceylon",
     accountName: "Nimal Perera",

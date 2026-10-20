@@ -61,7 +61,7 @@ export default async function SignupPage({ searchParams }: { searchParams: Promi
             <span className="mt-1 text-[0.9375rem] font-semibold text-gold-ink">Check application status →</span>
           </Link>
         }
-        scrollableCard
+        wideCard
         cardClassName="lg:w-[540px] lg:justify-self-end lg:-translate-x-10 xl:-translate-x-20"
       >
         <SignupForm catalog={catalog} initialPackageId={initialPackageId} />

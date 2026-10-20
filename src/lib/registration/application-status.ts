@@ -2,6 +2,7 @@ import { PaymentStatus, RegistrationStatus } from "@/generated/prisma/enums";
 import { AuthError } from "@/lib/auth/http";
 import { getDummyHash, PASSWORD_MAX_LENGTH, verifyPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
+import { allowsInstalments, balanceOwed, lastPaymentDay, schoolDateOf } from "@/lib/registration/instalments";
 import { CREDENTIALS_MESSAGE } from "@/lib/registration/payment-submission";
 
 /**
@@ -28,6 +29,7 @@ export async function readApplicationStatus(referenceNumber: string, password: s
   const registration = await prisma.registrationRequest.findUnique({
     where: { referenceNumber },
     select: {
+      id: true,
       status: true,
       submittedAt: true,
       email: true,
@@ -35,7 +37,7 @@ export async function readApplicationStatus(referenceNumber: string, password: s
       rejectionReason: true,
       approvedStudentUserId: true,
       packagePriceAtSubmission: true,
-      selectedPackage: { select: { name: true } },
+      selectedPackage: { select: { name: true, packageType: true, durationDays: true } },
       payments: {
         orderBy: { createdAt: "desc" },
         select: {
@@ -83,6 +85,27 @@ export async function readApplicationStatus(referenceNumber: string, password: s
     };
   });
 
+  // Instalments: the approved payments so far, what is still owed, and the last day the balance can be paid.
+  const fee = Number(registration.packagePriceAtSubmission);
+  const approvedPaid = registration.payments
+    .filter((payment) => payment.status === PaymentStatus.APPROVED)
+    .reduce((sum, payment) => sum + Number(payment.amount), 0);
+  const balance = balanceOwed(fee, approvedPaid);
+  const instalmentsAllowed = allowsInstalments(registration.selectedPackage.packageType);
+  const hasPending = payments.some((payment) => payment.status === PaymentStatus.PENDING);
+  const enrollment = await prisma.enrollment.findUnique({
+    where: { registrationRequestId: registration.id },
+    select: { enrollmentDate: true },
+  });
+  const balanceDueBy = enrollment ? lastPaymentDay(enrollment.enrollmentDate, registration.selectedPackage.durationDays) : null;
+  const deadlinePassed = balanceDueBy !== null && schoolDateOf(new Date()) > balanceDueBy;
+  const balanceOpen =
+    instalmentsAllowed &&
+    approvedPaid > 0 &&
+    balance > 0 &&
+    !hasPending &&
+    (registration.status === RegistrationStatus.APPROVED || registration.status === RegistrationStatus.PENDING);
+
   const latestPayment = payments[0] ?? null;
   return {
     referenceNumber,
@@ -94,7 +117,18 @@ export async function readApplicationStatus(referenceNumber: string, password: s
     // Shown only after the school approves the application, so the applicant can match it to the WhatsApp message.
     studentUserId: registration.approvedStudentUserId,
     payments,
-    // A new slip is allowed only while the application is pending and no payment is waiting or approved.
+    instalments: {
+      allowed: instalmentsAllowed,
+      fee,
+      approvedPaid,
+      balance,
+      balanceDueBy,
+      deadlinePassed,
+      // The applicant can send the balance now: a Regular package, some money paid, a balance left, nothing waiting.
+      canPayBalance: balanceOpen && !deadlinePassed,
+    },
+    // A new slip is allowed while the application is pending and no payment is waiting or approved, or when it is a
+    // Regular package whose balance is open (see canPayBalance).
     canResubmit:
       registration.status === RegistrationStatus.PENDING && payments.every((payment) => payment.status === PaymentStatus.REJECTED),
     // The bank details from the latest payment, so a resubmission starts from them. The full account number is never stored.

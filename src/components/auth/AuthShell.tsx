@@ -17,8 +17,8 @@ interface AuthShellProps {
   cardClassName?: string;
   /** "start" pins both columns to the top, for tall forms; "center" vertically centres them. */
   align?: "center" | "start";
-  /** On large screens, fit the page to the viewport and scroll only the form card (for long forms). */
-  scrollableCard?: boolean;
+  /** On large screens, use a wider form card, for long forms. The page still scrolls as a whole. */
+  wideCard?: boolean;
   /** On large screens, keep the whole page fixed to the viewport with no page scrollbar. */
   fixedPage?: boolean;
   /** "soft" uses a lighter, more transparent backdrop with less yellow, for the login and sign-up pages. */
@@ -35,19 +35,14 @@ export default function AuthShell({
   children,
   cardClassName = "",
   align = "center",
-  scrollableCard = false,
+  wideCard = false,
   fixedPage = false,
   tone = "default",
 }: AuthShellProps) {
   const isSoft = tone === "soft";
-  // Viewport height minus the header, footer and main padding, so the card scrolls inside the screen.
-  const scrollClasses = scrollableCard
-    ? "lg:max-h-[calc(100dvh-15rem)] lg:overflow-y-auto lg:overscroll-contain lg:[scrollbar-gutter:stable_both-edges] thin-scroll"
-    : "";
-  const pageFixed = scrollableCard || fixedPage;
 
   return (
-    <div className={`flex min-h-screen flex-col ${pageFixed ? "lg:h-screen lg:overflow-hidden" : ""}`}>
+    <div className={`flex min-h-screen flex-col ${fixedPage ? "lg:h-screen lg:overflow-clip" : ""}`}>
       <div className={isSoft ? "soft-atmosphere" : "page-atmosphere"} aria-hidden="true" />
 
       <header className="sticky top-0 z-50 pt-5">
@@ -81,13 +76,13 @@ export default function AuthShell({
 
       <main
         className={`${isSoft ? "soft-glow" : "glow-hero"} flex-1 pt-10 pb-16 md:pt-14 md:pb-20 ${
-          pageFixed ? "lg:flex lg:min-h-0 lg:flex-col lg:justify-center lg:py-8" : ""
+          fixedPage ? "lg:flex lg:min-h-0 lg:flex-col lg:justify-center lg:py-8" : ""
         }`}
       >
         <Container>
           <div
             className={`grid gap-12 ${
-              scrollableCard
+              wideCard
                 ? "lg:grid-cols-[minmax(0,1fr)_minmax(0,540px)]"
                 : "lg:grid-cols-[minmax(0,1fr)_minmax(0,460px)]"
             } lg:gap-[clamp(32px,5vw,96px)] ${
@@ -128,7 +123,7 @@ export default function AuthShell({
 
             {/* Form card */}
             <div
-              className={`${isSoft ? "glass-soft" : "glass"} rounded-[28px] p-6 shadow-[0_20px_50px_-20px_rgb(40_60_90/0.25)] md:p-10 ${scrollClasses} ${cardClassName}`}
+              className={`${isSoft ? "glass-soft" : "glass"} rounded-[28px] p-6 shadow-[0_20px_50px_-20px_rgb(40_60_90/0.25)] md:p-10 ${cardClassName}`}
             >
               {children}
 

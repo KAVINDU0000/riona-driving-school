@@ -1,6 +1,7 @@
 import { LessonScheduleStatus, MedicalAppointmentStatus, ExamStatus, PaymentStatus } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
 import { studentCancellation, type StudentCancellation } from "@/lib/lessons/cancellation";
+import { allowsInstalments, balanceOwed, lastPaymentDay, schoolDateOf } from "@/lib/registration/instalments";
 import { dateToString, parseDateOnly, schoolNow, timeToString } from "@/lib/student/time";
 
 /**
@@ -76,7 +77,11 @@ export async function getEnrollments(userId: string) {
         orderBy: [{ vehicleType: "asc" }, { trainingType: "asc" }],
         select: { id: true, vehicleType: true, trainingType: true, requiredSessions: true },
       },
-      payments: { select: { amount: true, status: true } },
+      // Payments made on the application are linked to the application, not always to this enrollment, so both are read.
+      payments: { select: { id: true, amount: true, status: true } },
+      registrationRequest: {
+        select: { referenceNumber: true, email: true, payments: { select: { id: true, amount: true, status: true } } },
+      },
     },
   });
 
@@ -110,9 +115,23 @@ export async function getEnrollments(userId: string) {
       };
     });
 
-    const approvedPaid = enrollment.payments
+    // Each approved payment is counted once, whichever link it was saved with.
+    const paymentsById = new Map<string, { amount: unknown; status: string }>();
+    for (const payment of [...enrollment.payments, ...(enrollment.registrationRequest?.payments ?? [])]) {
+      paymentsById.set(payment.id, payment);
+    }
+    const allPayments = [...paymentsById.values()];
+    const approvedPaid = allPayments
       .filter((p) => p.status === PaymentStatus.APPROVED)
       .reduce((sum, p) => sum + Number(p.amount), 0);
+    const balance = balanceOwed(Number(enrollment.finalFee), approvedPaid);
+    const balanceDueBy =
+      allowsInstalments(enrollment.package.packageType) && balance > 0
+        ? lastPaymentDay(enrollment.enrollmentDate, enrollment.package.durationDays)
+        : null;
+    // The balance can be sent on the status page while it is open: some money paid, a balance left, nothing waiting for review.
+    const waitingForReview = allPayments.some((p) => p.status === PaymentStatus.PENDING);
+    const deadlinePassed = balanceDueBy !== null && schoolDateOf(new Date()) > balanceDueBy;
 
     return {
       id: enrollment.id,
@@ -126,6 +145,13 @@ export async function getEnrollments(userId: string) {
       agreedPrice: Number(enrollment.agreedPrice),
       finalFee: Number(enrollment.finalFee),
       approvedPaid,
+      balance,
+      // Only Regular packages take instalments; the balance must be received by the last day of the package period.
+      balanceDueBy,
+      applicationReference: enrollment.registrationRequest?.referenceNumber ?? null,
+      // The email used at signup, needed to send the balance slip. It is only ever shown to the student who owns it.
+      applicationEmail: enrollment.registrationRequest?.email ?? null,
+      canPayBalance: balanceDueBy !== null && approvedPaid > 0 && !waitingForReview && !deadlinePassed,
       progress,
     };
   });

@@ -9,13 +9,22 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function ApplicationStatusPage() {
+export default async function ApplicationStatusPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ reference?: string }>;
+}) {
+  const { reference } = await searchParams;
+  // Filled in when the student comes from the enrollments page. The password is still typed by the student.
+  const initialReference = reference && /^RDS-[0-9A-F]{10}$/.test(reference) ? reference : undefined;
+
   return (
     <>
       <AuthBackground intensity="strong" />
       <AuthShell
         align="start"
-        scrollableCard
+        wideCard
+        cardClassName="lg:-translate-x-10 xl:-translate-x-20"
         eyebrow="Your application"
         title="Application Status"
         body="See whether your payment has been approved, or send a new payment slip if it was rejected."
@@ -25,7 +34,7 @@ export default function ApplicationStatusPage() {
           { icon: "wallet", text: "Resubmit with the same bank details" },
         ]}
       >
-        <ApplicationStatus />
+        <ApplicationStatus initialReference={initialReference} />
       </AuthShell>
     </>
   );

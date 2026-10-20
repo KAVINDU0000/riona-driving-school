@@ -27,7 +27,7 @@ export default async function PaymentPage({
       <AuthBackground intensity="strong" />
       <AuthShell
         align="start"
-        scrollableCard
+        wideCard
         eyebrow="Step 2 of 2"
         title="Complete Payment"
         body="Pay for your chosen package by bank transfer or bank deposit, then upload your payment slip for review."
@@ -57,7 +57,7 @@ export default async function PaymentPage({
               <h2 className="text-[1.5rem] font-bold leading-tight tracking-[-0.02em] text-ink">Payment</h2>
               <p className="mt-1.5 text-[0.875rem] text-muted">Check your package, then complete the payment below.</p>
             </div>
-            <PaymentForm pkg={pkg} />
+            <PaymentForm pkg={{ ...pkg, instalments: pkg.packageType === "REGULAR" }} />
           </>
         ) : (
           <div className="flex flex-col gap-4">
