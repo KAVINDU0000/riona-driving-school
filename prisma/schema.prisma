@@ -128,6 +128,18 @@ enum AppointmentType {
 }
 
 model User {
+  maintenanceInsurancePolicies     VehicleInsurancePolicy[]
+  maintenanceComplianceDecisions   VehicleComplianceDecision[]
+  maintenanceEmissionTests         VehicleEmissionTest[]
+  maintenanceRevenueLicences       VehicleRevenueLicence[]
+  maintenanceServiceRecords        VehicleServiceRecord[]
+  maintenanceFaults                VehicleFault[]
+  maintenanceRepairEvents          VehicleRepairEvent[]
+  maintenanceDocumentsUploaded     VehicleMaintenanceDocument[] @relation("DocumentUploader")
+  maintenanceDocumentsDeleted      VehicleMaintenanceDocument[] @relation("DocumentDeleter")
+  maintenanceReminderAcks          VehicleMaintenanceReminder[]
+  maintenanceReminderSettings      VehicleMaintenanceReminderSetting[]
+  maintenanceAuditLogs             VehicleMaintenanceAuditLog[]
   userId                        String                       @id // STU-001, INS-001, ADMIN-001
   email                         String?                      @unique // Required for students and instructors (CHECK in the migration). Admins may have none.
   passwordHash                  String
@@ -148,6 +160,7 @@ model User {
   lessonsCancelled              LessonSchedule[]             @relation("LessonCanceller")
   packagePriceChanges           TrainingPackagePriceChange[] @relation("PackagePriceChanger")
   packageRequirementChanges     TrainingPackageItemChange[]  @relation("PackageRequirementChanger")
+  enrollmentRequirementChanges  EnrollmentRequirementChange[] @relation("EnrollmentRequirementChanger")
   packagesRequirementsConfirmed TrainingPackage[]            @relation("PackageRequirementConfirmer")
   vehicleAuditLogs              VehicleAuditLog[]            @relation("VehicleAuditActor")
 
@@ -218,6 +231,7 @@ model RegistrationRequest {
   studentProfile           StudentProfile?    @relation(fields: [approvedStudentUserId], references: [userId], onDelete: Restrict)
   payments                 Payment[]
   enrollment               Enrollment?
+  sessionSelections        RegistrationSessionSelection[]
 
   @@index([status, submittedAt])
   @@index([phoneNumber])
@@ -298,6 +312,15 @@ model TrainingPackageItem {
 }
 
 model Vehicle {
+  maintenanceInsurancePolicies     VehicleInsurancePolicy[]
+  maintenanceComplianceDecisions   VehicleComplianceDecision[]
+  maintenanceEmissionTests         VehicleEmissionTest[]
+  maintenanceRevenueLicences       VehicleRevenueLicence[]
+  maintenanceServiceRecords        VehicleServiceRecord[]
+  maintenanceFaults                VehicleFault[]
+  maintenanceDocuments             VehicleMaintenanceDocument[]
+  maintenanceReminders             VehicleMaintenanceReminder[]
+  maintenanceAuditLogs             VehicleMaintenanceAuditLog[]
   id                 String           @id @default(cuid())
   vehicleType        VehicleType
   registrationNumber String           @unique
@@ -415,18 +438,48 @@ model Enrollment {
   @@index([packageId])
 }
 
+// requiredSessions is NULL while the school has not yet confirmed the count ("allocation pending").
+// Session counts chosen by the applicant for one registration (Regular fixed at 15, Trial 1 to 5 per vehicle).
+// Copied into enrollment requirements at approval. Rows are never edited in place.
+model RegistrationSessionSelection {
+  id                    String              @id @default(cuid())
+  registrationRequestId String
+  vehicleType           VehicleType
+  trainingType          TrainingType
+  requiredSessions      Int
+  createdAt             DateTime            @default(now())
+  registrationRequest   RegistrationRequest @relation(fields: [registrationRequestId], references: [id], onDelete: Restrict)
+
+  @@unique([registrationRequestId, vehicleType, trainingType], map: "RegistrationSessionSelection_unique")
+}
+
 model EnrollmentTrainingRequirement {
   id               String           @id @default(cuid())
   enrollmentId     String
   vehicleType      VehicleType
   trainingType     TrainingType
-  requiredSessions Int
+  requiredSessions Int?
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
   enrollment       Enrollment       @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
   lessons          LessonSchedule[]
 
   @@unique([enrollmentId, vehicleType, trainingType])
+}
+
+// One row for each confirmation or change of a requirement's count. Append-only, enforced by a trigger in the migration.
+model EnrollmentRequirementChange {
+  id                       String   @id @default(cuid())
+  requirementId            String
+  enrollmentId             String
+  previousRequiredSessions Int?
+  newRequiredSessions      Int
+  reason                   String
+  changedByUserId          String
+  changedAt                DateTime @default(now())
+  changedBy                User     @relation("EnrollmentRequirementChanger", fields: [changedByUserId], references: [userId], onDelete: Restrict)
+
+  @@index([requirementId, changedAt])
 }
 
 // One practical lesson: exactly one student, one instructor and one vehicle.
@@ -586,4 +639,345 @@ model EmailChangeToken {
 
   @@index([userId, expiresAt])
   @@index([newEmail])
+}
+
+// ---------------------------------------------------------------------------
+// Vehicle maintenance (see docs/vehicle-maintenance/DESIGN.md).
+// SQL-only rules (CHECK constraints, triggers, functions and one partial index) are in
+// docs/vehicle-maintenance/DRAFT-migration.sql and must be kept when the migration is written by hand.
+// ---------------------------------------------------------------------------
+
+enum ComplianceCategory {
+  EMISSION_TEST
+  REVENUE_LICENCE
+}
+
+enum ComplianceDecisionKind {
+  NOT_APPLICABLE
+  EXCEPTION_DOCUMENTED
+}
+
+enum EmissionTestResult {
+  PASS
+  FAIL
+}
+
+enum ServiceCategory {
+  ROUTINE_SERVICE
+  MECHANICAL_INSPECTION
+  CORRECTIVE_SERVICE
+}
+
+enum ChecklistItem {
+  ENGINE
+  BRAKES
+  SUSPENSION
+  STEERING
+  TYRES
+  BATTERY
+  LIGHTS
+  LEAKS
+  ELECTRICAL
+}
+
+enum ChecklistResult {
+  PASS
+  ATTENTION
+  FAIL
+  NOT_CHECKED
+}
+
+enum FaultSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum RepairStatus {
+  REPORTED
+  DIAGNOSED
+  IN_REPAIR
+  COMPLETED
+  CANCELLED
+}
+
+enum MaintenanceDocumentKind {
+  INSURANCE_POLICY
+  EMISSION_CERTIFICATE
+  REVENUE_LICENCE
+  SERVICE_INVOICE
+  INSPECTION_REPORT
+}
+
+enum ReminderCategory {
+  INSURANCE
+  EMISSION_TEST
+  REVENUE_LICENCE
+  SERVICE
+}
+
+enum ReminderStatus {
+  OPEN
+  ACKNOWLEDGED
+  SUPERSEDED
+}
+
+model VehicleInsurancePolicy {
+  id               String                   @id @default(cuid())
+  vehicleId        String
+  vehicle          Vehicle                  @relation(fields: [vehicleId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  insurer          String
+  policyNumber     String
+  coverage         String
+  coverageDetails  String?
+  startsOn         DateTime                 @db.Date
+  expiresOn        DateTime                 @db.Date
+  premium          Decimal                  @db.Decimal(10, 2)
+  notes            String?
+  renewsPolicyId   String?
+  renewsPolicy     VehicleInsurancePolicy?  @relation("PolicyRenewal", fields: [renewsPolicyId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  renewedBy        VehicleInsurancePolicy[] @relation("PolicyRenewal")
+  supersedesId     String?
+  supersedes       VehicleInsurancePolicy?  @relation("PolicySupersession", fields: [supersedesId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  supersededBy     VehicleInsurancePolicy[] @relation("PolicySupersession")
+  recordedByUserId String
+  recordedBy       User                     @relation(fields: [recordedByUserId], references: [userId], onDelete: Restrict, onUpdate: Cascade)
+  recordedAt       DateTime                 @default(now()) @db.Timestamp(3)
+  documents        VehicleMaintenanceDocument[]
+
+  @@unique([vehicleId, policyNumber, startsOn])
+  @@index([vehicleId, expiresOn])
+  @@index([renewsPolicyId])
+}
+
+model VehicleComplianceDecision {
+  id              String                 @id @default(cuid())
+  vehicleId       String
+  vehicle         Vehicle                @relation(fields: [vehicleId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  category        ComplianceCategory
+  decision        ComplianceDecisionKind
+  reason          String
+  decidedByUserId String
+  decidedBy       User                   @relation(fields: [decidedByUserId], references: [userId], onDelete: Restrict, onUpdate: Cascade)
+  decidedAt       DateTime               @default(now()) @db.Timestamp(3)
+
+  @@index([vehicleId, category, decidedAt])
+}
+
+model VehicleEmissionTest {
+  id                   String               @id @default(cuid())
+  vehicleId            String
+  vehicle              Vehicle              @relation(fields: [vehicleId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  testedOn             DateTime             @db.Date
+  result               EmissionTestResult?
+  certificateNumber    String?
+  issuedOn             DateTime?            @db.Date
+  certificateExpiresOn DateTime?            @db.Date
+  nextDueOn            DateTime?            @db.Date
+  testingCentre        String?
+  notes                String?
+  supersedesId         String?
+  supersedes           VehicleEmissionTest? @relation("EmissionTestSupersession", fields: [supersedesId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  supersededBy         VehicleEmissionTest[] @relation("EmissionTestSupersession")
+  recordedByUserId     String
+  recordedBy           User                 @relation(fields: [recordedByUserId], references: [userId], onDelete: Restrict, onUpdate: Cascade)
+  recordedAt           DateTime             @default(now()) @db.Timestamp(3)
+  documents            VehicleMaintenanceDocument[]
+
+  @@index([vehicleId, testedOn])
+  @@index([vehicleId, certificateExpiresOn])
+  @@index([vehicleId, nextDueOn])
+}
+
+model VehicleRevenueLicence {
+  id               String                 @id @default(cuid())
+  vehicleId        String
+  vehicle          Vehicle                @relation(fields: [vehicleId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  licenceNumber    String?
+  issuedOn         DateTime?              @db.Date
+  renewedOn        DateTime?              @db.Date
+  dueOn            DateTime               @db.Date
+  notes            String?
+  renewsLicenceId  String?
+  renewsLicence    VehicleRevenueLicence? @relation("LicenceRenewal", fields: [renewsLicenceId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  renewedBy        VehicleRevenueLicence[] @relation("LicenceRenewal")
+  supersedesId     String?
+  supersedes       VehicleRevenueLicence? @relation("LicenceSupersession", fields: [supersedesId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  supersededBy     VehicleRevenueLicence[] @relation("LicenceSupersession")
+  recordedByUserId String
+  recordedBy       User                   @relation(fields: [recordedByUserId], references: [userId], onDelete: Restrict, onUpdate: Cascade)
+  recordedAt       DateTime               @default(now()) @db.Timestamp(3)
+  documents        VehicleMaintenanceDocument[]
+
+  @@index([vehicleId, dueOn])
+  @@index([renewsLicenceId])
+}
+
+model VehicleServiceRecord {
+  id                    String                       @id @default(cuid())
+  vehicleId             String
+  vehicle               Vehicle                      @relation(fields: [vehicleId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  category              ServiceCategory
+  serviceDate           DateTime                     @db.Date
+  odometerKm            Int?
+  providerName          String?
+  workPerformed         String?
+  findings              String?
+  recommendations       String?
+  partsCost             Decimal                      @default(0) @db.Decimal(10, 2)
+  labourCost            Decimal                      @default(0) @db.Decimal(10, 2)
+  totalCost             Decimal                      @db.Decimal(10, 2)
+  nextServiceDate       DateTime?                    @db.Date
+  nextServiceOdometerKm Int?
+  notes                 String?
+  supersedesId          String?
+  supersedes            VehicleServiceRecord?        @relation("ServiceSupersession", fields: [supersedesId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  supersededBy          VehicleServiceRecord[]       @relation("ServiceSupersession")
+  faultId               String?
+  fault                 VehicleFault?                @relation("ServiceFaultLink", fields: [faultId, vehicleId], references: [id, vehicleId], onDelete: Restrict, onUpdate: Cascade)
+  recordedByUserId      String
+  recordedBy            User                         @relation(fields: [recordedByUserId], references: [userId], onDelete: Restrict, onUpdate: Cascade)
+  recordedAt            DateTime                     @default(now()) @db.Timestamp(3)
+  checklistItems        VehicleServiceChecklistItem[]
+  documents             VehicleMaintenanceDocument[]
+
+  @@index([vehicleId, serviceDate])
+  @@index([vehicleId, nextServiceDate])
+  @@index([faultId])
+}
+
+model VehicleServiceChecklistItem {
+  id              String          @id @default(cuid())
+  serviceRecordId String
+  serviceRecord   VehicleServiceRecord @relation(fields: [serviceRecordId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  item            ChecklistItem
+  result          ChecklistResult
+  note            String?
+
+  @@unique([serviceRecordId, item])
+}
+
+model VehicleFault {
+  id               String          @id @default(cuid())
+  vehicleId        String
+  vehicle          Vehicle         @relation(fields: [vehicleId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  severity         FaultSeverity
+  description      String
+  makesUnavailable Boolean
+  status           RepairStatus    @default(REPORTED)
+  reportedAt       DateTime        @db.Timestamp(3)
+  reportedByUserId String
+  reportedBy       User            @relation(fields: [reportedByUserId], references: [userId], onDelete: Restrict, onUpdate: Cascade)
+  workshop         String?
+  diagnosis        String?
+  workPerformed    String?
+  repairCost       Decimal?        @db.Decimal(10, 2)
+  completedAt      DateTime?       @db.Timestamp(3)
+  createdAt        DateTime        @default(now()) @db.Timestamp(3)
+  updatedAt        DateTime        @updatedAt @db.Timestamp(3)
+  repairEvents     VehicleRepairEvent[]
+  linkedServices   VehicleServiceRecord[] @relation("ServiceFaultLink")
+  documents        VehicleMaintenanceDocument[]
+
+  // Lets a corrective service name (faultId, vehicleId) so the database refuses a link to another vehicle's fault.
+  @@unique([id, vehicleId])
+  @@index([vehicleId, status])
+  @@index([status, severity])
+}
+
+model VehicleRepairEvent {
+  id             String        @id @default(cuid())
+  faultId        String
+  fault          VehicleFault  @relation(fields: [faultId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  eventType      String
+  previousStatus RepairStatus?
+  newStatus      RepairStatus?
+  note           String?
+  amount         Decimal?      @db.Decimal(10, 2)
+  actorUserId    String
+  actor          User          @relation(fields: [actorUserId], references: [userId], onDelete: Restrict, onUpdate: Cascade)
+  createdAt      DateTime      @default(now()) @db.Timestamp(3)
+
+  @@index([faultId, createdAt])
+}
+
+model VehicleMaintenanceDocument {
+  id                   String                  @id @default(cuid())
+  vehicleId            String
+  vehicle              Vehicle                 @relation(fields: [vehicleId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  kind                 MaintenanceDocumentKind
+  insurancePolicyId    String?
+  insurancePolicy      VehicleInsurancePolicy? @relation(fields: [insurancePolicyId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  emissionTestId       String?
+  emissionTest         VehicleEmissionTest?    @relation(fields: [emissionTestId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  revenueLicenceId     String?
+  revenueLicence       VehicleRevenueLicence?  @relation(fields: [revenueLicenceId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  serviceRecordId      String?
+  serviceRecord        VehicleServiceRecord?   @relation(fields: [serviceRecordId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  faultId              String?
+  fault                VehicleFault?           @relation(fields: [faultId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  replacesDocumentId   String?
+  replaces             VehicleMaintenanceDocument?  @relation("DocumentReplacement", fields: [replacesDocumentId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  replacedBy           VehicleMaintenanceDocument[] @relation("DocumentReplacement")
+  storageKey           String                  @unique
+  originalFileName     String
+  mimeType             String
+  fileSizeBytes        Int
+  sha256               String                  @db.Char(64)
+  uploadedByUserId     String
+  uploadedBy           User                    @relation("DocumentUploader", fields: [uploadedByUserId], references: [userId], onDelete: Restrict, onUpdate: Cascade)
+  uploadedAt           DateTime                @default(now()) @db.Timestamp(3)
+  deletedAt            DateTime?               @db.Timestamp(3)
+  deletedByUserId      String?
+  deletedBy            User?                   @relation("DocumentDeleter", fields: [deletedByUserId], references: [userId], onDelete: Restrict, onUpdate: Cascade)
+  deletionReason       String?
+
+  @@index([vehicleId, kind])
+}
+
+model VehicleMaintenanceReminder {
+  id                     String           @id @default(cuid())
+  vehicleId              String
+  vehicle                Vehicle          @relation(fields: [vehicleId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  category               ReminderCategory
+  // Polymorphic: names the insurance, test, licence or service record that is due. No database foreign key, by design.
+  targetRecordId         String
+  dueOn                  DateTime         @db.Date
+  leadDays               Int
+  status                 ReminderStatus   @default(OPEN)
+  createdAt              DateTime         @default(now()) @db.Timestamp(3)
+  acknowledgedAt         DateTime?        @db.Timestamp(3)
+  acknowledgedByUserId   String?
+  acknowledgedBy         User?            @relation(fields: [acknowledgedByUserId], references: [userId], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([vehicleId, category, targetRecordId, dueOn, leadDays])
+  @@index([status, dueOn])
+}
+
+model VehicleMaintenanceReminderSetting {
+  category        ReminderCategory
+  leadDays        Int
+  updatedByUserId String
+  updatedBy       User           @relation(fields: [updatedByUserId], references: [userId], onDelete: Restrict, onUpdate: Cascade)
+  updatedAt       DateTime       @default(now()) @db.Timestamp(3)
+
+  @@id([category, leadDays])
+}
+
+model VehicleMaintenanceAuditLog {
+  id           String   @id @default(cuid())
+  vehicleId    String
+  vehicle      Vehicle  @relation(fields: [vehicleId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  entityType   String
+  entityId     String
+  action       String
+  reason       String?
+  summary      Json?
+  actorUserId  String
+  actor        User     @relation(fields: [actorUserId], references: [userId], onDelete: Restrict, onUpdate: Cascade)
+  createdAt    DateTime @default(now()) @db.Timestamp(3)
+
+  @@index([vehicleId, createdAt])
+  @@index([actorUserId, createdAt])
 }

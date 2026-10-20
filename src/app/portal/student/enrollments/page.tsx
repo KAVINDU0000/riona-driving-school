@@ -74,10 +74,16 @@ export default async function StudentEnrollmentsPage() {
                         <tr key={item.id} className="text-ink">
                           <th scope="row" className="border-b border-line px-3 py-3 font-semibold">{labels.vehicleType[item.vehicleType]}</th>
                           <td className="border-b border-line px-3 py-3">{labels.trainingType[item.trainingType]}</td>
-                          <td className="border-b border-line px-3 py-3">{item.requiredSessions}</td>
-                          <td className="border-b border-line px-3 py-3">{item.completed}</td>
-                          <td className="border-b border-line px-3 py-3">{item.scheduled}</td>
-                          <td className="border-b border-line px-3 py-3">{item.remaining}</td>
+                          {item.requiredSessions === null ? (
+                            <td colSpan={4} className="border-b border-line px-3 py-3 text-muted">Allocation pending</td>
+                          ) : (
+                            <>
+                              <td className="border-b border-line px-3 py-3">{item.requiredSessions}</td>
+                              <td className="border-b border-line px-3 py-3">{item.completed}</td>
+                              <td className="border-b border-line px-3 py-3">{item.scheduled}</td>
+                              <td className="border-b border-line px-3 py-3">{item.remaining}</td>
+                            </>
+                          )}
                         </tr>
                       ))}
                     </tbody>

@@ -1,3 +1,4 @@
+import { isApprovedTestUrl } from "./test-target";
 /**
  * Seeds the instructor browser-test world into the disposable test database. Run by e2e/instructor-portal.spec.ts
  * through tsx, which resolves the app's @/ import aliases. It refuses to run against any database except
@@ -12,7 +13,7 @@ import { AttendanceStatus, LessonScheduleStatus, TrainingType, UserRole, Vehicle
 
 const url = process.env.DATABASE_URL ?? "";
 const parsed = new URL(url);
-if (!(parsed.hostname === "localhost" && parsed.port === "15432" && parsed.pathname === "/riona_fresh_test")) {
+if (!(isApprovedTestUrl(parsed))) {
   throw new Error("Refusing to seed: target is not localhost:15432/riona_fresh_test.");
 }
 

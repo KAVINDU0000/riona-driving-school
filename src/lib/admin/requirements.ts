@@ -13,7 +13,9 @@ import { prisma } from "@/lib/prisma";
  * Enrollments copy the rows when they are approved, so later edits never change an existing enrollment.
  */
 
-export const MAX_REQUIRED_SESSIONS = 500;
+import { MAX_REQUIRED_SESSIONS } from "@/lib/admin/entitlement-rules";
+
+export { MAX_REQUIRED_SESSIONS };
 const VEHICLE_TYPES = Object.values(VehicleType);
 const TRAINING_TYPES = Object.values(TrainingType);
 /** Every vehicle type and training type combination. A package cannot have more rows than this. */

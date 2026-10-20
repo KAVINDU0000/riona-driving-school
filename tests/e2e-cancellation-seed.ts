@@ -1,3 +1,4 @@
+import { isApprovedTestUrl } from "./test-target";
 /**
  * Seeds the lesson-cancellation browser world into the disposable test database, and prints the session tokens the
  * browser tests use (so they do not sign in through the form and use up the sign-in rate limit). Run by
@@ -12,7 +13,7 @@ import { insertLesson, LESSON_DATE, seedStudentWorld } from "./student-fixtures"
 
 const url = process.env.DATABASE_URL ?? "";
 const parsed = new URL(url);
-if (!(parsed.hostname === "localhost" && parsed.port === "15432" && parsed.pathname === "/riona_fresh_test")) {
+if (!(isApprovedTestUrl(parsed))) {
   throw new Error("Refusing to seed: target is not localhost:15432/riona_fresh_test.");
 }
 

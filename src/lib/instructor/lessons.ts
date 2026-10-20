@@ -4,11 +4,15 @@ import { parseCancellationReason } from "@/lib/lessons/cancellation";
 import { prisma } from "@/lib/prisma";
 import { dateToString, minutesOfDay, parseDateOnly, schoolNow, timeToString } from "@/lib/student/time";
 import {
+  buildHistory,
   canCancel,
   canComplete,
+  canEditNotes,
   canRecordAttendance,
   canWriteFeedback,
+  parseLessonNotes,
   type FeedbackInput,
+  type HistoryEvent,
   type StatusFilter,
 } from "@/lib/instructor/lesson-rules";
 
@@ -122,6 +126,10 @@ export type DashboardSummary = {
   upcoming: InstructorLessonRow[];
   pendingActions: { lesson: InstructorLessonRow; needs: "attendance" | "outcome" }[];
   vehicles: { id: string; registrationNumber: string; label: string; status: VehicleStatus }[];
+  /** Students with a scheduled lesson from today on. */
+  students: { userId: string; fullName: string; nextLessonDate: string; lessonCount: number }[];
+  /** Today's availability windows, and how many windows exist from today on. Students can only book inside windows. */
+  availability: { todayWindows: { startTime: string; endTime: string }[]; upcomingWindowCount: number };
 };
 
 /** Dashboard counts and lists, all derived from the instructor's lesson records. Nothing is hardcoded. */
@@ -130,7 +138,7 @@ export async function getDashboardSummary(instructorUserId: string): Promise<Das
   const today = now.date;
   const todayDate = parseDateOnly(today) ?? undefined;
 
-  const [todayRows, upcomingRows, upcomingCount, completedToday, overdueRows, vehicleRows] = await Promise.all([
+  const [todayRows, upcomingRows, upcomingCount, completedToday, overdueRows, vehicleRows, studentRows, windowRows] = await Promise.all([
     prisma.lessonSchedule.findMany({
       where: { instructorUserId, lessonDate: todayDate },
       orderBy: { startTime: "asc" },
@@ -162,7 +170,26 @@ export async function getDashboardSummary(instructorUserId: string): Promise<Das
       take: 50,
       select: { vehicle: { select: { id: true, registrationNumber: true, make: true, model: true, status: true } } },
     }),
+    prisma.lessonSchedule.groupBy({
+      by: ["studentUserId"],
+      where: { instructorUserId, status: LessonScheduleStatus.SCHEDULED, lessonDate: { gte: todayDate } },
+      _min: { lessonDate: true },
+      _count: { _all: true },
+      orderBy: { _min: { lessonDate: "asc" } },
+      take: 20,
+    }),
+    prisma.instructorAvailability.findMany({
+      where: { instructorUserId, availabilityDate: { gte: todayDate } },
+      orderBy: [{ availabilityDate: "asc" }, { startTime: "asc" }],
+      take: 200,
+      select: { availabilityDate: true, startTime: true, endTime: true },
+    }),
   ]);
+  const studentProfiles = await prisma.studentProfile.findMany({
+    where: { userId: { in: studentRows.map((row) => row.studentUserId) } },
+    select: { userId: true, fullName: true },
+  });
+  const studentNames = new Map(studentProfiles.map((profile) => [profile.userId, profile.fullName]));
 
   // A scheduled lesson on an earlier day, or earlier today, has ended and still needs attendance or an outcome.
   const overdue = overdueRows.map(toRow).filter((row) => {
@@ -183,6 +210,18 @@ export async function getDashboardSummary(instructorUserId: string): Promise<Das
       needs: lesson.attendance === null ? "attendance" : "outcome",
     })),
     vehicles: uniqueVehicles(vehicleRows.map((row) => row.vehicle)),
+    students: studentRows.map((row) => ({
+      userId: row.studentUserId,
+      fullName: studentNames.get(row.studentUserId) ?? row.studentUserId,
+      nextLessonDate: row._min.lessonDate ? dateToString(row._min.lessonDate) : today,
+      lessonCount: row._count._all,
+    })),
+    availability: {
+      todayWindows: windowRows
+        .filter((row) => dateToString(row.availabilityDate) === today)
+        .map((row) => ({ startTime: timeToString(row.startTime), endTime: timeToString(row.endTime) })),
+      upcomingWindowCount: windowRows.length,
+    },
   };
 }
 
@@ -205,13 +244,18 @@ function uniqueVehicles(
 export type LessonDetail = InstructorLessonRow & {
   enrollmentId: string;
   student: InstructorLessonRow["student"] & { phoneNumber: string };
-  progress: { completedSessions: number; requiredSessions: number };
+  // requiredSessions is null while the school has not confirmed the count (allocation pending).
+  progress: { completedSessions: number; requiredSessions: number | null };
   feedback: { feedback: string; rating: number | null } | null;
+  /** Private staff notes. The student portal never reads them. */
+  notes: string | null;
+  history: HistoryEvent[];
   permissions: {
     canRecordAttendance: boolean;
     canComplete: boolean;
     canCancel: boolean;
     canWriteFeedback: boolean;
+    canEditNotes: boolean;
   };
 };
 
@@ -228,7 +272,14 @@ export async function getLessonDetail(instructorUserId: string, lessonId: string
       enrollmentId: true,
       student: { select: { userId: true, fullName: true, phoneNumber: true } },
       requirement: { select: { requiredSessions: true } },
-      feedback: { select: { id: true, feedback: true, rating: true } },
+      feedback: { select: { id: true, feedback: true, rating: true, updatedAt: true } },
+      notes: true,
+      createdAt: true,
+      attendanceMarkedAt: true,
+      attendanceMarkedBy: { select: { role: true } },
+      cancelledAt: true,
+      cancelledBy: { select: { role: true } },
+      cancellationReason: true,
     },
   });
   if (!lesson) {
@@ -253,11 +304,24 @@ export async function getLessonDetail(instructorUserId: string, lessonId: string
     student: { ...base.student, phoneNumber: lesson.student.phoneNumber },
     progress: { completedSessions, requiredSessions: lesson.requirement.requiredSessions },
     feedback: lesson.feedback ? { feedback: lesson.feedback.feedback, rating: lesson.feedback.rating } : null,
+    notes: lesson.notes,
+    history: buildHistory({
+      status: lesson.status,
+      attendance: lesson.attendance,
+      createdAt: lesson.createdAt,
+      attendanceMarkedAt: lesson.attendanceMarkedAt,
+      attendanceMarkedByRole: lesson.attendanceMarkedBy?.role ?? null,
+      cancelledAt: lesson.cancelledAt,
+      cancelledByRole: lesson.cancelledBy?.role ?? null,
+      cancellationReason: lesson.cancellationReason,
+      feedbackAt: lesson.feedback?.updatedAt ?? null,
+    }),
     permissions: {
       canRecordAttendance: canRecordAttendance({ status: lesson.status, lessonDate: base.lessonDate }, today),
       canComplete: canComplete(status),
       canCancel: canCancel(status),
       canWriteFeedback: canWriteFeedback(status),
+      canEditNotes: canEditNotes(status),
     },
   };
 }
@@ -288,8 +352,16 @@ export async function recordAttendance(instructorUserId: string, lessonId: strin
   return { attendance };
 }
 
-/** Marks a scheduled lesson completed. Attendance must already be recorded. Nothing completes a lesson automatically. */
-export async function completeLesson(instructorUserId: string, lessonId: string) {
+/**
+ * Marks a scheduled lesson completed, optionally saving the outcome notes in the same write. Attendance must already be
+ * recorded. Nothing completes a lesson automatically.
+ *
+ * Completing does not change any session count. A requirement's remaining sessions are worked out from its non-cancelled
+ * bookings (see lib/student/lesson-booking.ts), and the lesson was already counted when it was booked. The conditional
+ * update below only matches a SCHEDULED lesson, so a second request cannot complete it again.
+ */
+export async function completeLesson(instructorUserId: string, lessonId: string, notesInput?: unknown) {
+  const notes = notesInput === undefined ? undefined : parseLessonNotes(notesInput);
   const lesson = await prisma.lessonSchedule.findFirst({
     where: { id: lessonId, instructorUserId },
     select: { status: true, attendance: true },
@@ -309,10 +381,28 @@ export async function completeLesson(instructorUserId: string, lessonId: string)
       status: LessonScheduleStatus.SCHEDULED,
       attendance: { not: null },
     },
-    data: { status: LessonScheduleStatus.COMPLETED },
+    data: { status: LessonScheduleStatus.COMPLETED, ...(notes === undefined ? {} : { notes }) },
   });
   if (result.count !== 1) throw new AuthError(409, CHANGED_MESSAGE);
   return { status: LessonScheduleStatus.COMPLETED };
+}
+
+/** Saves the private notes on a lesson that is not cancelled. Empty text clears them. Nothing else on the lesson changes. */
+export async function saveLessonNotes(instructorUserId: string, lessonId: string, notesInput: unknown) {
+  const notes = parseLessonNotes(notesInput);
+  const lesson = await prisma.lessonSchedule.findFirst({
+    where: { id: lessonId, instructorUserId },
+    select: { status: true },
+  });
+  if (!lesson) throw new AuthError(404, "Lesson not found.");
+  if (!canEditNotes(lesson)) throw new AuthError(409, "Notes cannot be changed on a cancelled lesson.");
+
+  const result = await prisma.lessonSchedule.updateMany({
+    where: { id: lessonId, instructorUserId, status: { not: LessonScheduleStatus.CANCELLED } },
+    data: { notes },
+  });
+  if (result.count !== 1) throw new AuthError(409, CHANGED_MESSAGE);
+  return { notes };
 }
 
 /**
@@ -372,7 +462,7 @@ export async function saveLessonFeedback(instructorUserId: string, lessonId: str
 
 export type StudentProgress = {
   student: { userId: string; fullName: string; phoneNumber: string };
-  requirements: { vehicleType: string; trainingType: string; requiredSessions: number; completedSessions: number }[];
+  requirements: { vehicleType: string; trainingType: string; requiredSessions: number | null; completedSessions: number }[];
   lessons: {
     id: string;
     lessonDate: string;
@@ -459,4 +549,63 @@ export async function getStudentProgress(instructorUserId: string, studentUserId
       feedback: lesson.feedback ? { feedback: lesson.feedback.feedback, rating: lesson.feedback.rating } : null,
     })),
   };
+}
+
+export type AssignedStudent = {
+  userId: string;
+  fullName: string;
+  phoneNumber: string;
+  lessonCount: number;
+  completedCount: number;
+  lastLessonDate: string | null;
+  nextLessonDate: string | null;
+};
+
+/**
+ * Every student this instructor has been assigned, with counts from this instructor's own lessons. Cancelled lessons are
+ * counted in neither the completed total nor the next-lesson date. Only the name and mobile number are selected.
+ */
+export async function listAssignedStudents(instructorUserId: string): Promise<AssignedStudent[]> {
+  const today = parseDateOnly(schoolNow().date) ?? undefined;
+  const [totals, completed, lasts, nexts] = await Promise.all([
+    prisma.lessonSchedule.groupBy({ by: ["studentUserId"], where: { instructorUserId }, _count: { _all: true }, orderBy: { studentUserId: "asc" }, take: 500 }),
+    prisma.lessonSchedule.groupBy({
+      by: ["studentUserId"],
+      where: { instructorUserId, status: LessonScheduleStatus.COMPLETED },
+      _count: { _all: true },
+    }),
+    prisma.lessonSchedule.groupBy({
+      by: ["studentUserId"],
+      where: { instructorUserId, status: { not: LessonScheduleStatus.CANCELLED }, lessonDate: { lt: today } },
+      _max: { lessonDate: true },
+    }),
+    prisma.lessonSchedule.groupBy({
+      by: ["studentUserId"],
+      where: { instructorUserId, status: LessonScheduleStatus.SCHEDULED, lessonDate: { gte: today } },
+      _min: { lessonDate: true },
+    }),
+  ]);
+  const profiles = await prisma.studentProfile.findMany({
+    where: { userId: { in: totals.map((row) => row.studentUserId) } },
+    select: { userId: true, fullName: true, phoneNumber: true },
+    orderBy: { fullName: "asc" },
+  });
+  const completedBy = new Map(completed.map((row) => [row.studentUserId, row._count._all]));
+  const lastBy = new Map(lasts.map((row) => [row.studentUserId, row._max.lessonDate]));
+  const nextBy = new Map(nexts.map((row) => [row.studentUserId, row._min.lessonDate]));
+  const totalBy = new Map(totals.map((row) => [row.studentUserId, row._count._all]));
+
+  return profiles.map((profile) => {
+    const last = lastBy.get(profile.userId);
+    const next = nextBy.get(profile.userId);
+    return {
+      userId: profile.userId,
+      fullName: profile.fullName,
+      phoneNumber: profile.phoneNumber,
+      lessonCount: totalBy.get(profile.userId) ?? 0,
+      completedCount: completedBy.get(profile.userId) ?? 0,
+      lastLessonDate: last ? dateToString(last) : null,
+      nextLessonDate: next ? dateToString(next) : null,
+    };
+  });
 }

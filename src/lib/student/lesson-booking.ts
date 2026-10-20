@@ -65,8 +65,18 @@ async function loadContext(studentUserId: string, enrollmentId: string, requirem
   if (!requirement) {
     throw new AuthError(400, "Choose a training requirement from this enrollment.");
   }
+  // A pending allocation is refused before any slot search or remaining-session count, so it is never shown as zero.
+  if (requirement.requiredSessions == null) {
+    throw new AuthError(409, "Your session allocation is pending. The school will confirm it before you can book.");
+  }
+  const confirmed = {
+    id: requirement.id,
+    vehicleType: requirement.vehicleType,
+    trainingType: requirement.trainingType,
+    requiredSessions: requirement.requiredSessions,
+  };
 
-  return { enrollment, requirement, durations: allowedDurations(enrollment.package.sessionDurationMinutes) };
+  return { enrollment, requirement: confirmed, durations: allowedDurations(enrollment.package.sessionDurationMinutes) };
 }
 
 type RequirementKey = { enrollmentId: string; vehicleType: VehicleType; trainingType: TrainingType };
@@ -259,9 +269,24 @@ export async function bookPracticalLesson(request: BookingRequest): Promise<Book
         // A shared lock on the vehicle: a status change to maintenance or inactive waits for this booking to commit,
         // so it cannot retire the vehicle between the check and the insert.
         await tx.$queryRaw`SELECT id FROM "Vehicle" WHERE id = ${pair.vehicleId} FOR SHARE`;
+        // Likewise for the instructor: removing or shrinking an availability window waits for this booking to commit
+        // (see lib/instructor/availability.ts), so it cannot leave the new lesson outside every window.
+        await tx.$queryRaw`SELECT "userId" FROM "InstructorProfile" WHERE "userId" = ${pair.instructorUserId} FOR SHARE`;
+
+        // Re-read the entitlement under the lock. The copy loaded before the transaction can be stale if an admin changed it.
+        const current = await tx.enrollmentTrainingRequirement.findUnique({
+          where: { id: requirement.id },
+          select: { requiredSessions: true },
+        });
+        if (!current) {
+          throw new AuthError(400, "Choose a training requirement from this enrollment.");
+        }
+        if (current.requiredSessions == null) {
+          throw new AuthError(409, "Your session allocation is pending. The school will confirm it before you can book.");
+        }
 
         const booked = await countBookedSessions(requirementKey(requirement, request.enrollmentId), tx);
-        if (booked >= requirement.requiredSessions) {
+        if (booked >= current.requiredSessions) {
           throw new AuthError(409, "All sessions for this requirement are already booked.");
         }
 
@@ -294,6 +319,10 @@ export async function bookPracticalLesson(request: BookingRequest): Promise<Book
       };
     } catch (error) {
       if (error instanceof AuthError) throw error;
+      // A write conflict or deadlock rolls this attempt back, so no lesson was inserted. Report it as a retryable conflict.
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034") {
+        throw new AuthError(409, "Another booking or change is in progress for this requirement. Try again.");
+      }
       const message = error instanceof Error ? error.message : "";
       // The student is busy: no other instructor or vehicle can help, so stop now.
       if (message.includes("LessonSchedule_student_no_overlap")) {

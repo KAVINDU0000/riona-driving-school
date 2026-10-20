@@ -34,7 +34,7 @@ export default async function AdminPackagesPage() {
   return (
     <AdminFrame
       title="Packages and prices"
-      description="Prices and session requirements here are the ones used for new applications. Online approval uses a package's requirements only after the school confirms them. Applications and enrollments keep what they were given."
+      description="Prices here are used for new applications. Session requirements here apply only to applications without their own chosen counts, and online approval uses them only after the school confirms them. Applications and enrollments keep what they were given."
       active="/portal/admin/packages"
     >
       <PackageManager packages={rows} changes={changes} requirementChanges={requirementChanges} />

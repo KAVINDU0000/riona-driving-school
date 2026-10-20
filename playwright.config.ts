@@ -11,7 +11,7 @@ if (!testUrl) {
 }
 const parsed = new URL(testUrl);
 const isGuardedTarget =
-  parsed.hostname === "localhost" && parsed.port === "15432" && parsed.pathname === "/riona_fresh_test";
+  parsed.hostname === "localhost" && parsed.port === "15432" && parsed.pathname === "/riona_fresh_test" && [...parsed.searchParams.keys()].every((k, i, all) => (k === "sslmode" || k === "channel_binding") && all.indexOf(k) === i);
 if (!isGuardedTarget) {
   throw new Error("Refusing to run: browser tests must use localhost:15432/riona_fresh_test.");
 }

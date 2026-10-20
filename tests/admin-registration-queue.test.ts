@@ -1,7 +1,13 @@
-import { beforeEach, describe, expect, it } from "vitest";
-import { PaymentMethod, PaymentStatus, UserRole } from "@/generated/prisma/enums";
+// Database-backed. Non-destructive: no reset, no TRUNCATE, no broad delete. Every application is created by this run and tracked by
+// exact ID; its email carries the run ID. Each test has its own scope token, and every list query is limited to that token, so
+// totals and pages count only this test's applications. The real DAILY package (daily-car) is read only.
+import "./test-mode-guard";
+import { randomBytes } from "node:crypto";
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from "vitest";
+import { PaymentMethod, PaymentStatus } from "@/generated/prisma/enums";
 import { GET as listRoute } from "@/app/api/admin/registrations/route";
 import { AuthError } from "@/lib/auth/http";
+import { resetRateLimits } from "@/lib/auth/rate-limit";
 import { createSession } from "@/lib/auth/session";
 import { ADMIN_PAGE_SIZE, parseSearchText } from "@/lib/admin/query";
 import {
@@ -12,16 +18,40 @@ import {
   rejectRegistration,
 } from "@/lib/admin/registration-review";
 import { prisma } from "@/lib/prisma";
-import { createAccount, getRequest, resetDatabase } from "./helpers";
+import { getRequest } from "./helpers";
+import {
+  assertRealPackagesPresent,
+  baseline,
+  cleanupFixtures,
+  createAdminFixture,
+  createLegacyPackageFixture,
+  errorText,
+  newTracked,
+  remainingFixtureRows,
+  trackApprovedRows,
+  verifyBaseline,
+  type Baseline,
+  type Tracked,
+} from "./session-fixtures";
 
-const REGULAR_ID = "regular-car-van";
 const DAILY_ID = "daily-car";
 
+let t: Tracked;
+let adminId: string;
+let before: Baseline | undefined;
+let dailyBefore: { price: string; isActive: boolean; updatedAt: string } | undefined;
+let scope = "";
+let packageId = "";
 let counter = 0;
 
 /** Parses a query string the way the API does. */
 function query(search: string) {
   return parseRegistrationListQuery(new URLSearchParams(search));
+}
+
+/** The query for this test: the scope token, plus any extra parameters. */
+function scoped(extra = "") {
+  return query(`q=${encodeURIComponent(scope)}${extra ? `&${extra}` : ""}`);
 }
 
 function statusOf(action: () => unknown): number | undefined {
@@ -33,20 +63,14 @@ function statusOf(action: () => unknown): number | undefined {
   }
 }
 
-async function seedQueue() {
-  await resetDatabase();
-  await createAccount({ userId: "ADMIN-1", email: "admin@riona.test", role: UserRole.ADMIN });
-  await prisma.trainingPackage.createMany({
-    data: [
-      { id: REGULAR_ID, name: "Car and Van Training", packageType: "REGULAR", price: 26000, durationDays: 15 },
-      { id: DAILY_ID, name: "Car Daily Training", packageType: "DAILY", price: 2000, sessionDurationMinutes: 30 },
-    ],
-  });
-  await prisma.trainingPackageItem.create({
-    data: { packageId: REGULAR_ID, vehicleType: "CAR", trainingType: "REGULAR", requiredSessions: 15 },
-  });
-  // Approval also needs the school's confirmation of the requirements.
-  await prisma.trainingPackage.update({ where: { id: REGULAR_ID }, data: { requirementsConfirmedAt: new Date() } });
+/** Eight digits, derived from the scope, for NIC and phone searches that only this test's rows can match. */
+function digitsOf(value: string) {
+  return String(parseInt(value, 16) % 100000000).padStart(8, "0");
+}
+
+function emailFor(label: string) {
+  counter += 1;
+  return `${label}-${counter}-${scope}-${t.runId.toLowerCase()}@fixture.test`;
 }
 
 async function addApplication(
@@ -61,24 +85,77 @@ async function addApplication(
   }> = {},
 ) {
   counter += 1;
-  const packageId = overrides.selectedPackageId ?? REGULAR_ID;
-  return prisma.registrationRequest.create({
+  const selectedPackageId = overrides.selectedPackageId ?? packageId;
+  const row = await prisma.registrationRequest.create({
     data: {
-      referenceNumber: overrides.referenceNumber ?? `RDS-Q${String(counter).padStart(6, "0")}`,
-      fullName: overrides.fullName ?? `Applicant ${counter}`,
+      referenceNumber: overrides.referenceNumber ?? `RDS-${scope.toUpperCase()}${String(counter).padStart(2, "0")}`,
+      fullName: overrides.fullName ?? `Applicant ${scope} ${counter}`,
       birthday: new Date("2000-05-10"),
-      nicNumber: overrides.nicNumber ?? `NICQ${String(counter).padStart(8, "0")}`,
+      nicNumber: overrides.nicNumber ?? `NIC-${scope}-${counter}`,
       phoneNumber: overrides.phoneNumber ?? `0770${String(counter).padStart(6, "0")}`,
       address: "No. 12, Main Street, Colombo 03",
-      email: overrides.email ?? `applicant${counter}@example.com`,
+      email: overrides.email ?? emailFor("applicant"),
       // Never checked in these tests. Real hashes are covered in the registration tests.
       passwordHash: "not-used-in-this-test",
-      selectedPackageId: packageId,
-      packagePriceAtSubmission: packageId === DAILY_ID ? 2000 : 26000,
+      selectedPackageId,
+      packagePriceAtSubmission: selectedPackageId === DAILY_ID ? 2000 : 1000,
       ...(overrides.submittedAt ? { submittedAt: overrides.submittedAt } : {}),
     },
   });
+  t.registrationIds.push(row.id);
+  t.referenceNumbers.push(row.referenceNumber);
+  return row;
 }
+
+beforeAll(async () => {
+  await assertRealPackagesPresent();
+  t = newTracked();
+  before = await baseline();
+  adminId = await createAdminFixture(t);
+  const daily = await prisma.trainingPackage.findUniqueOrThrow({ where: { id: DAILY_ID }, select: { price: true, isActive: true, updatedAt: true } });
+  dailyBefore = { price: daily.price.toFixed(2), isActive: daily.isActive, updatedAt: daily.updatedAt.toISOString() };
+});
+
+/** Per-test setup for tests that read or write the database: a fresh scope and a fixture package with a valid count. */
+async function setupScope() {
+  scope = randomBytes(3).toString("hex");
+  resetRateLimits();
+  packageId = await createLegacyPackageFixture(t);
+}
+
+afterAll(async () => {
+  if (!t) return;
+  const failures: string[] = [];
+
+  try {
+    await cleanupFixtures(t);
+  } catch (error) {
+    failures.push(`CLEANUP FAILED (${errorText(error)}). Tracked IDs are listed in the message above.`);
+    failures.push(...(await remainingFixtureRows(t)));
+  }
+
+  if (before) {
+    try {
+      await verifyBaseline(before);
+    } catch (error) {
+      failures.push(`BASELINE: ${errorText(error)}. ${error instanceof Error ? error.message : ""}`);
+    }
+  } else {
+    failures.push("BASELINE: not taken, so the counts cannot be verified.");
+  }
+
+  if (dailyBefore) {
+    try {
+      const now = await prisma.trainingPackage.findUniqueOrThrow({ where: { id: DAILY_ID }, select: { price: true, isActive: true, updatedAt: true } });
+      const after = { price: now.price.toFixed(2), isActive: now.isActive, updatedAt: now.updatedAt.toISOString() };
+      if (JSON.stringify(after) !== JSON.stringify(dailyBefore)) failures.push("REAL PACKAGE: daily-car changed during the run.");
+    } catch (error) {
+      failures.push(`REAL PACKAGE: could not re-read daily-car (${errorText(error)}).`);
+    }
+  }
+
+  if (failures.length > 0) throw new Error(failures.join("\n"));
+});
 
 describe("reading the registration query", () => {
   it("uses the defaults when nothing is given: pending, oldest first, page 1", () => {
@@ -113,32 +190,37 @@ describe("reading the registration query", () => {
 });
 
 describe("searching and filtering applications", () => {
-  beforeEach(seedQueue);
+  beforeEach(setupScope);
 
   it("matches name, reference, email, NIC and phone, ignoring case", async () => {
+    const digits = digitsOf(scope);
     const nimal = await addApplication({
-      fullName: "Nimal Perera",
-      referenceNumber: "RDS-SEARCH01",
-      email: "nimal.perera@example.com",
-      nicNumber: "200012345678",
-      phoneNumber: "0771112233",
+      fullName: `Nimal${scope}`,
+      referenceNumber: `RDS-${scope.toUpperCase()}01`,
+      email: `nimal-${scope}@example.com`,
+      nicNumber: `${digits}0101`,
+      phoneNumber: `07${digits}`,
     });
-    const kamal = await addApplication({ fullName: "Kamal Silva", referenceNumber: "RDS-SEARCH02", email: "kamal@example.org" });
+    const kamal = await addApplication({
+      fullName: `Kamal${scope}`,
+      referenceNumber: `RDS-${scope.toUpperCase()}02`,
+      email: `kamal-${scope}@example.org`,
+    });
 
-    const ids = async (search: string) => (await listRegistrations(query(`q=${search}`))).registrations.map((r) => r.id);
-    expect(await ids("nimal")).toEqual([nimal.id]);
-    expect(await ids("rds-search02")).toEqual([kamal.id]);
-    expect(await ids("KAMAL%40EXAMPLE")).toEqual([kamal.id]);
-    expect(await ids("2000123")).toEqual([nimal.id]);
-    expect(await ids("0771112")).toEqual([nimal.id]);
-    expect(await ids("nobody-by-this-name")).toEqual([]);
+    const ids = async (search: string) => (await listRegistrations(query(`q=${encodeURIComponent(search)}`))).registrations.map((r) => r.id);
+    expect(await ids(`nimal${scope}`.toUpperCase())).toEqual([nimal.id]);
+    expect(await ids(`rds-${scope}02`)).toEqual([kamal.id]);
+    expect(await ids(`KAMAL-${scope}@EXAMPLE`)).toEqual([kamal.id]);
+    expect(await ids(`${digits}0101`)).toEqual([nimal.id]);
+    expect(await ids(`07${digits}`)).toEqual([nimal.id]);
+    expect(await ids(`nobody-${scope}`)).toEqual([]);
   });
 
   it("filters by package", async () => {
-    const regular = await addApplication({ selectedPackageId: REGULAR_ID });
+    const regular = await addApplication({ selectedPackageId: packageId });
     const daily = await addApplication({ selectedPackageId: DAILY_ID });
-    expect((await listRegistrations(query(`package=${DAILY_ID}`))).registrations.map((r) => r.id)).toEqual([daily.id]);
-    expect((await listRegistrations(query(`package=${REGULAR_ID}`))).registrations.map((r) => r.id)).toEqual([regular.id]);
+    expect((await listRegistrations(scoped(`package=${DAILY_ID}`))).registrations.map((r) => r.id)).toEqual([daily.id]);
+    expect((await listRegistrations(scoped(`package=${packageId}`))).registrations.map((r) => r.id)).toEqual([regular.id]);
   });
 
   it("uses school-time day boundaries for the submission date filter", async () => {
@@ -147,7 +229,7 @@ describe("searching and filtering applications", () => {
     const after = await addApplication({ submittedAt: new Date("2026-03-10T18:30:00.000Z") });
 
     const on = async (from: string, to: string) =>
-      (await listRegistrations(query(`from=${from}&to=${to}`))).registrations.map((r) => r.id);
+      (await listRegistrations(scoped(`from=${from}&to=${to}`))).registrations.map((r) => r.id);
     expect(await on("2026-03-10", "2026-03-10")).toEqual([before.id]);
     expect(await on("2026-03-11", "2026-03-11")).toEqual([after.id]);
     expect(await on("2026-03-10", "2026-03-11")).toEqual([before.id, after.id]);
@@ -155,13 +237,13 @@ describe("searching and filtering applications", () => {
 
   it("returns an empty page with a total of 0 when nothing matches", async () => {
     await addApplication();
-    const result = await listRegistrations(query("q=no-such-applicant"));
+    const result = await listRegistrations(query(`q=${encodeURIComponent(`no-such-applicant-${scope}`)}`));
     expect(result).toMatchObject({ total: 0, page: 1, pageCount: 1, registrations: [] });
   });
 });
 
 describe("paging and order", () => {
-  beforeEach(seedQueue);
+  beforeEach(setupScope);
 
   it("pages through every match once, even when submission times are identical", async () => {
     const sameTime = new Date("2026-04-01T04:00:00.000Z");
@@ -169,8 +251,8 @@ describe("paging and order", () => {
       await addApplication({ submittedAt: sameTime });
     }
 
-    const first = await listRegistrations(query("page=1"));
-    const second = await listRegistrations(query("page=2"));
+    const first = await listRegistrations(scoped("page=1"));
+    const second = await listRegistrations(scoped("page=2"));
     expect(first.total).toBe(ADMIN_PAGE_SIZE + 5);
     expect(first.pageCount).toBe(2);
     expect(first.registrations).toHaveLength(ADMIN_PAGE_SIZE);
@@ -183,28 +265,33 @@ describe("paging and order", () => {
   it("lists newest first when asked, and oldest first by default", async () => {
     const older = await addApplication({ submittedAt: new Date("2026-03-01T00:00:00Z") });
     const newer = await addApplication({ submittedAt: new Date("2026-03-05T00:00:00Z") });
-    expect((await listRegistrations(query(""))).registrations.map((r) => r.id)).toEqual([older.id, newer.id]);
-    expect((await listRegistrations(query("order=newest"))).registrations.map((r) => r.id)).toEqual([newer.id, older.id]);
+    expect((await listRegistrations(scoped(""))).registrations.map((r) => r.id)).toEqual([older.id, newer.id]);
+    expect((await listRegistrations(scoped("order=newest"))).registrations.map((r) => r.id)).toEqual([newer.id, older.id]);
   });
 });
 
 describe("application detail and history", () => {
-  beforeEach(seedQueue);
+  beforeEach(setupScope);
 
   it("records the approval, the enrollment and the payment in order, and never returns the password hash", async () => {
-    const applicant = await addApplication({ fullName: "Nimal Perera", submittedAt: new Date("2026-03-01T03:00:00Z") });
-    await prisma.payment.create({
-      data: { registrationRequestId: applicant.id, amount: 26000, paymentMethod: PaymentMethod.BANK_TRANSFER, paymentDate: new Date("2026-03-02"), status: PaymentStatus.PENDING },
+    const applicant = await addApplication({ fullName: `Nimal${scope}`, submittedAt: new Date("2026-03-01T03:00:00Z") });
+    const payment = await prisma.payment.create({
+      data: { registrationRequestId: applicant.id, amount: 1000, paymentMethod: PaymentMethod.BANK_TRANSFER, paymentDate: new Date("2026-03-02"), status: PaymentStatus.PENDING },
     });
-    await approveRegistration(applicant.id, "ADMIN-1");
+    t.paymentIds.push(payment.id);
+    try {
+      await approveRegistration(applicant.id, adminId);
+    } finally {
+      await trackApprovedRows(t, applicant.email);
+    }
 
     const detail = await getRegistration(applicant.id);
     const events = detail.history.map((entry) => entry.event);
     expect(events[0]).toBe("Submitted");
-    expect(events).toContain("Approved by ADMIN-1");
+    expect(events).toContain(`Approved by ${adminId}`);
     expect(events).toContain("Enrollment created");
     expect(events).toContain("Payment recorded");
-    expect(detail.history.find((entry) => entry.event === "Approved by ADMIN-1")?.detail).toMatch(/^Student ID STU-\d{3,}$/);
+    expect(detail.history.find((entry) => entry.event === `Approved by ${adminId}`)?.detail).toMatch(/^Student ID STU-\d{3,}$/);
     expect(detail.payments).toHaveLength(1);
     expect(JSON.stringify(detail)).not.toContain("not-used-in-this-test");
     expect("passwordHash" in detail).toBe(false);
@@ -212,17 +299,17 @@ describe("application detail and history", () => {
 
   it("shows the rejection reason in the history", async () => {
     const applicant = await addApplication();
-    await rejectRegistration(applicant.id, "ADMIN-1", "Documents do not match the NIC.");
+    await rejectRegistration(applicant.id, adminId, "Documents do not match the NIC.");
     const detail = await getRegistration(applicant.id);
-    expect(detail.history.map((entry) => entry.event)).toEqual(["Submitted", "Rejected by ADMIN-1"]);
+    expect(detail.history.map((entry) => entry.event)).toEqual(["Submitted", `Rejected by ${adminId}`]);
     expect(detail.history[1].detail).toBe("Documents do not match the NIC.");
   });
 
   it("lets only one of two concurrent rejections succeed, and the other is refused with 409", async () => {
     const applicant = await addApplication();
     const results = await Promise.allSettled([
-      rejectRegistration(applicant.id, "ADMIN-1", "Duplicate application received."),
-      rejectRegistration(applicant.id, "ADMIN-1", "Duplicate application received."),
+      rejectRegistration(applicant.id, adminId, "Duplicate application received."),
+      rejectRegistration(applicant.id, adminId, "Duplicate application received."),
     ]);
     const fulfilled = results.filter((result) => result.status === "fulfilled");
     const refused = results.filter((result): result is PromiseRejectedResult => result.status === "rejected");
@@ -234,15 +321,15 @@ describe("application detail and history", () => {
 });
 
 describe("the list route", () => {
-  beforeEach(seedQueue);
+  beforeEach(setupScope);
 
   it("returns one page with the total and the page metadata, and refuses a bad page with 400", async () => {
     await addApplication();
     await addApplication();
-    const { token } = await createSession("ADMIN-1");
+    const { token } = await createSession(adminId);
     const cookie = `riona_session=${token}`;
 
-    const ok = await listRoute(getRequest("/api/admin/registrations?status=PENDING&page=1", cookie));
+    const ok = await listRoute(getRequest(`/api/admin/registrations?status=PENDING&page=1&q=${encodeURIComponent(scope)}`, cookie));
     const body = (await ok.json()) as { registrations: unknown[]; total: number; page: number; pageCount: number; pageSize: number };
     expect(ok.status).toBe(200);
     expect(body).toMatchObject({ total: 2, page: 1, pageCount: 1, pageSize: ADMIN_PAGE_SIZE });

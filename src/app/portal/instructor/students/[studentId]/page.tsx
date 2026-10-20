@@ -33,11 +33,11 @@ export default async function InstructorStudentPage({ params }: { params: Promis
     <InstructorFrame
       title="Student progress"
       description="Training progress for a student you have taught. Only your own lessons and feedback are listed."
-      active="/portal/instructor/lessons"
+      active="/portal/instructor/students"
     >
       <p className="mb-4">
-        <Link href="/portal/instructor/lessons" className="text-[0.875rem] font-semibold text-gold-ink hover:underline">
-          ← Back to schedule
+        <Link href="/portal/instructor/students" className="text-[0.875rem] font-semibold text-gold-ink hover:underline">
+          ← Back to students
         </Link>
       </p>
 
@@ -68,7 +68,9 @@ export default async function InstructorStudentPage({ params }: { params: Promis
                     {labels.trainingType[item.trainingType] ?? item.trainingType} · {labels.vehicleType[item.vehicleType] ?? item.vehicleType}
                   </p>
                   <p className="mt-1 text-[0.875rem] text-muted">
-                    {item.completedSessions} of {item.requiredSessions} sessions completed
+                    {item.requiredSessions === null
+                      ? "Allocation pending"
+                      : `${item.completedSessions} of ${item.requiredSessions} sessions completed`}
                   </p>
                 </li>
               ))}

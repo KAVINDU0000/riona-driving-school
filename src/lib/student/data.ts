@@ -96,14 +96,17 @@ export async function getEnrollments(userId: string) {
       );
       const completed = mine.filter((l) => l.status === LessonScheduleStatus.COMPLETED).length;
       const scheduled = mine.filter((l) => l.status === LessonScheduleStatus.SCHEDULED).length;
+      // A NULL count means the school has not confirmed it yet. That is shown as "allocation pending", never as zero.
+      const pending = requirement.requiredSessions === null;
       return {
         id: requirement.id,
         vehicleType: requirement.vehicleType,
         trainingType: requirement.trainingType,
         requiredSessions: requirement.requiredSessions,
+        pending,
         completed,
         scheduled,
-        remaining: Math.max(0, requirement.requiredSessions - completed - scheduled),
+        remaining: requirement.requiredSessions === null ? null : Math.max(0, requirement.requiredSessions - completed - scheduled),
       };
     });
 
@@ -378,9 +381,11 @@ export async function getDashboard(userId: string) {
     getAppointments(userId),
   ]);
 
-  const requirements = enrollments.flatMap((e) => e.progress);
-  const completed = requirements.reduce((sum, r) => sum + r.completed, 0);
-  const required = requirements.reduce((sum, r) => sum + r.requiredSessions, 0);
+  // Pending requirements are left out of the totals, so an unconfirmed count never counts as zero or as a target.
+  const confirmed = enrollments.flatMap((e) => e.progress).filter((r) => !r.pending);
+  const completed = confirmed.reduce((sum, r) => sum + r.completed, 0);
+  const required = confirmed.reduce((sum, r) => sum + (r.requiredSessions ?? 0), 0);
+  const pendingAllocations = enrollments.flatMap((e) => e.progress).filter((r) => r.pending).length;
   const now = schoolNow();
 
   const nextLesson =
@@ -393,7 +398,7 @@ export async function getDashboard(userId: string) {
     nextLesson,
     recentLessons: lessons.past.slice(0, 5),
     attendance: attendance.summary,
-    progress: { completed, required },
+    progress: { completed, required, pendingAllocations },
     upcomingAppointments: [
       ...appointments.medical.filter((a) => a.upcoming).map((a) => ({ kind: "medical" as const, date: a.appointmentDate, status: a.status })),
       ...appointments.exams.filter((e) => e.upcoming).map((e) => ({ kind: "exam" as const, date: e.scheduledDate, status: e.status, examType: e.examType })),

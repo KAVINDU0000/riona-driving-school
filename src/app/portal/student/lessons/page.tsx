@@ -39,7 +39,8 @@ export default async function StudentLessonsPage() {
     .filter((e) => e.status === "ACTIVE")
     .flatMap((enrollment) =>
       enrollment.progress
-        .filter((item) => item.remaining > 0)
+        // A pending allocation (no confirmed count) is never bookable.
+        .filter((item) => !item.pending && item.remaining !== null && item.remaining > 0)
         .map((item) => ({
           key: `${enrollment.id}|${item.id}`,
           enrollmentId: enrollment.id,
@@ -47,7 +48,7 @@ export default async function StudentLessonsPage() {
           enrollmentLabel: enrollment.packageName,
           requirementLabel: `${labels.vehicleType[item.vehicleType]} · ${labels.trainingType[item.trainingType]}`,
           vehicleLabel: labels.vehicleType[item.vehicleType],
-          remaining: item.remaining,
+          remaining: item.remaining ?? 0,
           durations: allowedDurations(enrollment.sessionDurationMinutes),
         })),
     );

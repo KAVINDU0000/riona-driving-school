@@ -111,7 +111,7 @@ export default function PackageManager({
         </h2>
         <p className="mt-2 text-[0.875rem] text-muted">
           Lower sort order appears first on the public site. Turning a package off stops new applications for it. Existing
-          applications and enrollments are not changed. Online approval needs confirmed session requirements.
+          applications and enrollments are not changed. Applications without their own chosen counts need confirmed session requirements before online approval.
         </p>
         <ul className="mt-5 grid gap-4">
           {packages.map((row) => (
@@ -406,10 +406,10 @@ function RequirementsEditor({
   const canConfirm = row.requirementStatus === "AWAITING_CONFIRMATION";
   const hint =
     row.requirementStatus === "INCOMPLETE"
-      ? "Enter every required count, save, then confirm. Online approval is blocked until then."
+      ? "Enter every required count, save, then confirm. Applications without their own chosen counts cannot be approved online until then."
       : row.requirementStatus === "AWAITING_CONFIRMATION"
-        ? "Every count is entered. Confirm them so online approval can use this package."
-        : `Confirmed${row.requirementsConfirmedAt ? ` on ${formatDate(row.requirementsConfirmedAt.slice(0, 10))}` : ""}. Online approval may use these counts.`;
+        ? "Every count is entered. Confirm them so applications without their own chosen counts can be approved online."
+        : `Confirmed${row.requirementsConfirmedAt ? ` on ${formatDate(row.requirementsConfirmedAt.slice(0, 10))}` : ""}. Applications without their own chosen counts use these counts when approved online.`;
 
   function addRow() {
     const key = `${vehicle}|${training}`;
@@ -455,7 +455,7 @@ function RequirementsEditor({
       onMessage(
         result.requirements.changed === 0
           ? `${row.name}: no changes to save.`
-          : `${row.name}: requirements saved. Confirm them before online approval can use them.`,
+          : `${row.name}: requirements saved. Confirm them so applications without their own chosen counts can be approved online.`,
       );
       router.refresh();
     } catch (failure) {
@@ -472,7 +472,7 @@ function RequirementsEditor({
     try {
       const response = await fetch(`/api/admin/packages/${encodeURIComponent(row.id)}/requirements/confirm`, { method: "POST" });
       if (!response.ok) throw new Error(await errorFrom(response, "The requirements could not be confirmed."));
-      onMessage(`${row.name}: requirements confirmed. Online approval can now use them.`);
+      onMessage(`${row.name}: requirements confirmed. Applications without their own chosen counts can now be approved online.`);
       router.refresh();
     } catch (failure) {
       onError(failure instanceof Error ? failure.message : "The requirements could not be confirmed.");

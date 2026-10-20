@@ -31,6 +31,24 @@ export default async function InstructorDashboardPage() {
         <AdminStatCard label="Needs action" value={data.pendingActions.length} caption="Ended, still open" icon="badge-check" />
       </div>
 
+      {data.availability.upcomingWindowCount === 0 ? (
+        <p role="status" className="mt-6 rounded-2xl bg-amber-50 px-5 py-4 text-[0.9375rem] text-amber-900 ring-1 ring-amber-200">
+          You have no availability set, so students cannot book lessons with you.{" "}
+          <Link href="/portal/instructor/availability" className="font-semibold underline">
+            Set your availability
+          </Link>
+        </p>
+      ) : (
+        <p className="mt-6 text-[0.875rem] text-muted">
+          {data.availability.todayWindows.length === 0
+            ? "You are not available today."
+            : `Available today: ${data.availability.todayWindows.map((window) => `${window.startTime}–${window.endTime}`).join(", ")}.`}{" "}
+          <Link href="/portal/instructor/availability" className="font-semibold text-gold-ink hover:underline">
+            Manage availability
+          </Link>
+        </p>
+      )}
+
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
         <section aria-labelledby="today-heading" className="grid content-start gap-4">
           <div className="flex items-center justify-between gap-3">
@@ -82,6 +100,31 @@ export default async function InstructorDashboardPage() {
               <ul className="grid gap-3">
                 {data.upcoming.map((lesson) => (
                   <LessonItem key={lesson.id} lesson={lesson} showDate />
+                ))}
+              </ul>
+            )}
+          </section>
+
+          <section aria-labelledby="students-heading" className="grid gap-4">
+            <div className="flex items-center justify-between gap-3">
+              <h2 id="students-heading" className="text-[1.125rem] font-bold text-ink">Your students</h2>
+              <Link href="/portal/instructor/students" className="text-[0.875rem] font-semibold text-gold-ink hover:underline">
+                All students
+              </Link>
+            </div>
+            {data.students.length === 0 ? (
+              <AdminEmptyState title="No students assigned" body="Students with a scheduled lesson from today on appear here." />
+            ) : (
+              <ul className="grid gap-2">
+                {data.students.map((student) => (
+                  <li key={student.userId}>
+                    <Link href={`/portal/instructor/students/${student.userId}`} className={ROW}>
+                      <span className="text-[0.9375rem] font-bold text-ink">{student.fullName}</span>
+                      <span className="text-[0.8125rem] text-muted">
+                        {student.lessonCount} scheduled · next {formatDate(student.nextLessonDate)}
+                      </span>
+                    </Link>
+                  </li>
                 ))}
               </ul>
             )}

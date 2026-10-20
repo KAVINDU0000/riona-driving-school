@@ -187,7 +187,7 @@ describe("the change reaches the public site and new applications", () => {
       (await getPublicPackageCatalog()).flatMap((group) => group.options).find((option) => option.id === PACKAGE)?.price,
     ).toBe(16500);
 
-    const response = await registrationPost(postRequest("/api/registration", { ...VALID_REGISTRATION, packageId: PACKAGE }));
+    const response = await registrationPost(postRequest("/api/registration", { ...VALID_REGISTRATION, packageId: PACKAGE, sessionSelections: [{ vehicleType: "CAR", requiredSessions: 2 }] }));
     expect(response.status).toBe(201);
     const application = await prisma.registrationRequest.findFirstOrThrow({ where: { selectedPackageId: PACKAGE } });
     expect(Number(application.packagePriceAtSubmission)).toBe(16500);

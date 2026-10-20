@@ -21,7 +21,8 @@ export default async function StudentDashboardPage() {
   const user = await requirePortalUser("STUDENT");
   const data = await getDashboard(user.userId);
   const firstName = data.profile?.fullName.split(" ")[0] ?? "there";
-  const remaining = data.enrollments.reduce((sum, e) => sum + e.progress.reduce((s, p) => s + p.remaining, 0), 0);
+  // Pending requirements have no remaining count yet, so they add nothing here.
+  const remaining = data.enrollments.reduce((sum, e) => sum + e.progress.reduce((s, p) => s + (p.remaining ?? 0), 0), 0);
 
   return (
     <>
@@ -79,6 +80,18 @@ export default async function StudentDashboardPage() {
                   </div>
                   <ul className="mt-3 flex flex-col gap-3">
                     {enrollment.progress.map((item) => {
+                      if (item.requiredSessions === null) {
+                        return (
+                          <li key={item.id}>
+                            <div className="flex justify-between text-[0.8125rem] text-muted">
+                              <span>
+                                {labels.vehicleType[item.vehicleType]} · {labels.trainingType[item.trainingType]}
+                              </span>
+                              <span>Allocation pending</span>
+                            </div>
+                          </li>
+                        );
+                      }
                       const percent = item.requiredSessions > 0 ? Math.round((item.completed / item.requiredSessions) * 100) : 0;
                       return (
                         <li key={item.id}>

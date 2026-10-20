@@ -42,6 +42,10 @@ function assertTeamTestingBranch() {
   if (!ALLOWED_HOSTS.has(host)) {
     fail("Refusing to seed: DATABASE_URL is not the team-testing branch.");
   }
+  const queryKeys = [...new URL(raw).searchParams.keys()];
+  if (!queryKeys.every((k, i, all) => (k === "sslmode" || k === "channel_binding") && all.indexOf(k) === i)) {
+    fail("Refusing to seed: DATABASE_URL may carry only sslmode and channel_binding, each once.");
+  }
 }
 
 async function main() {

@@ -254,7 +254,7 @@ describe("approval and existing enrollments", () => {
   });
 
   it("still accepts new applications for an incomplete package, while approval stays blocked", async () => {
-    const response = await registrationPost(postRequest("/api/registration", { ...VALID_REGISTRATION, packageId: PACKAGE }));
+    const response = await registrationPost(postRequest("/api/registration", { ...VALID_REGISTRATION, packageId: PACKAGE, sessionSelections: [{ vehicleType: "CAR", requiredSessions: 2 }] }));
     expect(response.status).toBe(201);
   });
 });

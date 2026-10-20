@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdminFrame from "@/components/admin/AdminFrame";
 import { formatDate, formatDateTime, formatMoney, labels } from "@/components/student/format";
@@ -28,6 +29,11 @@ export default async function AdminStudentProfilePage({ params }: { params: Prom
       crumbs={[{ label: "Students", href: "/portal/admin/students" }, { label: student.fullName }]}
     >
       <div className="grid gap-6">
+        <p className="text-[0.9375rem]">
+          <Link href={`/portal/admin/students/${userId}/entitlements`} className="font-semibold text-ink underline">
+            Confirm session counts
+          </Link>
+        </p>
         <section aria-labelledby="profile-heading" className="glass rounded-[22px] p-5">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 id="profile-heading" className="text-[1.125rem] font-bold text-ink">
@@ -101,10 +107,16 @@ export default async function AdminStudentProfilePage({ params }: { params: Prom
                           <tr key={row.id}>
                             <td className="border-b border-line px-3 py-2">{labels.vehicleType[row.vehicleType] ?? row.vehicleType}</td>
                             <td className="border-b border-line px-3 py-2">{labels.trainingType[row.trainingType] ?? row.trainingType}</td>
-                            <td className="border-b border-line px-3 py-2">{row.requiredSessions}</td>
-                            <td className="border-b border-line px-3 py-2">{row.completed}</td>
-                            <td className="border-b border-line px-3 py-2">{row.scheduled}</td>
-                            <td className="border-b border-line px-3 py-2">{row.remaining}</td>
+                            {row.requiredSessions === null ? (
+                              <td colSpan={4} className="border-b border-line px-3 py-2 text-muted">Allocation pending</td>
+                            ) : (
+                              <>
+                                <td className="border-b border-line px-3 py-2">{row.requiredSessions}</td>
+                                <td className="border-b border-line px-3 py-2">{row.completed}</td>
+                                <td className="border-b border-line px-3 py-2">{row.scheduled}</td>
+                                <td className="border-b border-line px-3 py-2">{row.remaining}</td>
+                              </>
+                            )}
                           </tr>
                         ))}
                       </tbody>

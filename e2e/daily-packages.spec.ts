@@ -19,7 +19,7 @@ function escapeRegExp(text: string) {
   return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-/** Matches the whole option text, so "Car Daily Training" never matches "Car Daily Training + Motorcycle ...". */
+/** Matches the whole option text, so "Car Daily Training" never matches "Car Regular Training + Motorcycle ...". */
 function option(page: Page, row: PackageRow) {
   const parts = [row.name, row.detail, row.price].filter(Boolean).map(escapeRegExp);
   const pattern = new RegExp(`^${parts.join("\\s*")}$`);

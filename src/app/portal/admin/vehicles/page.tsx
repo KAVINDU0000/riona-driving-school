@@ -138,8 +138,8 @@ export default async function AdminVehiclesPage({
         ) : (
           <ul className="mt-5 grid gap-2.5">
             {result.vehicles.map((vehicle) => (
-              <li key={vehicle.id}>
-                <Link href={`/portal/admin/vehicles/${vehicle.id}`} className={`${ROW_LINK} items-center`}>
+              <li key={vehicle.id} className="flex flex-col gap-2 sm:flex-row sm:items-stretch sm:gap-2.5">
+                <Link href={`/portal/admin/vehicles/${vehicle.id}`} className={`${ROW_LINK} min-w-0 flex-1 items-center`}>
                   <span
                     aria-hidden="true"
                     className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-page text-ink-soft ring-1 ring-line"
@@ -159,6 +159,13 @@ export default async function AdminVehiclesPage({
                       {VEHICLE_STATUS_LABELS[vehicle.status]}
                     </span>
                   </span>
+                </Link>
+                <Link
+                  href={`/portal/admin/vehicles/${vehicle.id}/maintenance`}
+                  aria-label={`Maintenance for ${vehicle.registrationNumber}`}
+                  className={`${BUTTON_SECONDARY} h-auto w-full shrink-0 whitespace-nowrap px-4 py-2.5 sm:w-auto sm:self-center`}
+                >
+                  Maintenance
                 </Link>
               </li>
             ))}

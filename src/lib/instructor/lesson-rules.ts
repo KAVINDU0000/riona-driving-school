@@ -105,3 +105,71 @@ export function shiftDate(date: string, days: number): string {
   const time = Date.parse(`${date}T00:00:00Z`) + days * 86_400_000;
   return new Date(time).toISOString().slice(0, 10);
 }
+
+export const LESSON_NOTES_MAX_LENGTH = 1000;
+
+/** Notes are internal: the student portal never selects them. Empty or missing text clears the note. */
+export function parseLessonNotes(value: unknown): string | null {
+  if (value === undefined || value === null) return null;
+  if (typeof value !== "string") throw new AuthError(400, "Notes must be text.");
+  const text = value.trim();
+  if (text.length > LESSON_NOTES_MAX_LENGTH) {
+    throw new AuthError(400, `Notes must be ${LESSON_NOTES_MAX_LENGTH} characters or fewer.`);
+  }
+  return text || null;
+}
+
+/** Notes can be written until the lesson is cancelled. A cancelled lesson is a closed record. */
+export function canEditNotes(lesson: { status: LessonScheduleStatus }): boolean {
+  return lesson.status !== LessonScheduleStatus.CANCELLED;
+}
+
+export type HistoryEvent = {
+  kind: "BOOKED" | "ATTENDANCE" | "COMPLETED" | "CANCELLED" | "FEEDBACK";
+  /** ISO time, or null when the schema does not record when it happened. */
+  at: string | null;
+  text: string;
+};
+
+type HistorySource = {
+  status: LessonScheduleStatus;
+  attendance: AttendanceStatus | null;
+  createdAt: Date;
+  attendanceMarkedAt: Date | null;
+  attendanceMarkedByRole: "ADMIN" | "INSTRUCTOR" | "STUDENT" | null;
+  cancelledAt: Date | null;
+  cancelledByRole: "ADMIN" | "INSTRUCTOR" | "STUDENT" | null;
+  cancellationReason: string | null;
+  feedbackAt: Date | null;
+};
+
+const ACTOR: Record<string, string> = { ADMIN: "the school", INSTRUCTOR: "an instructor", STUDENT: "the student" };
+const ATTENDANCE_TEXT: Record<AttendanceStatus, string> = { PRESENT: "Present", ABSENT: "Absent", LATE: "Late" };
+
+/**
+ * The state changes the schema records for a lesson, in the order they can happen. The schema keeps only the latest attendance and has
+ * no completion timestamp, so a completion is listed without a time rather than with a guessed one.
+ */
+export function buildHistory(lesson: HistorySource): HistoryEvent[] {
+  const events: HistoryEvent[] = [{ kind: "BOOKED", at: lesson.createdAt.toISOString(), text: "Lesson booked." }];
+  if (lesson.attendance) {
+    const by = lesson.attendanceMarkedByRole ? ` by ${ACTOR[lesson.attendanceMarkedByRole]}` : "";
+    events.push({
+      kind: "ATTENDANCE",
+      at: lesson.attendanceMarkedAt?.toISOString() ?? null,
+      text: `Attendance recorded as ${ATTENDANCE_TEXT[lesson.attendance]}${by}.`,
+    });
+  }
+  if (lesson.status === LessonScheduleStatus.COMPLETED) {
+    events.push({ kind: "COMPLETED", at: null, text: "Marked completed." });
+  }
+  if (lesson.feedbackAt) {
+    events.push({ kind: "FEEDBACK", at: lesson.feedbackAt.toISOString(), text: "Feedback saved for the student." });
+  }
+  if (lesson.status === LessonScheduleStatus.CANCELLED) {
+    const by = lesson.cancelledByRole ? ` by ${ACTOR[lesson.cancelledByRole]}` : "";
+    const reason = lesson.cancellationReason ? ` Reason: ${lesson.cancellationReason}` : "";
+    events.push({ kind: "CANCELLED", at: lesson.cancelledAt?.toISOString() ?? null, text: `Lesson cancelled${by}.${reason}` });
+  }
+  return events;
+}

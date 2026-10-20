@@ -1,3 +1,4 @@
+import { isApprovedTestUrl } from "../tests/test-target";
 import { expect, test } from "@playwright/test";
 
 // The project has no type declarations for pg, so the small part used here is typed locally.
@@ -16,7 +17,7 @@ async function setPackageActive(active: boolean) {
   const url = process.env.TEST_DATABASE_URL;
   if (!url) throw new Error("TEST_DATABASE_URL is not set.");
   const parsed = new URL(url);
-  if (!(parsed.hostname === "localhost" && parsed.port === "15432" && parsed.pathname === "/riona_fresh_test")) {
+  if (!(isApprovedTestUrl(parsed))) {
     throw new Error("Refusing to change packages: target is not localhost:15432/riona_fresh_test.");
   }
   const client = new Client({ connectionString: url });
@@ -58,6 +59,7 @@ test.describe("inactive packages", () => {
         password: "correct-horse-battery",
         address: "No. 1, Station Road, Colombo",
         packageId: INACTIVE_ID,
+        sessionSelections: [{ vehicleType: "VAN", requiredSessions: 2 }],
       },
     });
     expect(response.status()).toBe(422);

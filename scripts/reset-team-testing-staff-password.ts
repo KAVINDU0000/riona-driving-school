@@ -32,6 +32,10 @@ function assertTeamTestingBranch() {
     fail("DATABASE_URL is not a valid URL.");
   }
   if (!ALLOWED_HOSTS.has(host)) fail("Refusing to change passwords: DATABASE_URL is not the team-testing branch.");
+  const queryKeys = [...new URL(raw).searchParams.keys()];
+  if (!queryKeys.every((k, i, all) => (k === "sslmode" || k === "channel_binding") && all.indexOf(k) === i)) {
+    fail("Refusing to change passwords: DATABASE_URL may carry only sslmode and channel_binding, each once.");
+  }
 }
 
 async function main() {

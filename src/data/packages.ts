@@ -41,12 +41,12 @@ export const packageGroups: PackageGroup[] = [
   {
     label: "Additional vehicle training",
     options: [
-      { id: "extra-car-motorcycle", name: "Car Daily Training + Motorcycle Trial Preparation", price: 30000 },
-      { id: "extra-car-three-wheeler", name: "Car Daily Training + Three-Wheeler Trial Preparation", price: 31000 },
-      { id: "extra-car-three-wheeler-motorcycle", name: "Car Daily Training + Three-Wheeler and Motorcycle Trial Preparation", price: 35000 },
-      { id: "extra-van-motorcycle", name: "Van Daily Training + Motorcycle Trial Preparation", price: 30000 },
-      { id: "extra-van-three-wheeler", name: "Van Daily Training + Three-Wheeler Trial Preparation", price: 31000 },
-      { id: "extra-van-three-wheeler-motorcycle", name: "Van Daily Training + Three-Wheeler and Motorcycle Trial Preparation", price: 35000 },
+      { id: "extra-car-motorcycle", name: "Car Regular Training + Motorcycle Trial Preparation", price: 30000 },
+      { id: "extra-car-three-wheeler", name: "Car Regular Training + Three-Wheeler Trial Preparation", price: 31000 },
+      { id: "extra-car-three-wheeler-motorcycle", name: "Car Regular Training + Three-Wheeler and Motorcycle Trial Preparation", price: 35000 },
+      { id: "extra-van-motorcycle", name: "Van Regular Training + Motorcycle Trial Preparation", price: 30000 },
+      { id: "extra-van-three-wheeler", name: "Van Regular Training + Three-Wheeler Trial Preparation", price: 31000 },
+      { id: "extra-van-three-wheeler-motorcycle", name: "Van Regular Training + Three-Wheeler and Motorcycle Trial Preparation", price: 35000 },
     ],
   },
   {

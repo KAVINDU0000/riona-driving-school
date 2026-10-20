@@ -10,6 +10,7 @@ import { ADMIN_PAGE_SIZE, pageCount } from "@/lib/admin/query";
 import { AuthError } from "@/lib/auth/http";
 import { checkActivationEligibility } from "@/lib/admin/vehicle-eligibility";
 import { parseCancellationReason } from "@/lib/lessons/cancellation";
+import { requireExpectedUpdatedAt } from "@/lib/admin/entitlement-rules";
 import { prisma } from "@/lib/prisma";
 import { dateToString, parseDateOnly, schoolNow, timeToString } from "@/lib/student/time";
 
@@ -348,14 +349,23 @@ const EDITABLE: (keyof VehicleFields)[] = [
   "description",
 ];
 
+/**
+ * Every vehicle change needs the vehicle's last-changed time, as the admin's page loaded it, so a stale page cannot
+ * overwrite a newer change. The check itself is in entitlement-rules; here it is only given the vehicle wording.
+ */
+function vehicleStamp(value: string | null): string {
+  return requireExpectedUpdatedAt(value, "The vehicle's last-changed time");
+}
+
 export async function updateVehicle(vehicleId: string, adminUserId: string, fields: VehicleFields, expectedUpdatedAt: string | null) {
+  const expected = vehicleStamp(expectedUpdatedAt);
   try {
     return await prisma.$transaction(async (tx) => {
       // Lock the row, so two edits cannot both read the same old values.
       await tx.$queryRaw`SELECT id FROM "Vehicle" WHERE id = ${vehicleId} FOR UPDATE`;
       const current = await tx.vehicle.findUnique({ where: { id: vehicleId } });
       if (!current) throw new AuthError(404, "That vehicle was not found.");
-      if (expectedUpdatedAt && current.updatedAt.toISOString() !== expectedUpdatedAt) {
+      if (current.updatedAt.toISOString() !== expected) {
         throw new AuthError(409, "This vehicle was changed by someone else. Reload the page and try again.");
       }
 
@@ -397,13 +407,24 @@ export async function changeVehicleStatus(
   adminUserId: string,
   input: { status: VehicleStatus; expectedUpdatedAt: string | null; resolutions: Resolution[] },
 ) {
+  const expected = vehicleStamp(input.expectedUpdatedAt);
   try {
     return await prisma.$transaction(async (tx) => {
-      // Locking the vehicle makes booking wait (it takes a shared lock on the vehicle) until this change finishes.
-      await tx.$queryRaw`SELECT id FROM "Vehicle" WHERE id = ${vehicleId} FOR UPDATE`;
+      // Lock every vehicle this change touches in one sorted order: this vehicle exclusively (so booking waits for this change),
+      // and each reassignment target shared. Two changes that move lessons onto each other's vehicles then queue in the same
+      // order instead of each waiting on the other.
+      const targetIds = input.resolutions.flatMap((item) => (item.action === "REASSIGN" ? [item.vehicleId] : []));
+      const lockIds = [...new Set([vehicleId, ...targetIds])].sort();
+      for (const id of lockIds) {
+        if (id === vehicleId) {
+          await tx.$queryRaw`SELECT id FROM "Vehicle" WHERE id = ${id} FOR UPDATE`;
+        } else {
+          await tx.$queryRaw`SELECT id FROM "Vehicle" WHERE id = ${id} FOR SHARE`;
+        }
+      }
       const vehicle = await tx.vehicle.findUnique({ where: { id: vehicleId } });
       if (!vehicle) throw new AuthError(404, "That vehicle was not found.");
-      if (input.expectedUpdatedAt && vehicle.updatedAt.toISOString() !== input.expectedUpdatedAt) {
+      if (vehicle.updatedAt.toISOString() !== expected) {
         throw new AuthError(409, "This vehicle was changed by someone else. Reload the page and try again.");
       }
       if (vehicle.status === input.status) throw new AuthError(409, "The vehicle already has this status.");

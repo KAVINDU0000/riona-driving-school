@@ -6,6 +6,16 @@ import Icon from "@/components/ui/Icon";
 import PackageSelect from "@/components/auth/PackageSelect";
 import { packageDiscountNote } from "@/data/public";
 import { findInGroups, formatPackagePrice, isPerSession, type CatalogGroup } from "@/lib/packages/format";
+import {
+  REGULAR_SESSIONS_PER_VEHICLE,
+  SESSION_VEHICLE_LABELS,
+  TRIAL_MAX_SESSIONS,
+  TRIAL_MIN_SESSIONS,
+  regularVehiclesOf,
+  resolveSessionRequirements,
+  sessionRuleFor,
+  trialVehiclesOf,
+} from "@/lib/registration/session-rules";
 import { saveApplicationReference } from "@/lib/registration/browser-reference";
 
 type Values = {
@@ -95,6 +105,8 @@ export default function SignupForm({ catalog, initialPackageId = "" }: { catalog
   const [submitting, setSubmitting] = useState(false);
   const [serverError, setServerError] = useState("");
   const [reference, setReference] = useState<string | null>(null);
+  // Trial Preparation counts, one entry per vehicle, as the applicant typed them.
+  const [sessionCounts, setSessionCounts] = useState<Record<string, string>>({});
 
   function update(field: keyof Values) {
     return (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
@@ -104,6 +116,11 @@ export default function SignupForm({ catalog, initialPackageId = "" }: { catalog
   // Per-session packages show their rate but cannot be registered online until the school sets a policy.
   const selectedPackage = findInGroups(catalog, values.packageId);
   const perSessionPackage = selectedPackage && isPerSession(selectedPackage) ? selectedPackage : null;
+  // Session counts: Regular is fixed at 15 per vehicle (shown, not editable); Trial lets the applicant choose 1 to 5 per vehicle.
+  // An Additional vehicle package has both: its Regular vehicle is fixed, and each Trial vehicle is chosen separately.
+  const sessionRule = sessionRuleFor(values.packageId);
+  const regularVehicles = regularVehiclesOf(sessionRule);
+  const trialVehicles = trialVehiclesOf(sessionRule);
 
   // Server field names differ from the form's field names in these places only.
   const serverField: Partial<Record<keyof Values, string>> = {
@@ -122,6 +139,19 @@ export default function SignupForm({ catalog, initialPackageId = "" }: { catalog
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
+    // The same rule the server applies. Regular needs no input. Trial sends one count per Trial vehicle; the Regular
+    // vehicle of an Additional vehicle package is never sent, because the server sets it to 15.
+    const sessionSelections = trialVehicles.length > 0
+      ? trialVehicles.map((vehicleType) => ({ vehicleType, requiredSessions: Number(sessionCounts[vehicleType] ?? "") }))
+      : undefined;
+    if (sessionRule) {
+      const checked = resolveSessionRequirements(values.packageId, sessionSelections);
+      if (!checked.ok) {
+        setServerError(checked.message);
+        return;
+      }
+    }
+
     setSubmitting(true);
     try {
       const response = await fetch("/api/registration", {
@@ -139,6 +169,7 @@ export default function SignupForm({ catalog, initialPackageId = "" }: { catalog
           address: values.address,
           packageId: values.packageId,
           additionalNote: values.notes,
+          ...(sessionSelections ? { sessionSelections } : {}),
         }),
       });
       const data = (await response.json().catch(() => ({}))) as {
@@ -322,12 +353,51 @@ export default function SignupForm({ catalog, initialPackageId = "" }: { catalog
           value={values.packageId}
           onChange={(packageId) => {
             setServerError("");
+            setSessionCounts({});
             setValues((current) => ({ ...current, packageId }));
           }}
           invalid={Boolean(errors.packageId)}
           catalog={catalog}
         />
       </Field>
+
+      {regularVehicles.length > 0 && (
+        <fieldset className="grid gap-2 rounded-xl border border-line bg-white p-4">
+          <legend className="px-1 text-[0.9375rem] font-semibold text-ink">Training sessions</legend>
+          <p className="text-[0.8125rem] text-muted">Regular training is fixed at {REGULAR_SESSIONS_PER_VEHICLE} sessions for each vehicle.</p>
+          <ul className="grid gap-1 text-[0.875rem] text-ink">
+            {regularVehicles.map((vehicle) => (
+              <li key={vehicle}>
+                {SESSION_VEHICLE_LABELS[vehicle]}: {REGULAR_SESSIONS_PER_VEHICLE} sessions
+              </li>
+            ))}
+          </ul>
+        </fieldset>
+      )}
+
+      {trialVehicles.length > 0 && (
+        <fieldset className="grid gap-3 rounded-xl border border-line bg-white p-4">
+          <legend className="px-1 text-[0.9375rem] font-semibold text-ink">Choose sessions for each vehicle *</legend>
+          <p className="text-[0.8125rem] text-muted">
+            Choose a whole number of sessions from {TRIAL_MIN_SESSIONS} to {TRIAL_MAX_SESSIONS} for each vehicle in this package.
+          </p>
+          {trialVehicles.map((vehicle) => (
+            <label key={vehicle} className="grid gap-1 text-[0.875rem] font-medium text-ink">
+              {SESSION_VEHICLE_LABELS[vehicle]} sessions
+              <input
+                type="number"
+                inputMode="numeric"
+                min={TRIAL_MIN_SESSIONS}
+                max={TRIAL_MAX_SESSIONS}
+                step={1}
+                value={sessionCounts[vehicle] ?? ""}
+                onChange={(event) => setSessionCounts((current) => ({ ...current, [vehicle]: event.target.value }))}
+                className="rounded-xl border border-line bg-white px-3 py-2 text-[0.9375rem] text-ink"
+              />
+            </label>
+          ))}
+        </fieldset>
+      )}
 
       {perSessionPackage && (
         <div role="note" className="rounded-xl bg-gold-soft px-4 py-3 text-[0.875rem] text-gold-ink">

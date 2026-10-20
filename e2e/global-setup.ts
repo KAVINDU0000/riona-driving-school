@@ -1,3 +1,4 @@
+import { isApprovedTestUrl } from "../tests/test-target";
 import { packageGroups } from "../src/data/packages";
 
 // The project has no type declarations for pg, so the small part used here is typed locally.
@@ -25,7 +26,7 @@ export default async function globalSetup() {
   const url = process.env.TEST_DATABASE_URL;
   if (!url) throw new Error("TEST_DATABASE_URL is not set.");
   const parsed = new URL(url);
-  if (!(parsed.hostname === "localhost" && parsed.port === "15432" && parsed.pathname === "/riona_fresh_test")) {
+  if (!(isApprovedTestUrl(parsed))) {
     throw new Error("Refusing to seed: target is not localhost:15432/riona_fresh_test.");
   }
 

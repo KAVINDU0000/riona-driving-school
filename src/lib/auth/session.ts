@@ -1,3 +1,4 @@
+import type { Prisma } from "@/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
 import { SESSION_TTL_SECONDS } from "@/lib/auth/config";
 import { generateToken, hashToken } from "@/lib/auth/tokens";
@@ -16,7 +17,7 @@ export async function deleteSessionByToken(token: string) {
   await prisma.session.deleteMany({ where: { tokenHash: hashToken(token) } });
 }
 
-/** Signs the user out everywhere, for example after a password reset. */
-export async function revokeAllSessions(userId: string) {
-  await prisma.session.deleteMany({ where: { userId } });
+/** Signs the user out everywhere, for example after a password reset. Pass a transaction client to run it inside that transaction. */
+export async function revokeAllSessions(userId: string, db: Prisma.TransactionClient | typeof prisma = prisma) {
+  await db.session.deleteMany({ where: { userId } });
 }

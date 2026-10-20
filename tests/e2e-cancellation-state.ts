@@ -1,3 +1,4 @@
+import { isApprovedTestUrl } from "./test-target";
 /**
  * Prints the state the lesson-cancellation browser tests check: the lesson, STU-A's remaining sessions for the first
  * enrollment, and every payment and enrollment total for that enrollment. Read-only. It refuses to run against any
@@ -8,7 +9,7 @@ import { getEnrollments } from "@/lib/student/data";
 
 const url = process.env.DATABASE_URL ?? "";
 const parsed = new URL(url);
-if (!(parsed.hostname === "localhost" && parsed.port === "15432" && parsed.pathname === "/riona_fresh_test")) {
+if (!(isApprovedTestUrl(parsed))) {
   throw new Error("Refusing to read: target is not localhost:15432/riona_fresh_test.");
 }
 

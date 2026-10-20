@@ -9,6 +9,8 @@ import { AuthError } from "@/lib/auth/http";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
 import { vehicleWarning } from "@/lib/instructor/lesson-rules";
 import { getLessonDetail } from "@/lib/instructor/lessons";
+import VehicleFaultForm from "@/components/instructor/VehicleFaultForm";
+import { formatDateTime } from "@/components/student/format";
 
 export const metadata: Metadata = {
   title: "Lesson | Instructor Portal | Riyona Driving School",
@@ -63,11 +65,31 @@ export default async function InstructorLessonPage({ params }: { params: Promise
             <Field label="Duration" value={`${lesson.durationMinutes} minutes`} />
             <Field label="Vehicle" value={lesson.vehicle.label} />
             <Field label="Registration" value={lesson.vehicle.registrationNumber} />
-            <Field label="Training progress" value={`${lesson.progress.completedSessions} of ${lesson.progress.requiredSessions} completed sessions`} />
+            <Field
+              label="Training progress"
+              value={
+                lesson.progress.requiredSessions === null
+                  ? "Allocation pending"
+                  : `${lesson.progress.completedSessions} of ${lesson.progress.requiredSessions} completed sessions`
+              }
+            />
           </dl>
           <p className="text-[0.8125rem] text-muted">
             Progress counts this student&apos;s completed lessons for this lesson type and vehicle. It does not list other lessons.
           </p>
+          <VehicleFaultForm vehicleId={lesson.vehicle.id} vehicleLabel={lesson.vehicle.label} />
+          <section aria-labelledby="history-heading" className="grid gap-2 border-t border-line pt-4">
+            <h3 id="history-heading" className="text-[1rem] font-bold text-ink">
+              History
+            </h3>
+            <ol className="grid gap-2">
+              {lesson.history.map((event, index) => (
+                <li key={`${event.kind}-${index}`} className="text-[0.875rem] text-ink">
+                  <span className="text-muted">{event.at ? formatDateTime(new Date(event.at)) : "Time not recorded"}</span> · {event.text}
+                </li>
+              ))}
+            </ol>
+          </section>
           <Link href={`/portal/instructor/students/${lesson.student.userId}`} className="text-[0.875rem] font-semibold text-gold-ink hover:underline">
             View this student&apos;s progress with you →
           </Link>
@@ -77,7 +99,7 @@ export default async function InstructorLessonPage({ params }: { params: Promise
           <h2 id="actions-heading" className="mb-5 text-[1.125rem] font-bold text-ink">
             Record the lesson
           </h2>
-          <LessonActions lessonId={lesson.id} attendance={lesson.attendance} permissions={lesson.permissions} feedback={lesson.feedback} />
+          <LessonActions lessonId={lesson.id} attendance={lesson.attendance} permissions={lesson.permissions} feedback={lesson.feedback} notes={lesson.notes} />
         </section>
       </div>
     </InstructorFrame>

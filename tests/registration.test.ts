@@ -6,14 +6,16 @@ import { prisma } from "@/lib/prisma";
 import { packageGroups } from "@/data/packages";
 import { isPerSession } from "@/lib/packages/format";
 import { generateReferenceNumber } from "@/lib/registration/submit";
-import { postRequest, resetDatabase } from "./helpers";
+import { postRequest, refuseSharedDatabase, resetDatabase } from "./helpers";
 
 const PASSWORD = "correct-horse-battery";
 const PACKAGE_ID = "regular-car-van";
 const INACTIVE_PACKAGE_ID = "retired-package";
 
 async function resetRegistrationTables() {
+  refuseSharedDatabase();
   await resetDatabase();
+  refuseSharedDatabase();
   await prisma.$executeRawUnsafe('TRUNCATE TABLE "RegistrationRequest" CASCADE');
 }
 

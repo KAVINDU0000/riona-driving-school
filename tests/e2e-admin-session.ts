@@ -1,3 +1,4 @@
+import { isApprovedTestUrl } from "./test-target";
 /**
  * Creates a session for the test admin in the disposable test database, and prints only the session token.
  * Browser tests use it instead of the sign-in form, so they do not use up the sign-in rate limit. It refuses to
@@ -10,7 +11,7 @@ async function main() {
   const url = process.env.TEST_DATABASE_URL;
   if (!url) throw new Error("TEST_DATABASE_URL is not set.");
   const parsed = new URL(url);
-  if (!(parsed.hostname === "localhost" && parsed.port === "15432" && parsed.pathname === "/riona_fresh_test")) {
+  if (!(isApprovedTestUrl(parsed))) {
     throw new Error("Refusing to create a session: target is not localhost:15432/riona_fresh_test.");
   }
 

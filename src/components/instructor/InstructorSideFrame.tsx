@@ -8,6 +8,8 @@ import Icon, { type IconName } from "@/components/ui/Icon";
 const SECTIONS = [
   { href: "/portal/instructor", label: "Dashboard", icon: "grid" },
   { href: "/portal/instructor/lessons", label: "Lessons", icon: "calendar" },
+  { href: "/portal/instructor/availability", label: "Availability", icon: "clock" },
+  { href: "/portal/instructor/students", label: "Students", icon: "users" },
   { href: "/portal/instructor/profile", label: "Profile", icon: "user" },
 ] as const satisfies readonly { href: string; label: string; icon: IconName }[];
 

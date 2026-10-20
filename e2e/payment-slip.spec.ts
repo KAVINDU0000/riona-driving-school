@@ -1,3 +1,4 @@
+import { isApprovedTestUrl } from "../tests/test-target";
 import { execSync } from "node:child_process";
 import { expect, test, type Page } from "@playwright/test";
 import globalSetup from "./global-setup";
@@ -11,7 +12,7 @@ if (!TEST_URL) {
   throw new Error("Set TEST_DATABASE_URL to the local riona_fresh_test database before running the browser tests.");
 }
 const parsedTarget = new URL(TEST_URL);
-if (!(parsedTarget.hostname === "localhost" && parsedTarget.port === "15432" && parsedTarget.pathname === "/riona_fresh_test")) {
+if (!(isApprovedTestUrl(parsedTarget))) {
   throw new Error("Refusing to run: payment browser tests must use localhost:15432/riona_fresh_test.");
 }
 

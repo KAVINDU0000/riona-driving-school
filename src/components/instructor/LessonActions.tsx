@@ -15,12 +15,15 @@ type Props = {
     canComplete: boolean;
     canCancel: boolean;
     canWriteFeedback: boolean;
+    canEditNotes: boolean;
   };
   feedback: { feedback: string; rating: number | null } | null;
+  notes: string | null;
 };
 
 const ATTENDANCE_OPTIONS: Attendance[] = ["PRESENT", "ABSENT", "LATE"];
 const FEEDBACK_MAX = 2000;
+const NOTES_MAX = 1000;
 const CANCEL_REASON_MAX = 300;
 
 const BUTTON =
@@ -36,7 +39,7 @@ async function errorFrom(response: Response, fallback: string) {
  * Instructor actions on one lesson. Every action is checked again on the server, and the buttons only reflect
  * what the server said is allowed. After a change the page is refreshed from the server.
  */
-export default function LessonActions({ lessonId, attendance, permissions, feedback }: Props) {
+export default function LessonActions({ lessonId, attendance, permissions, feedback, notes }: Props) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
@@ -46,6 +49,7 @@ export default function LessonActions({ lessonId, attendance, permissions, feedb
   const [cancelReasonError, setCancelReasonError] = useState("");
   const [text, setText] = useState(feedback?.feedback ?? "");
   const [rating, setRating] = useState(feedback?.rating ? String(feedback.rating) : "");
+  const [notesText, setNotesText] = useState(notes ?? "");
 
   async function send(path: string, init: RequestInit, success: string) {
     setBusy(true);
@@ -73,7 +77,12 @@ export default function LessonActions({ lessonId, attendance, permissions, feedb
 
   async function complete() {
     setConfirm(null);
-    await send("complete", { method: "POST" }, "Lesson marked completed.");
+    await send("complete", { method: "POST", body: JSON.stringify({ notes: notesText }) }, "Lesson marked completed.");
+  }
+
+  async function saveNotes(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await send("notes", { method: "PUT", body: JSON.stringify({ notes: notesText }) }, "Notes saved.");
   }
 
   async function cancel() {
@@ -158,6 +167,24 @@ export default function LessonActions({ lessonId, attendance, permissions, feedb
         <p className="-mt-4 text-[0.8125rem] text-muted">Record attendance before marking the lesson completed.</p>
       )}
 
+      {permissions.canEditNotes && (
+        <form onSubmit={saveNotes} className="grid gap-3 border-t border-line pt-5">
+          <label className="grid gap-1.5 text-[0.8125rem] font-semibold text-ink">
+            Lesson notes (private, not shown to the student)
+            <textarea
+              value={notesText}
+              onChange={(event) => setNotesText(event.target.value)}
+              maxLength={NOTES_MAX}
+              rows={3}
+              className="w-full rounded-xl border border-line bg-white px-3 py-2 text-[0.9375rem] font-normal text-ink focus:border-gold-dark focus:outline-none focus:ring-4 focus:ring-gold/25"
+            />
+          </label>
+          <button type="submit" disabled={busy} className={`${BUTTON} justify-self-start bg-white text-ink ring-line hover:bg-page`}>
+            Save notes
+          </button>
+        </form>
+      )}
+
       {permissions.canWriteFeedback ? (
         <form onSubmit={saveFeedback} className="grid gap-3 border-t border-line pt-5">
           <h3 className="text-[1rem] font-bold text-ink">Lesson feedback</h3>
@@ -205,7 +232,8 @@ export default function LessonActions({ lessonId, attendance, permissions, feedb
         onConfirm={complete}
         onCancel={() => setConfirm(null)}
       >
-        <p>The lesson will count towards the student&apos;s training progress. This does not change attendance.</p>
+        <p>The lesson will count towards the student&apos;s training progress. This does not change attendance or the number of sessions booked.</p>
+        <p className="mt-2 text-[0.8125rem] text-muted">Any text in the lesson notes box is saved with the outcome.</p>
       </ConfirmDialog>
 
       <ConfirmDialog

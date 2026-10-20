@@ -18,7 +18,7 @@ export default async function AdminInstructorProfilePage({ params }: { params: P
   if (!isDirectoryId(userId)) notFound();
   const profile = await getInstructorProfile(userId);
   if (!profile) notFound();
-  const { instructor, monthLabel, monthCounts, upcomingLessons, upcomingAvailabilityWindows, feedbackCount } = profile;
+  const { instructor, monthLabel, monthCounts, upcomingLessons, upcomingAvailabilityWindows, availabilityWindows, feedbackCount } = profile;
   const active = instructor.accountStatus === "ACTIVE" && instructor.profileStatus === "ACTIVE";
 
   return (
@@ -61,6 +61,29 @@ export default async function AdminInstructorProfilePage({ params }: { params: P
             <Field label="Availability windows from today" value={String(upcomingAvailabilityWindows)} />
             <Field label="Lesson feedback written" value={String(feedbackCount)} />
           </dl>
+        </section>
+
+        <section aria-labelledby="availability-heading" className="glass rounded-[22px] p-5">
+          <h2 id="availability-heading" className="text-[1.125rem] font-bold text-ink">
+            Availability
+          </h2>
+          <p className="mt-2 text-[0.875rem] text-muted">
+            The hours students can book this instructor. The instructor sets them; they are shown here for oversight and cannot be changed from this page.
+          </p>
+          {availabilityWindows.length === 0 ? (
+            <p className="mt-4 text-[0.9375rem] text-muted">No availability is set, so students cannot book this instructor.</p>
+          ) : (
+            <ul className="mt-4 grid gap-2">
+              {availabilityWindows.map((window) => (
+                <li key={`${window.date}-${window.startTime}`} className="text-[0.9375rem] text-ink">
+                  {formatDate(window.date)} · {window.startTime}–{window.endTime}
+                </li>
+              ))}
+            </ul>
+          )}
+          {upcomingAvailabilityWindows > availabilityWindows.length && (
+            <p className="mt-2 text-[0.8125rem] text-muted">Showing the next {availabilityWindows.length} of {upcomingAvailabilityWindows} windows.</p>
+          )}
         </section>
 
         <section aria-labelledby="upcoming-heading" className="glass rounded-[22px] p-5">

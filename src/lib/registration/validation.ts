@@ -1,6 +1,7 @@
 import { normalizeEmail } from "@/lib/auth/http";
 import { validateNewPassword } from "@/lib/auth/password";
 import { schoolNow } from "@/lib/student/time";
+import { resolveSessionRequirements, type SessionRequirement } from "@/lib/registration/session-rules";
 
 export type RegistrationInput = {
   fullName: string;
@@ -12,10 +13,12 @@ export type RegistrationInput = {
   address: string;
   packageId: string;
   additionalNote: string | null;
+  /** Session counts for this registration, or null when the package has no student-facing counts. */
+  sessionRequirements: SessionRequirement[] | null;
 };
 
 export type RegistrationField = keyof RegistrationInput;
-export type FieldErrors = Partial<Record<RegistrationField, string>>;
+export type FieldErrors = Partial<Record<RegistrationField | "sessionSelections", string>>;
 
 export type ParseResult = { ok: true; input: RegistrationInput } | { ok: false; errors: FieldErrors };
 
@@ -74,6 +77,16 @@ export function parseRegistrationInput(body: Record<string, unknown>): ParseResu
   const note = readText(body, "additionalNote");
   if (note.length > 1000) errors.additionalNote = "Keep additional notes under 1,000 characters.";
 
+  let sessionRequirements: SessionRequirement[] | null = null;
+  if (packageId && packageId.length <= 100) {
+    const sessions = resolveSessionRequirements(packageId, body.sessionSelections);
+    if (sessions.ok) {
+      sessionRequirements = sessions.requirements;
+    } else {
+      errors.sessionSelections = sessions.message;
+    }
+  }
+
   if (Object.keys(errors).length > 0 || !email) {
     return { ok: false, errors };
   }
@@ -90,6 +103,7 @@ export function parseRegistrationInput(body: Record<string, unknown>): ParseResu
       address,
       packageId,
       additionalNote: note || null,
+      sessionRequirements,
     },
   };
 }

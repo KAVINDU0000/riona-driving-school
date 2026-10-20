@@ -3,6 +3,7 @@ import { RegistrationStatus } from "@/generated/prisma/enums";
 import { hashPassword } from "@/lib/auth/password";
 import { prisma } from "@/lib/prisma";
 import type { RegistrationInput } from "@/lib/registration/validation";
+import { sessionRuleFor } from "@/lib/registration/session-rules";
 
 const MAX_REFERENCE_ATTEMPTS = 5;
 
@@ -58,8 +59,14 @@ export async function submitRegistration(input: RegistrationInput): Promise<{ re
         if (!selectedPackage) throw new PackageUnavailableError();
         // Checked before any insert, so a refused daily package creates no records.
         if (selectedPackage.packageType === "DAILY") throw new PerSessionPackageError();
+        // A package with session rules must be stored with the matching package type, or it is refused.
+        const rule = sessionRuleFor(selectedPackage.id);
+        const expectedType = rule?.kind === "REGULAR" ? "REGULAR" : rule?.kind === "MIXED" ? "ADDITIONAL_VEHICLE" : "TRIAL_PREPARATION";
+        if (rule && selectedPackage.packageType !== expectedType) {
+          throw new PackageUnavailableError();
+        }
 
-        await tx.registrationRequest.create({
+        const created = await tx.registrationRequest.create({
           data: {
             referenceNumber,
             status: RegistrationStatus.PENDING,
@@ -74,7 +81,21 @@ export async function submitRegistration(input: RegistrationInput): Promise<{ re
             selectedPackageId: selectedPackage.id,
             packagePriceAtSubmission: selectedPackage.price,
           },
+          select: { id: true },
         });
+
+        // The session counts chosen for this registration are stored with it. Approval uses these, not the package's
+        // current configuration, so later package edits cannot change them.
+        if (input.sessionRequirements && input.sessionRequirements.length > 0) {
+          await tx.registrationSessionSelection.createMany({
+            data: input.sessionRequirements.map((requirement) => ({
+              registrationRequestId: created.id,
+              vehicleType: requirement.vehicleType,
+              trainingType: requirement.trainingType,
+              requiredSessions: requirement.requiredSessions,
+            })),
+          });
+        }
       });
       return { referenceNumber };
     } catch (error) {

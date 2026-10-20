@@ -7,10 +7,21 @@ export const ORIGIN = "http://localhost:3000";
 export const DEFAULT_PASSWORD = "correct-horse-battery";
 
 /**
+ * Refuses every destructive helper when the run targets the shared team-testing branch. The fixture-based suites never
+ * call these helpers, so they still run on team-testing. Call this before any TRUNCATE or broad delete.
+ */
+export function refuseSharedDatabase(): void {
+  if (process.env.TEST_TARGET === "team-testing") {
+    throw new Error("Refusing to reset: this helper truncates shared tables and cannot run against team-testing. Run the suite against the local test database.");
+  }
+}
+
+/**
  * Clears accounts (with their sessions, tokens and profiles), packages and vehicles. Only ever runs
- * against the guarded test database.
+ * against the guarded test database, and never against team-testing.
  */
 export async function resetDatabase() {
+  refuseSharedDatabase();
   await prisma.$executeRawUnsafe('TRUNCATE TABLE "User", "TrainingPackage", "Vehicle" CASCADE');
 }
 

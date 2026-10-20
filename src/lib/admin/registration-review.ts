@@ -299,11 +299,6 @@ export async function approveRegistration(registrationId: string, adminUserId: s
       if (selectedPackage.packageType === PackageType.DAILY) {
         throw new AuthError(422, "Per-session packages cannot be approved online yet. Contact the school.");
       }
-      // The school must enter and confirm the package's session requirements before any application can use them.
-      if (!selectedPackage.requirementsConfirmedAt) {
-        throw new AuthError(422, "This package's session requirements have not been confirmed yet, so the application cannot be approved. Contact the school.");
-      }
-
       const emailOwner = await tx.user.findUnique({ where: { email: registration.email }, select: { userId: true } });
       if (emailOwner) {
         throw new AuthError(409, "An account with this email already exists. Accounts are not merged, so resolve it first.");
@@ -313,10 +308,23 @@ export async function approveRegistration(registrationId: string, adminUserId: s
         throw new AuthError(409, "A student profile with this NIC already exists. Accounts are not merged, so resolve it first.");
       }
 
-      const items = await tx.trainingPackageItem.findMany({ where: { packageId: registration.selectedPackageId } });
-      // No rows at all means no session counts were set. That blocks approval just like a missing count does, so a
-      // package with no requirements cannot create an enrollment with nothing to train against.
-      if (items.length === 0 || items.some((item) => item.requiredSessions === null)) {
+      // Counts chosen at registration are used when the application has them, so later package edits cannot change them.
+      // Applications without stored counts (for example, additional-vehicle packages) use the package's rows, as before.
+      const chosen = await tx.registrationSessionSelection.findMany({
+        where: { registrationRequestId: registration.id },
+        select: { vehicleType: true, trainingType: true, requiredSessions: true },
+      });
+      const usesChosen = chosen.length > 0;
+      // The fallback uses the package's rows, so the school must have confirmed those rows first.
+      if (!usesChosen && !selectedPackage.requirementsConfirmedAt) {
+        throw new AuthError(422, "This package's session requirements have not been confirmed yet, so the application cannot be approved. Contact the school.");
+      }
+      const items = usesChosen
+        ? chosen
+        : await tx.trainingPackageItem.findMany({ where: { packageId: registration.selectedPackageId } });
+      // No rows at all means nothing to train against. The fallback also refuses a row with no count, because its
+      // enrollment would have nothing to train against. Chosen counts are never null (the column is NOT NULL).
+      if (items.length === 0 || (!usesChosen && items.some((item) => item.requiredSessions === null))) {
         throw new AuthError(422, "This package has no session counts set yet, so it cannot be approved.");
       }
 

@@ -24,8 +24,12 @@ export async function changePassword(userId: string, currentPassword: string, ne
   }
 
   const passwordHash = await hashPassword(newPassword);
-  await prisma.user.update({ where: { userId }, data: { passwordHash } });
-  await revokeAllSessions(userId);
+  // The password update and the session revocation commit together. If either fails, nothing changes: the old
+  // password and the old sessions both stay in force. The fresh session is created only after that commit.
+  await prisma.$transaction(async (tx) => {
+    await tx.user.update({ where: { userId }, data: { passwordHash } });
+    await revokeAllSessions(userId, tx);
+  });
   const { token } = await createSession(userId);
   return { token };
 }

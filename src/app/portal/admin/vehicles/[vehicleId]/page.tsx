@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdminFrame from "@/components/admin/AdminFrame";
+import { BUTTON_INK } from "@/components/admin/admin-ui";
 import VehicleStatusPanel from "@/components/admin/VehicleStatusPanel";
 import { getVehicleDetail } from "@/lib/admin/vehicles";
 import {
@@ -67,6 +68,9 @@ export default async function AdminVehicleDetailPage({ params }: { params: Promi
             <Link href={`/portal/admin/vehicles/${vehicle.id}/edit`} className="text-[0.875rem] font-semibold text-gold-ink underline underline-offset-2">
               Edit details
             </Link>
+            <Link href={`/portal/admin/vehicles/${vehicle.id}/maintenance`} className="text-[0.875rem] font-semibold text-gold-ink underline underline-offset-2">
+              Maintenance
+            </Link>
           </div>
         </div>
         <dl className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -79,6 +83,18 @@ export default async function AdminVehicleDetailPage({ params }: { params: Promi
           <Detail label="Colour" value={vehicle.colour} />
           <Detail label="Notes" value={vehicle.description} />
         </dl>
+      </section>
+
+      <section aria-labelledby="maintenance-heading" className="glass mt-6 rounded-[22px] p-5">
+        <h2 id="maintenance-heading" className="text-[1.125rem] font-bold text-ink">
+          Maintenance
+        </h2>
+        <p className="mt-2 max-w-2xl text-[0.875rem] text-muted">
+          Insurance, emission test, Revenue Licence, service and inspection records, faults and repairs, private documents and in-app reminders for this vehicle.
+        </p>
+        <Link href={`/portal/admin/vehicles/${vehicle.id}/maintenance`} className={`${BUTTON_INK} mt-4`}>
+          Open maintenance
+        </Link>
       </section>
 
       <section aria-labelledby="status-heading" className="glass mt-6 rounded-[22px] p-5">

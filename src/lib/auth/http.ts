@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { SESSION_COOKIE_NAME, sessionCookieOptions } from "@/lib/auth/config";
+import { parseTrustedProxyHops, resolveClientIp } from "@/lib/auth/client-ip";
 
 /** An error with an HTTP status. Its message is safe to show the caller. */
 export class AuthError extends Error {
@@ -74,11 +75,14 @@ export function assertSameOrigin(request: Request) {
   }
 }
 
-/** Returns the caller's IP. X-Forwarded-For is trusted only when a proxy overwrites it. */
+/**
+ * The rate-limit key for the caller. Forwarded headers are trusted only for the proxies named in TRUSTED_PROXY_HOPS (see
+ * client-ip.ts). X-Real-IP is ignored, because it is as client-controlled as X-Forwarded-For.
+ * An invalid TRUSTED_PROXY_HOPS throws, so a misconfigured server fails closed instead of trusting headers. Unset means 0.
+ */
 export function clientIp(request: Request): string {
-  const forwarded = request.headers.get("x-forwarded-for");
-  if (forwarded) return forwarded.split(",")[0].trim();
-  return request.headers.get("x-real-ip") ?? "unknown";
+  const hops = parseTrustedProxyHops(process.env.TRUSTED_PROXY_HOPS);
+  return resolveClientIp(request.headers.get("x-forwarded-for"), hops);
 }
 
 /** Reads the session token from the Cookie header. The value is only looked up by its hash. */

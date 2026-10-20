@@ -8,7 +8,7 @@ import { GET as downloadSlip } from "@/app/api/student/payments/slips/[slipId]/r
 import { createSession } from "@/lib/auth/session";
 import { prisma } from "@/lib/prisma";
 import { MAX_SLIP_BYTES, detectSlipType, readOwnedSlip, safeDisplayName } from "@/lib/student/payment-slips";
-import { getRequest } from "./helpers";
+import { getRequest, refuseSharedDatabase } from "./helpers";
 import { seedStudentWorld } from "./student-fixtures";
 
 let storageDir: string;
@@ -70,6 +70,7 @@ describe("payment slips", () => {
   beforeEach(async () => {
     fixture = await seedStudentWorld();
     await seedPayments();
+    refuseSharedDatabase();
     await prisma.paymentSlip.deleteMany();
     for (const name of await readdir(storageDir)) await rm(path.join(storageDir, name));
   });

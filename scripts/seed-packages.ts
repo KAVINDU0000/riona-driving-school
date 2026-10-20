@@ -40,6 +40,10 @@ function assertLocalDatabase() {
   if (host !== "localhost" && host !== "127.0.0.1") {
     fail("Refusing to seed: DATABASE_URL must point at a local database (localhost or 127.0.0.1).");
   }
+  const queryKeys = [...new URL(raw).searchParams.keys()];
+  if (!queryKeys.every((k, i, all) => (k === "sslmode" || k === "channel_binding") && all.indexOf(k) === i)) {
+    fail("Refusing to seed: DATABASE_URL may carry only sslmode and channel_binding, each once.");
+  }
 }
 
 async function main() {

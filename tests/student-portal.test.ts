@@ -56,7 +56,7 @@ describe("student portal data is scoped to the signed-in student", () => {
     await createEmptyStudent("STU-C");
     const dashboard = await getDashboard("STU-C");
     expect(dashboard.enrollments).toEqual([]);
-    expect(dashboard.progress).toEqual({ completed: 0, required: 0 });
+    expect(dashboard.progress).toEqual({ completed: 0, required: 0, pendingAllocations: 0 });
     expect(dashboard.registration).toBeNull();
     expect(dashboard.upcomingAppointments).toEqual([]);
   });

@@ -312,7 +312,7 @@ export async function getInstructorProfile(instructorId: string) {
 
   const today = todayDate();
   const monthStart = parseDateOnly(`${schoolNow().date.slice(0, 8)}01`)!;
-  const [monthCounts, upcomingLessons, upcomingAvailability, feedbackCount] = await Promise.all([
+  const [monthCounts, upcomingLessons, upcomingAvailability, feedbackCount, availabilityWindows] = await Promise.all([
     prisma.lessonSchedule.groupBy({
       by: ["status"],
       where: { instructorUserId: instructorId, lessonDate: { gte: monthStart, lte: today } },
@@ -334,6 +334,12 @@ export async function getInstructorProfile(instructorId: string) {
     }),
     prisma.instructorAvailability.count({ where: { instructorUserId: instructorId, availabilityDate: { gte: today } } }),
     prisma.lessonFeedback.count({ where: { instructorUserId: instructorId } }),
+    prisma.instructorAvailability.findMany({
+      where: { instructorUserId: instructorId, availabilityDate: { gte: today } },
+      orderBy: [{ availabilityDate: "asc" }, { startTime: "asc" }],
+      take: 30,
+      select: { availabilityDate: true, startTime: true, endTime: true },
+    }),
   ]);
 
   const counts = { SCHEDULED: 0, COMPLETED: 0, CANCELLED: 0 };
@@ -362,6 +368,11 @@ export async function getInstructorProfile(instructorId: string) {
       studentName: lesson.student.fullName,
     })),
     upcomingAvailabilityWindows: upcomingAvailability,
+    availabilityWindows: availabilityWindows.map((window) => ({
+      date: dateToString(window.availabilityDate),
+      startTime: timeToString(window.startTime),
+      endTime: timeToString(window.endTime),
+    })),
     feedbackCount,
   };
 }

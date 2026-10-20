@@ -12,5 +12,7 @@ export default defineConfig({
     fileParallelism: false,
     pool: "forks",
     testTimeout: 30_000,
+    // Fixtures make many round trips to a remote Neon branch, which can exceed the 10s default hook timeout.
+    hookTimeout: 60_000,
   },
 });
