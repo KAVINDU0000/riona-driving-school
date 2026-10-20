@@ -29,8 +29,20 @@ export default async function AdminDashboardPage() {
     { label: "Pending applications", value: stats.pendingApplications, caption: "Waiting for review", icon: "file-check", href: "/portal/admin/registrations" },
     { label: "Active students", value: stats.activeStudents, caption: "Active accounts with a student profile", icon: "users", href: "/portal/admin/students" },
     { label: "Active instructors", value: stats.activeInstructors, caption: "Active accounts and profiles", icon: "user", href: "/portal/admin/instructors" },
-    { label: "Today's scheduled lessons", value: stats.todaysScheduledLessons, caption: `School date ${formatDate(stats.today)}`, icon: "calendar" },
-    { label: "Lessons needing action", value: stats.lessonsNeedingAction, caption: "Ended, still scheduled", icon: "clock" },
+    {
+      label: "Today's scheduled lessons",
+      value: stats.todaysScheduledLessons,
+      caption: `School date ${formatDate(stats.today)}`,
+      icon: "calendar",
+      href: "/portal/admin/lessons",
+    },
+    {
+      label: "Lessons needing action",
+      value: stats.lessonsNeedingAction,
+      caption: "Ended, still scheduled",
+      icon: "clock",
+      href: "/portal/admin/lessons?needs=action",
+    },
     {
       label: "Upcoming medical appointments",
       value: stats.upcomingMedicalAppointments,
@@ -63,10 +75,17 @@ export default async function AdminDashboardPage() {
 
   return (
     <AdminFrame title="Dashboard" description="Current figures from the school's records." active="/portal/admin">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {cards.map((card) => {
           const body = (
-            <AdminStatCard label={card.label} value={card.value} caption={card.caption} icon={card.icon} linked={Boolean(card.href)}>
+            <AdminStatCard
+              label={card.label}
+              value={card.value}
+              caption={card.caption}
+              icon={card.icon}
+              linked={Boolean(card.href)}
+              compact
+            >
               {!card.href && <p className="text-[0.75rem] font-medium text-muted">Management page not yet available</p>}
             </AdminStatCard>
           );
@@ -85,9 +104,6 @@ export default async function AdminDashboardPage() {
           );
         })}
       </div>
-      <p className="mt-6 text-[0.8125rem] text-muted">
-        Outstanding balances are not shown. The school has not defined how amounts owed are calculated.
-      </p>
     </AdminFrame>
   );
 }

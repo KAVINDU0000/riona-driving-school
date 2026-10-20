@@ -150,13 +150,13 @@ export async function getStudentProfile(studentId: string) {
       where: { studentUserId: studentId, status: MedicalAppointmentStatus.SCHEDULED, appointmentDate: { gte: new Date() } },
       orderBy: { appointmentDate: "asc" },
       take: 5,
-      select: { appointmentDate: true, status: true },
+      select: { id: true, appointmentDate: true, status: true },
     }),
     prisma.studentExam.findMany({
       where: { studentUserId: studentId, status: ExamStatus.SCHEDULED, scheduledDate: { gte: new Date() } },
       orderBy: { scheduledDate: "asc" },
       take: 5,
-      select: { examType: true, vehicleType: true, scheduledDate: true, status: true },
+      select: { id: true, examType: true, vehicleType: true, scheduledDate: true, status: true },
     }),
     prisma.registrationRequest.findFirst({
       where: { approvedStudentUserId: studentId },
@@ -206,8 +206,9 @@ export async function getStudentProfile(studentId: string) {
       trainingType: lesson.trainingType,
       instructorName: lesson.instructor.fullName,
     })),
-    upcomingMedical: medical.map((item) => ({ appointmentDate: item.appointmentDate.toISOString(), status: item.status })),
+    upcomingMedical: medical.map((item) => ({ id: item.id, appointmentDate: item.appointmentDate.toISOString(), status: item.status })),
     upcomingExams: exams.map((exam) => ({
+      id: exam.id,
       examType: exam.examType,
       vehicleType: exam.vehicleType,
       scheduledDate: exam.scheduledDate.toISOString(),

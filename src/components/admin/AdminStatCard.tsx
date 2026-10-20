@@ -12,6 +12,7 @@ export default function AdminStatCard({
   caption,
   icon,
   linked = false,
+  compact = false,
   children,
 }: {
   label: string;
@@ -19,19 +20,23 @@ export default function AdminStatCard({
   caption?: string;
   icon: string;
   linked?: boolean;
+  /** Smaller padding and figures, so a whole dashboard of cards fits on one screen. */
+  compact?: boolean;
   children?: ReactNode;
 }) {
   return (
     <div
-      className={`group flex h-full flex-col gap-4 rounded-2xl border border-line bg-white p-5 shadow-[0_1px_2px_rgba(16,27,48,0.04)] transition-all ${
-        linked ? "hover:-translate-y-px hover:border-gold/60 hover:shadow-[0_12px_28px_-18px_rgba(16,27,48,0.45)]" : ""
-      }`}
+      className={`group flex h-full flex-col rounded-2xl border border-line bg-white shadow-[0_1px_2px_rgba(16,27,48,0.04)] transition-all ${
+        compact ? "gap-3 p-4" : "gap-4 p-5"
+      } ${linked ? "hover:-translate-y-px hover:border-gold/60 hover:shadow-[0_12px_28px_-18px_rgba(16,27,48,0.45)]" : ""}`}
     >
       <div className="flex items-start justify-between gap-3">
         <span className="text-[0.75rem] font-semibold uppercase tracking-[0.08em] text-muted">{label}</span>
         <span
           aria-hidden="true"
-          className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-page text-ink-soft ring-1 ring-line transition-colors group-hover:bg-gold-soft group-hover:text-gold-ink group-hover:ring-gold/50"
+          className={`grid shrink-0 place-items-center rounded-xl bg-page text-ink-soft ring-1 ring-line transition-colors group-hover:bg-gold-soft group-hover:text-gold-ink group-hover:ring-gold/50 ${
+            compact ? "h-9 w-9" : "h-10 w-10"
+          }`}
         >
           <Icon name={icon} className="h-[18px] w-[18px]" />
         </span>
@@ -40,7 +45,11 @@ export default function AdminStatCard({
       {caption && <p className="text-[0.8125rem] leading-snug text-muted">{caption}</p>}
       {children}
       {linked && (
-        <span className="mt-auto flex items-center gap-1.5 border-t border-line pt-3 text-[0.8125rem] font-semibold text-gold-ink">
+        <span
+          className={`mt-auto flex items-center gap-1.5 border-t border-line text-[0.8125rem] font-semibold text-gold-ink ${
+            compact ? "pt-2" : "pt-3"
+          }`}
+        >
           View details
           <svg
             aria-hidden="true"

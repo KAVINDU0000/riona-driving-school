@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdminFrame from "@/components/admin/AdminFrame";
 import AddAppointmentForms from "@/components/admin/AddAppointmentForms";
+import { ExamItemList, MedicalItemList } from "@/components/admin/EditAppointments";
 import StudentStatusControl from "@/components/admin/StudentStatusControl";
 import { formatDate, formatDateTime, formatMoney, labels } from "@/components/student/format";
 import StatusBadge from "@/components/student/StatusBadge";
@@ -26,7 +27,7 @@ export default async function AdminStudentProfilePage({ params }: { params: Prom
   return (
     <AdminFrame
       title={student.fullName}
-      description={`Student ID ${student.studentId}. Existing records are read-only. You can add appointments and exams, and deactivate or reactivate the account, here.`}
+      description={`Student ID ${student.studentId}. You can add, change or complete appointments and exams, and deactivate or reactivate the account, here.`}
       active="/portal/admin/students"
       crumbs={[{ label: "Students", href: "/portal/admin/students" }, { label: student.fullName }]}
     >
@@ -165,26 +166,13 @@ export default async function AdminStudentProfilePage({ params }: { params: Prom
           {upcomingMedical.length === 0 ? (
             <p className="mt-2 text-[0.9375rem] text-muted">No scheduled medical appointments.</p>
           ) : (
-            <ul className="mt-2 grid gap-2">
-              {upcomingMedical.map((item) => (
-                <li key={item.appointmentDate} className="text-[0.9375rem] text-ink">
-                  {formatDateTime(new Date(item.appointmentDate))} · {labels.medicalStatus[item.status] ?? item.status}
-                </li>
-              ))}
-            </ul>
+            <MedicalItemList studentId={student.studentId} items={upcomingMedical} />
           )}
           <h3 className="mt-5 text-[0.9375rem] font-bold text-ink">Exams</h3>
           {upcomingExams.length === 0 ? (
             <p className="mt-2 text-[0.9375rem] text-muted">No scheduled exams.</p>
           ) : (
-            <ul className="mt-2 grid gap-2">
-              {upcomingExams.map((exam) => (
-                <li key={`${exam.scheduledDate}-${exam.examType}`} className="text-[0.9375rem] text-ink">
-                  {formatDateTime(new Date(exam.scheduledDate))} · {labels.examType[exam.examType] ?? exam.examType}
-                  {exam.vehicleType ? ` · ${labels.vehicleType[exam.vehicleType]}` : ""}
-                </li>
-              ))}
-            </ul>
+            <ExamItemList studentId={student.studentId} items={upcomingExams} />
           )}
           <div className="mt-6">
             <AddAppointmentForms userId={student.studentId} disabled={student.accountStatus !== "ACTIVE"} />
