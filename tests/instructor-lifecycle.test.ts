@@ -34,7 +34,7 @@ async function statusOf(promise: Promise<unknown>): Promise<number | "ok"> {
 }
 
 /** A past lesson, so attendance can be recorded. Its window is created in the same way booking requires. */
-async function pastLesson(id: string, instructorUserId = "INS-1", studentUserId = "STU-A", enrollmentKey: "A1" | "B1" = "A1") {
+async function pastLesson(id: string, instructorUserId = "INS-1", studentUserId = "STU-A", enrollmentKey: "A1" | "B1" = "A1", vehicleId = "V1") {
   const start = parseTimeOnly("09:00")!;
   const end = parseTimeOnly("09:30")!;
   await prisma.instructorAvailability.upsert({
@@ -50,7 +50,7 @@ async function pastLesson(id: string, instructorUserId = "INS-1", studentUserId 
       endTime: end,
       durationMinutes: 30,
       instructorUserId,
-      vehicleId: "V1",
+      vehicleId,
       vehicleType: "CAR",
       studentUserId,
       enrollmentId: fixture.enrollments[enrollmentKey],
@@ -155,7 +155,8 @@ describe("instructor lesson lifecycle", () => {
   });
 
   it("lists assigned students from this instructor's lessons only", async () => {
-    await pastLesson("L2", "INS-2", "STU-B", "B1");
+    // V2, not V1: L1 already uses V1 at this slot, and a vehicle cannot have two overlapping lessons.
+    await pastLesson("L2", "INS-2", "STU-B", "B1", "V2");
     const mine = await listAssignedStudents("INS-1");
     expect(mine.map((student) => student.userId)).toEqual(["STU-A"]);
     expect(mine[0]).toMatchObject({ lessonCount: 1, completedCount: 0 });

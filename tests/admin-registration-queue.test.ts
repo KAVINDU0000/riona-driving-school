@@ -167,6 +167,8 @@ describe("reading the registration query", () => {
       submittedTo: null,
       order: "oldest",
       page: 1,
+      // Added with the payment-pending filter (commit f68c416). False means the filter is off.
+      paymentPending: false,
     });
   });
 
