@@ -107,11 +107,19 @@ export function parseVehicleFields(body: Record<string, unknown>, options: { req
   };
 }
 
+/**
+ * Filter value for vehicles that are not taking lessons (MAINTENANCE or INACTIVE). It is a list filter only, never a
+ * stored status. The dashboard card links here, so its count and this list match.
+ */
+export const NEEDS_ATTENTION = "NEEDS_ATTENTION";
+const NEEDS_ATTENTION_STATUSES: VehicleStatus[] = [VehicleStatus.MAINTENANCE, VehicleStatus.INACTIVE];
+
 /** Reads the list filters. Unknown values are ignored, so a bad link shows the full list rather than an error. */
 export function vehicleListQuery(input: { q?: string; type?: string; status?: string; page?: string }) {
   const q = (input.q ?? "").trim().slice(0, SEARCH_MAX);
   const type = enumValue(input.type, Object.values(VehicleType));
-  const status = enumValue(input.status, Object.values(VehicleStatus));
+  const status: VehicleStatus | typeof NEEDS_ATTENTION | null =
+    input.status === NEEDS_ATTENTION ? NEEDS_ATTENTION : enumValue(input.status, Object.values(VehicleStatus));
   const page = /^[1-9][0-9]{0,5}$/.test(input.page ?? "") ? Number(input.page) : 1;
   return { q, type, status, page };
 }
@@ -119,7 +127,11 @@ export function vehicleListQuery(input: { q?: string; type?: string; status?: st
 export async function listVehicles(query: ReturnType<typeof vehicleListQuery>) {
   const where: Prisma.VehicleWhereInput = {
     ...(query.type ? { vehicleType: query.type } : {}),
-    ...(query.status ? { status: query.status } : {}),
+    ...(query.status === NEEDS_ATTENTION
+      ? { status: { in: NEEDS_ATTENTION_STATUSES } }
+      : query.status !== null
+        ? { status: query.status }
+        : {}),
     ...(query.q
       ? {
           OR: [

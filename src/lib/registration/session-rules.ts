@@ -42,7 +42,8 @@ export type PackageRuleEntry = SessionPackageRule | { kind: "OUT_OF_SCOPE"; reas
  * fails if a catalog package has no entry here, so a new package cannot be added without a decision.
  */
 export const PACKAGE_RULES: Record<string, PackageRuleEntry> = {
-  "regular-car-van": { kind: "REGULAR", vehicles: ["CAR", "VAN"] },
+  "regular-car": { kind: "REGULAR", vehicles: ["CAR"] },
+  "regular-van": { kind: "REGULAR", vehicles: ["VAN"] },
 
   "trial-three-wheeler": { kind: "TRIAL", vehicles: ["THREE_WHEELER"] },
   "trial-motorcycle": { kind: "TRIAL", vehicles: ["MOTORCYCLE"] },

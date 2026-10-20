@@ -33,8 +33,20 @@ export default async function AdminDashboardPage() {
     { label: "Lessons needing action", value: stats.lessonsNeedingAction, caption: "Ended, still scheduled", icon: "clock" },
     { label: "Upcoming medical appointments", value: stats.upcomingMedicalAppointments, caption: "Scheduled, from now on", icon: "heart-pulse" },
     { label: "Upcoming exams", value: stats.upcomingExams, caption: "Scheduled, from now on", icon: "badge-check" },
-    { label: "Pending payment reviews", value: stats.pendingPaymentReviews, caption: "Bank slips waiting for review", icon: "wallet" },
-    { label: "Vehicles needing attention", value: stats.vehiclesNeedingAttention, caption: "In maintenance or inactive", icon: "car" },
+    {
+      label: "Pending payment reviews",
+      value: stats.pendingPaymentReviews,
+      caption: "Bank slips waiting for review",
+      icon: "wallet",
+      href: "/portal/admin/registrations?status=ALL&payment=PENDING",
+    },
+    {
+      label: "Vehicles needing attention",
+      value: stats.vehiclesNeedingAttention,
+      caption: "In maintenance or inactive",
+      icon: "car",
+      href: "/portal/admin/vehicles?status=NEEDS_ATTENTION",
+    },
   ];
 
   return (

@@ -16,7 +16,7 @@ if (!(isApprovedTestUrl(parsedTarget))) {
   throw new Error("Refusing to run: status browser tests must use localhost:15432/riona_fresh_test.");
 }
 
-const PACKAGE_ID = "regular-car-van";
+const PACKAGE_ID = "regular-car";
 const PASSWORD = "applicant-pass-123";
 const REJECTION_NOTE = "The slip is blurred, and the amount cannot be read.";
 const SLIP = {

@@ -21,7 +21,7 @@ async function seedLesson() {
   await createAccount({ userId: "INS-002", email: "i2@riona.lk", role: UserRole.INSTRUCTOR });
   await createAccount({ userId: "ADMIN-001", email: "a@riona.lk", role: UserRole.ADMIN });
 
-  await prisma.trainingPackage.create({ data: { id: "PKG1", name: "Car and Van Training", packageType: "REGULAR", price: 26000 } });
+  await prisma.trainingPackage.create({ data: { id: "PKG1", name: "Regular Car Training", packageType: "REGULAR", price: 26000 } });
   await prisma.enrollment.create({ data: { id: "E1", studentUserId: "STU-001", packageId: "PKG1", agreedPrice: 26000, finalFee: 26000 } });
   await prisma.enrollmentTrainingRequirement.create({
     data: { id: "R1", enrollmentId: "E1", vehicleType: "CAR", trainingType: "REGULAR", requiredSessions: 10 },

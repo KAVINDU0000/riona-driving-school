@@ -61,36 +61,38 @@ describe("catalog coverage: every package has an explicit rule or classification
     expect(extra).toEqual([]);
   });
 
-  it("counts every catalog package: 1 Regular, 11 Trial, 6 Additional vehicle, 4 Daily", () => {
-    expect([regularOptions.length, trialOptions.length, additionalOptions.length, dailyOptions.length]).toEqual([1, 11, 6, 4]);
+  it("counts every catalog package: 2 Regular, 11 Trial, 6 Additional vehicle, 4 Daily", () => {
+    expect([regularOptions.length, trialOptions.length, additionalOptions.length, dailyOptions.length]).toEqual([2, 11, 6, 4]);
   });
 });
 
-describe("Regular training package", () => {
-  it("is classified REGULAR for Car and Van, with 15 sessions per vehicle", () => {
-    expect(packageRuleFor("regular-car-van")).toEqual({ kind: "REGULAR", vehicles: ["CAR", "VAN"] });
-    expect(resolveSessionRequirements("regular-car-van", undefined)).toEqual({
+describe("Regular training packages", () => {
+  it("is classified REGULAR for Car only, with 15 sessions for the car", () => {
+    expect(packageRuleFor("regular-car")).toEqual({ kind: "REGULAR", vehicles: ["CAR"] });
+    expect(resolveSessionRequirements("regular-car", undefined)).toEqual({
       ok: true,
-      requirements: [
-        { vehicleType: "CAR", trainingType: "REGULAR", requiredSessions: 15 },
-        { vehicleType: "VAN", trainingType: "REGULAR", requiredSessions: 15 },
-      ],
+      requirements: [{ vehicleType: "CAR", trainingType: "REGULAR", requiredSessions: 15 }],
+    });
+  });
+
+  it("is classified REGULAR for Van only, with 15 sessions for the van", () => {
+    expect(packageRuleFor("regular-van")).toEqual({ kind: "REGULAR", vehicles: ["VAN"] });
+    expect(resolveSessionRequirements("regular-van", undefined)).toEqual({
+      ok: true,
+      requirements: [{ vehicleType: "VAN", trainingType: "REGULAR", requiredSessions: 15 }],
     });
   });
 
   it.each([14, 16, 1, 5, 0, null, "15", 15.5])("rejects a submitted Regular count of %s", (count) => {
-    expect(
-      resolveSessionRequirements("regular-car-van", [
-        { vehicleType: "CAR", requiredSessions: count },
-        { vehicleType: "VAN", requiredSessions: 15 },
-      ]).ok,
-    ).toBe(false);
+    expect(resolveSessionRequirements("regular-car", [{ vehicleType: "CAR", requiredSessions: count }]).ok).toBe(false);
+    expect(resolveSessionRequirements("regular-van", [{ vehicleType: "VAN", requiredSessions: count }]).ok).toBe(false);
   });
 
-  it("rejects an extra vehicle, a duplicate and a missing vehicle", () => {
-    expect(resolveSessionRequirements("regular-car-van", [{ vehicleType: "CAR", requiredSessions: 15 }, { vehicleType: "VAN", requiredSessions: 15 }, { vehicleType: "MOTORCYCLE", requiredSessions: 15 }]).ok).toBe(false);
-    expect(resolveSessionRequirements("regular-car-van", [{ vehicleType: "CAR", requiredSessions: 15 }, { vehicleType: "CAR", requiredSessions: 15 }]).ok).toBe(false);
-    expect(resolveSessionRequirements("regular-car-van", [{ vehicleType: "CAR", requiredSessions: 15 }]).ok).toBe(false);
+  it("rejects a vehicle the package does not cover, a duplicate and a missing vehicle", () => {
+    expect(resolveSessionRequirements("regular-car", [{ vehicleType: "VAN", requiredSessions: 15 }]).ok).toBe(false);
+    expect(resolveSessionRequirements("regular-van", [{ vehicleType: "CAR", requiredSessions: 15 }]).ok).toBe(false);
+    expect(resolveSessionRequirements("regular-car", [{ vehicleType: "CAR", requiredSessions: 15 }, { vehicleType: "CAR", requiredSessions: 15 }]).ok).toBe(false);
+    expect(resolveSessionRequirements("regular-van", [{ vehicleType: "VAN", requiredSessions: 15 }, { vehicleType: "CAR", requiredSessions: 15 }]).ok).toBe(false);
   });
 });
 
@@ -276,7 +278,8 @@ describe("Daily individual training: out of scope, per-session", () => {
 
 describe("source prices are unchanged", () => {
   const expectedPrices: Record<string, number> = {
-    "regular-car-van": 26000,
+    "regular-car": 26000,
+    "regular-van": 26000,
     "trial-three-wheeler": 10000,
     "trial-motorcycle": 8000,
     "trial-car": 15000,

@@ -39,7 +39,7 @@ export type AdminDashboardStats = {
   upcomingMedicalAppointments: number;
   /** Exams with status SCHEDULED whose date is now or later. */
   upcomingExams: number;
-  /** Payment.status = PENDING. Bank slips that are waiting for review. */
+  /** Applications with a payment whose status is PENDING: bank slips waiting for review. */
   pendingPaymentReviews: number;
   /** Vehicles whose status is MAINTENANCE or INACTIVE. */
   vehiclesNeedingAttention: number;
@@ -83,7 +83,8 @@ export async function getAdminDashboardStats(now: Date = new Date()): Promise<Ad
       where: { status: MedicalAppointmentStatus.SCHEDULED, appointmentDate: { gte: now } },
     }),
     prisma.studentExam.count({ where: { status: ExamStatus.SCHEDULED, scheduledDate: { gte: now } } }),
-    prisma.payment.count({ where: { status: PaymentStatus.PENDING } }),
+    // Applications with a payment waiting for review. This matches the Registrations list filter "payment = PENDING".
+    prisma.registrationRequest.count({ where: { payments: { some: { status: PaymentStatus.PENDING } } } }),
     prisma.vehicle.count({ where: { status: { in: [VehicleStatus.MAINTENANCE, VehicleStatus.INACTIVE] } } }),
   ]);
 

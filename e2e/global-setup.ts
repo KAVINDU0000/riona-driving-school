@@ -40,7 +40,7 @@ export default async function globalSetup() {
         name: option.name,
         packageType,
         price: `${option.price}.00`,
-        durationDays: option.id === "regular-car-van" ? 15 : null,
+        durationDays: option.id === "regular-car" ? 15 : null,
         sessionDurationMinutes: isDaily ? (option.id.startsWith("daily-car") || option.id.startsWith("daily-van") ? 30 : 60) : null,
       };
     }),

@@ -16,87 +16,63 @@ const VALID = {
 const trial = (packageId: string, selections: unknown) => resolveSessionRequirements(packageId, selections);
 
 describe("Regular training is fixed at 15 sessions per vehicle", () => {
-  it("resolves Car and Van to 15 Car and 15 Van, with no client input", () => {
-    const result = trial("regular-car-van", undefined);
-    expect(result).toEqual({
+  it("resolves Regular Car to 15 Car sessions, with no client input", () => {
+    expect(trial("regular-car", undefined)).toEqual({
       ok: true,
-      requirements: [
-        { vehicleType: "CAR", trainingType: "REGULAR", requiredSessions: 15 },
-        { vehicleType: "VAN", trainingType: "REGULAR", requiredSessions: 15 },
-      ],
+      requirements: [{ vehicleType: "CAR", trainingType: "REGULAR", requiredSessions: 15 }],
+    });
+  });
+
+  it("resolves Regular Van to 15 Van sessions, with no client input", () => {
+    expect(trial("regular-van", undefined)).toEqual({
+      ok: true,
+      requirements: [{ vehicleType: "VAN", trainingType: "REGULAR", requiredSessions: 15 }],
     });
   });
 
   it("refuses a client-supplied count other than 15, so the browser cannot change the Regular count", () => {
-    const tampered = [
-      { vehicleType: "CAR", requiredSessions: 3 },
-      { vehicleType: "VAN", requiredSessions: 15 },
-    ];
-    expect(trial("regular-car-van", tampered).ok).toBe(false);
-    expect(trial("regular-car-van", [{ vehicleType: "CAR", requiredSessions: 15 }, { vehicleType: "VAN", requiredSessions: 15 }]).ok).toBe(true);
+    expect(trial("regular-car", [{ vehicleType: "CAR", requiredSessions: 3 }]).ok).toBe(false);
+    expect(trial("regular-van", [{ vehicleType: "VAN", requiredSessions: 3 }]).ok).toBe(false);
+    expect(trial("regular-car", [{ vehicleType: "CAR", requiredSessions: 15 }]).ok).toBe(true);
+    expect(trial("regular-van", [{ vehicleType: "VAN", requiredSessions: 15 }]).ok).toBe(true);
   });
 
   it("refuses a non-list value for a Regular package", () => {
-    expect(trial("regular-car-van", "15").ok).toBe(false);
+    expect(trial("regular-car", "15").ok).toBe(false);
+    expect(trial("regular-van", "15").ok).toBe(false);
   });
 
-  it("accepts a valid Car + Van list with exactly 15 each, in either order", () => {
-    const result = trial("regular-car-van", [
-      { vehicleType: "VAN", requiredSessions: 15 },
-      { vehicleType: "CAR", requiredSessions: 15 },
-    ]);
-    expect(result.ok).toBe(true);
-    if (result.ok) expect(result.requirements?.map((r) => r.vehicleType).sort()).toEqual(["CAR", "VAN"]);
+  it("refuses a vehicle the Regular package does not cover, even with the right count", () => {
+    expect(trial("regular-car", [{ vehicleType: "VAN", requiredSessions: 15 }]).ok).toBe(false);
+    expect(trial("regular-van", [{ vehicleType: "CAR", requiredSessions: 15 }]).ok).toBe(false);
+    expect(trial("regular-car", [{ vehicleType: "CAR", requiredSessions: 15 }, { vehicleType: "VAN", requiredSessions: 15 }]).ok).toBe(false);
   });
 
   it("refuses a duplicate vehicle identity, even when the list has the right length", () => {
     expect(
-      trial("regular-car-van", [
+      trial("regular-car", [
         { vehicleType: "CAR", requiredSessions: 15 },
         { vehicleType: "CAR", requiredSessions: 15 },
       ]).ok,
     ).toBe(false);
   });
 
-  it("refuses an unrelated vehicle in a Car + Van package, even with the right count", () => {
-    expect(
-      trial("regular-car-van", [
-        { vehicleType: "CAR", requiredSessions: 15 },
-        { vehicleType: "MOTORCYCLE", requiredSessions: 15 },
-      ]).ok,
-    ).toBe(false);
-  });
-
-  it("refuses a Car + Van list that is missing the Car or the Van", () => {
-    expect(trial("regular-car-van", [{ vehicleType: "CAR", requiredSessions: 15 }]).ok).toBe(false);
-    expect(trial("regular-car-van", [{ vehicleType: "VAN", requiredSessions: 15 }]).ok).toBe(false);
+  it("refuses an unrelated vehicle in the Regular Car package, even with the right count", () => {
+    expect(trial("regular-car", [{ vehicleType: "MOTORCYCLE", requiredSessions: 15 }]).ok).toBe(false);
   });
 
   it("refuses an empty selection list", () => {
-    expect(trial("regular-car-van", []).ok).toBe(false);
+    expect(trial("regular-car", []).ok).toBe(false);
+    expect(trial("regular-van", []).ok).toBe(false);
   });
 
   it.each([14, 16, 0, 2.5, "15", null])("refuses an incorrect Regular count of %s", (count) => {
-    expect(
-      trial("regular-car-van", [
-        { vehicleType: "CAR", requiredSessions: count },
-        { vehicleType: "VAN", requiredSessions: 15 },
-      ]).ok,
-    ).toBe(false);
+    expect(trial("regular-car", [{ vehicleType: "CAR", requiredSessions: count }]).ok).toBe(false);
+    expect(trial("regular-van", [{ vehicleType: "VAN", requiredSessions: count }]).ok).toBe(false);
   });
 
   it("refuses an entry that is not an object", () => {
-    expect(trial("regular-car-van", ["CAR", { vehicleType: "VAN", requiredSessions: 15 }]).ok).toBe(false);
-  });
-
-  it("with no client selections, the server generates 15 for Car and Van", () => {
-    expect(trial("regular-car-van", undefined)).toEqual({
-      ok: true,
-      requirements: [
-        { vehicleType: "CAR", trainingType: "REGULAR", requiredSessions: 15 },
-        { vehicleType: "VAN", trainingType: "REGULAR", requiredSessions: 15 },
-      ],
-    });
+    expect(trial("regular-car", ["CAR"]).ok).toBe(false);
   });
 });
 
@@ -195,7 +171,7 @@ describe("other packages keep their existing behaviour", () => {
 
 describe("the registration parser applies the same rule", () => {
   it("parses a Regular application with no selections and attaches the fixed 15", () => {
-    const parsed = parseRegistrationInput({ ...VALID, packageId: "regular-car-van" });
+    const parsed = parseRegistrationInput({ ...VALID, packageId: "regular-car" });
     expect(parsed.ok).toBe(true);
     if (parsed.ok) expect(parsed.input.sessionRequirements?.every((r) => r.requiredSessions === 15)).toBe(true);
   });

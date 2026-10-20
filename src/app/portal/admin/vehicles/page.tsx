@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AdminFrame from "@/components/admin/AdminFrame";
-import { listVehicles, vehicleListQuery } from "@/lib/admin/vehicles";
+import AutoSubmitSelect from "@/components/admin/AutoSubmitSelect";
+import { NEEDS_ATTENTION, listVehicles, vehicleListQuery } from "@/lib/admin/vehicles";
 import { VEHICLE_STATUS_LABELS, VEHICLE_STATUS_STYLES, VEHICLE_TYPE_LABELS } from "@/lib/admin/vehicle-labels";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
 import Icon from "@/components/ui/Icon";
-import { BUTTON_PRIMARY, BUTTON_SECONDARY, FIELD, LABEL, ROW_LINK, SELECT_FIELD } from "@/components/admin/admin-ui";
+import { BUTTON_PRIMARY, BUTTON_SECONDARY, FIELD, LABEL, ROW_LINK } from "@/components/admin/admin-ui";
 
 export const metadata: Metadata = {
   title: "Vehicles | Admin Portal | Riyona Driving School",
@@ -99,14 +100,12 @@ export default async function AdminVehiclesPage({
               Type
             </label>
             <div className="relative">
-              <select id="vehicle-type" name="type" defaultValue={query.type ?? ""} className={`${SELECT_FIELD} h-11`}>
-                <option value="">All types</option>
-                {Object.entries(VEHICLE_TYPE_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+              <AutoSubmitSelect
+                id="vehicle-type"
+                name="type"
+                defaultValue={query.type ?? ""}
+                options={[{ value: "", label: "All types" }, ...Object.entries(VEHICLE_TYPE_LABELS).map(([value, label]) => ({ value, label }))]}
+              />
               <ChevronIcon />
             </div>
           </div>
@@ -115,14 +114,16 @@ export default async function AdminVehiclesPage({
               Status
             </label>
             <div className="relative">
-              <select id="vehicle-status" name="status" defaultValue={query.status ?? ""} className={`${SELECT_FIELD} h-11`}>
-                <option value="">All statuses</option>
-                {Object.entries(VEHICLE_STATUS_LABELS).map(([value, label]) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
+              <AutoSubmitSelect
+                id="vehicle-status"
+                name="status"
+                defaultValue={query.status ?? ""}
+                options={[
+                  { value: "", label: "All statuses" },
+                  { value: NEEDS_ATTENTION, label: "Needs attention (maintenance or inactive)" },
+                  ...Object.entries(VEHICLE_STATUS_LABELS).map(([value, label]) => ({ value, label })),
+                ]}
+              />
               <ChevronIcon />
             </div>
           </div>

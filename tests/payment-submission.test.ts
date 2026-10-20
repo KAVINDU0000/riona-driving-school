@@ -13,7 +13,7 @@ import { resetRateLimits } from "@/lib/auth/rate-limit";
 import { prisma } from "@/lib/prisma";
 import { createAccount, ORIGIN, resetDatabase } from "./helpers";
 
-const PACKAGE_ID = "regular-car-van";
+const PACKAGE_ID = "regular-car";
 const REFERENCE = "RDS-0A1B2C3D4E";
 const EMAIL = "applicant@example.com";
 const PASSWORD = "applicant-pass-123";
@@ -44,7 +44,7 @@ async function seedApplication(overrides: Partial<{ referenceNumber: string; sta
   await createAccount({ userId: "ADMIN-1", email: "admin@riona.test", role: UserRole.ADMIN });
   await createAccount({ userId: "STU-A", email: "student@riona.test", role: UserRole.STUDENT });
   await prisma.trainingPackage.create({
-    data: { id: PACKAGE_ID, name: "Car and Van Training", packageType: "REGULAR", price: 26000, durationDays: 15 },
+    data: { id: PACKAGE_ID, name: "Regular Car Training", packageType: "REGULAR", price: 26000, durationDays: 15 },
   });
   return prisma.registrationRequest.create({
     data: {

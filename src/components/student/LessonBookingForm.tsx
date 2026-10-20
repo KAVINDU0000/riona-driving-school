@@ -37,6 +37,15 @@ export default function LessonBookingForm({ requirements }: { requirements: Book
   const [booked, setBooked] = useState<{ date: string; start: string; end: string } | null>(null);
 
   const selected = useMemo(() => requirements.find((r) => r.key === choice) ?? null, [requirements, choice]);
+
+  // One group per package, so the vehicle and training type of each option read under the package they belong to.
+  const groupedRequirements = useMemo(() => {
+    const groups = new Map<string, BookableRequirement[]>();
+    for (const r of requirements) {
+      groups.set(r.enrollmentLabel, [...(groups.get(r.enrollmentLabel) ?? []), r]);
+    }
+    return [...groups.entries()];
+  }, [requirements]);
   const duration = selected && chosenDuration && selected.durations.includes(chosenDuration) ? chosenDuration : (selected?.durations[0] ?? null);
 
   // The query identifies one set of booking options. A result is used only while it answers the current query.
@@ -149,12 +158,22 @@ export default function LessonBookingForm({ requirements }: { requirements: Book
             className={selectClass}
             disabled={submitting}
           >
-            {requirements.map((r) => (
-              <option key={r.key} value={r.key}>
-                {r.enrollmentLabel} · {r.requirementLabel} · {r.remaining} left to book
-              </option>
+            {groupedRequirements.map(([packageName, items]) => (
+              <optgroup key={packageName} label={packageName}>
+                {items.map((r) => (
+                  <option key={r.key} value={r.key}>
+                    {`${r.requirementLabel}: ${r.remaining} ${r.remaining === 1 ? "session" : "sessions"} left`}
+                  </option>
+                ))}
+              </optgroup>
             ))}
           </select>
+          {selected && (
+            <p className="text-[0.8125rem] text-muted">
+              Vehicle type: <span className="font-semibold text-ink">{selected.vehicleLabel}</span>. The school assigns an
+              instructor and a vehicle of this type when you book.
+            </p>
+          )}
         </div>
 
         <div className="flex flex-col gap-2">
@@ -262,7 +281,10 @@ export default function LessonBookingForm({ requirements }: { requirements: Book
         onCancel={() => setConfirming(false)}
       >
         <p>
-          {selected?.enrollmentLabel} · {selected?.requirementLabel}
+          <span className="font-semibold text-ink">Package:</span> {selected?.enrollmentLabel}
+        </p>
+        <p className="mt-1">
+          <span className="font-semibold text-ink">Lesson type:</span> {selected?.requirementLabel}
         </p>
         <p className="mt-2">
           {date && formatDate(date)}, {chosenStart} for {duration} minutes.

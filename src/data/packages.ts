@@ -20,7 +20,10 @@ export interface PackageGroup {
 export const packageGroups: PackageGroup[] = [
   {
     label: "Regular training package",
-    options: [{ id: "regular-car-van", name: "Car and Van Training", detail: "15 days", price: 26000 }],
+    options: [
+      { id: "regular-car", name: "Regular Car Training", detail: "15 days", price: 26000 },
+      { id: "regular-van", name: "Regular Van Training", detail: "15 days", price: 26000 },
+    ],
   },
   {
     label: "Official driving trial preparation",

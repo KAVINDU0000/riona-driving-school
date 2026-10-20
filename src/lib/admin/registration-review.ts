@@ -27,6 +27,8 @@ export type RegistrationListQuery = {
   submittedTo: string | null;
   order: SortOrder;
   page: number;
+  /** When true, only applications with a payment still waiting for review. Any application status can match. */
+  paymentPending: boolean;
 };
 
 const summarySelect = {
@@ -124,6 +126,11 @@ export function parseRegistrationListQuery(params: URLSearchParams): Registratio
     throw new AuthError(400, "Sort by oldest or newest.");
   }
 
+  const paymentParam = params.get("payment") ?? "";
+  if (paymentParam !== "" && paymentParam !== "PENDING") {
+    throw new AuthError(400, "The payment filter can only be PENDING.");
+  }
+
   return {
     status,
     search,
@@ -132,6 +139,7 @@ export function parseRegistrationListQuery(params: URLSearchParams): Registratio
     submittedTo,
     order: orderParam as SortOrder,
     page: parsePage(params.get("page")),
+    paymentPending: paymentParam === "PENDING",
   };
 }
 
@@ -160,6 +168,7 @@ function buildWhere(query: RegistrationListQuery): Prisma.RegistrationRequestWhe
     ];
   }
   if (query.packageId) where.selectedPackageId = query.packageId;
+  if (query.paymentPending) where.payments = { some: { status: "PENDING" } };
   if (query.submittedFrom || query.submittedTo) {
     where.submittedAt = {
       ...(query.submittedFrom ? { gte: schoolDayStart(query.submittedFrom) } : {}),

@@ -29,7 +29,7 @@ describe("database-backed public catalog", () => {
 
   it("marks per-session packages and builds their detail from the stored session length", async () => {
     expect(await getPublicPackage("daily-motorcycle")).toMatchObject({ price: 1000, pricing: "per-session", detail: "per 60-minute session" });
-    const regular = await getPublicPackage("regular-car-van");
+    const regular = await getPublicPackage("regular-car");
     expect(regular?.detail).toBe("15 days");
     expect(regular?.pricing).toBeUndefined();
   });
@@ -50,7 +50,7 @@ describe("database-backed public catalog", () => {
   it("offers nothing when the database has no packages, and never falls back to the fixture", async () => {
     await resetDatabase();
     expect(await getPublicPackageCatalog()).toEqual([]);
-    expect(await getPublicPackage("regular-car-van")).toBeNull();
+    expect(await getPublicPackage("regular-car")).toBeNull();
   });
 });
 

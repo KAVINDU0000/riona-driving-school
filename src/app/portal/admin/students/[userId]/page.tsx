@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdminFrame from "@/components/admin/AdminFrame";
+import StudentStatusControl from "@/components/admin/StudentStatusControl";
 import { formatDate, formatDateTime, formatMoney, labels } from "@/components/student/format";
 import StatusBadge from "@/components/student/StatusBadge";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
@@ -24,7 +25,7 @@ export default async function AdminStudentProfilePage({ params }: { params: Prom
   return (
     <AdminFrame
       title={student.fullName}
-      description={`Student ID ${student.studentId}. Read-only: nothing on this page can be changed here.`}
+      description={`Student ID ${student.studentId}. Records on this page are read-only. The account can be deactivated or reactivated here.`}
       active="/portal/admin/students"
       crumbs={[{ label: "Students", href: "/portal/admin/students" }, { label: student.fullName }]}
     >
@@ -40,6 +41,9 @@ export default async function AdminStudentProfilePage({ params }: { params: Prom
               Profile
             </h2>
             <StatusBadge status={student.accountStatus} label={student.accountStatus === "ACTIVE" ? "Active" : "Inactive"} />
+          </div>
+          <div className="mt-4">
+            <StudentStatusControl userId={student.studentId} fullName={student.fullName} status={student.accountStatus} />
           </div>
           <dl className="mt-4 grid gap-3 sm:grid-cols-2">
             <Field label="Student ID" value={student.studentId} />

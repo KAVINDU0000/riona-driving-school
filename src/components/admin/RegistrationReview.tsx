@@ -40,9 +40,11 @@ type Filters = {
   from: string;
   to: string;
   order: "oldest" | "newest";
+  /** Only applications whose payment is still waiting for review. Any application status can match. */
+  payment: boolean;
 };
 
-const DEFAULT_FILTERS: Filters = { status: "PENDING", q: "", packageId: "", from: "", to: "", order: "oldest" };
+const DEFAULT_FILTERS: Filters = { status: "PENDING", q: "", packageId: "", from: "", to: "", order: "oldest", payment: false };
 
 type Summary = {
   id: string;
@@ -93,7 +95,9 @@ async function errorFrom(response: Response, fallback: string) {
 }
 
 function hasActiveFilters(filters: Filters) {
-  return filters.q !== "" || filters.packageId !== "" || filters.from !== "" || filters.to !== "" || filters.order !== "oldest";
+  return (
+    filters.q !== "" || filters.packageId !== "" || filters.from !== "" || filters.to !== "" || filters.order !== "oldest" || filters.payment
+  );
 }
 
 /** Up to two initials for the avatar. Falls back to "?" for an empty name. */
@@ -111,8 +115,16 @@ function initialsOf(name: string) {
  * Admin review queue: search, filter and page through applications, then inspect one, approve or reject it.
  * The list and the detail come from the API. Every action is checked again on the server.
  */
-export default function RegistrationReview({ packages }: { packages: { id: string; name: string }[] }) {
-  const [filters, setFilters] = useState<Filters>(DEFAULT_FILTERS);
+export default function RegistrationReview({
+  packages,
+  initialStatus = "PENDING",
+  initialPaymentPending = false,
+}: {
+  packages: { id: string; name: string }[];
+  initialStatus?: Status;
+  initialPaymentPending?: boolean;
+}) {
+  const [filters, setFilters] = useState<Filters>({ ...DEFAULT_FILTERS, status: initialStatus, payment: initialPaymentPending });
   const [searchInput, setSearchInput] = useState("");
   const [page, setPage] = useState(1);
   const [items, setItems] = useState<Summary[]>([]);
@@ -135,6 +147,7 @@ export default function RegistrationReview({ packages }: { packages: { id: strin
     let active = true;
     const params = new URLSearchParams({ status: filters.status, order: filters.order, page: String(page) });
     if (filters.q) params.set("q", filters.q);
+    if (filters.payment) params.set("payment", "PENDING");
     if (filters.packageId) params.set("package", filters.packageId);
     if (filters.from) params.set("from", filters.from);
     if (filters.to) params.set("to", filters.to);
@@ -313,10 +326,26 @@ export default function RegistrationReview({ packages }: { packages: { id: strin
           </span>
         </div>
 
+        <div className="mt-4 flex flex-wrap items-center gap-2">
+          <button
+            type="button"
+            aria-pressed={filters.payment}
+            onClick={() => changeFilters({ payment: !filters.payment, status: filters.payment ? filters.status : "ALL" })}
+            className={`inline-flex h-9 items-center rounded-xl px-3.5 text-[0.8125rem] font-semibold ring-1 transition-colors ${
+              filters.payment ? "bg-gold-soft text-ink ring-gold-dark" : "bg-white text-muted ring-line hover:text-ink"
+            }`}
+          >
+            Payment awaiting review
+          </button>
+          {filters.payment && (
+            <span className="text-[0.8125rem] text-muted">Showing all applications with a payment to review.</span>
+          )}
+        </div>
+
         <div
           role="tablist"
           aria-label="Filter applications by status"
-          className="mt-4 inline-flex max-w-full flex-wrap gap-1 rounded-2xl bg-page p-1 ring-1 ring-line"
+          className="mt-3 inline-flex max-w-full flex-wrap gap-1 rounded-2xl bg-page p-1 ring-1 ring-line"
         >
           {STATUS_TABS.map((option) => {
             const active = filters.status === option.value;

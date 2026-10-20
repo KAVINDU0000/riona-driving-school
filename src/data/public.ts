@@ -46,3 +46,12 @@ export const packageDiscountNote = "5% discount when the full eligible package f
 
 /** Eligibility, validity and restrictions are not in the project, so they are not shown. */
 export const cashDiscountNote = packageDiscountNote;
+
+/**
+ * Transmission shown on the Regular package cards. Each Regular package covers one vehicle with one transmission,
+ * so the card shows that transmission instead of the shared "Automatic & Manual" vehicle tag.
+ */
+export const regularTransmissionByPackageId: Record<string, { tag: string; point: string }> = {
+  "regular-car": { tag: "Automatic", point: "Automatic transmission lessons" },
+  "regular-van": { tag: "Manual", point: "Manual transmission lessons" },
+};

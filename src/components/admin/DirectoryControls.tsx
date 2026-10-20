@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { DirectoryStatus } from "@/lib/admin/directory";
-import { BUTTON_INK, FIELD, LABEL, SELECT_FIELD } from "@/components/admin/admin-ui";
+import { BUTTON_INK, FIELD, LABEL } from "@/components/admin/admin-ui";
+import AutoSubmitSelect from "@/components/admin/AutoSubmitSelect";
 
 /**
  * Search and status filter for a directory. It is a plain GET form, so it works without JavaScript and the
@@ -56,13 +57,12 @@ export function DirectorySearch({
           Status
         </label>
         <div className="relative">
-          <select id={`${id}-status`} name="status" defaultValue={status} className={`${SELECT_FIELD} h-11`}>
-            {(Object.keys(statusLabels) as DirectoryStatus[]).map((value) => (
-              <option key={value} value={value}>
-                {statusLabels[value]}
-              </option>
-            ))}
-          </select>
+          <AutoSubmitSelect
+            id={`${id}-status`}
+            name="status"
+            defaultValue={status}
+            options={(Object.keys(statusLabels) as DirectoryStatus[]).map((value) => ({ value, label: statusLabels[value] }))}
+          />
           <ChevronIcon />
         </div>
       </div>

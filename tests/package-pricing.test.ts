@@ -43,7 +43,7 @@ describe("price formatting", () => {
   });
 
   it("shows fixed-fee packages with no per-session wording", () => {
-    expect(formatPackagePrice(find("regular-car-van")!)).toBe("LKR 26,000");
+    expect(formatPackagePrice(find("regular-car")!)).toBe("LKR 26,000");
     expect(formatPackagePrice(find("trial-car")!)).toBe("LKR 15,000");
   });
 

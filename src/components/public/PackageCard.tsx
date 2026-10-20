@@ -3,8 +3,22 @@ import Icon from "@/components/ui/Icon";
 import { formatLkr, isPerSession, type CatalogPackage } from "@/lib/packages/format";
 import { IconTile, Surface } from "@/components/landing/primitives";
 import PackageArt from "@/components/public/PackageArt";
+import { regularTransmissionByPackageId } from "@/data/public";
 
 type VehicleInfo = { key: string; label: string; tag: string; points: string[]; image: string };
+
+/**
+ * The tag and feature points for this card. A Regular package with a set transmission shows that transmission in
+ * place of the shared vehicle tag and its "Automatic and manual" line.
+ */
+function cardContent(option: CatalogPackage, vehicle: VehicleInfo) {
+  const transmission = regularTransmissionByPackageId[option.id];
+  if (!transmission) return { tag: vehicle.tag, points: vehicle.points };
+  const points = vehicle.points.some((point) => point.startsWith("Automatic and manual"))
+    ? vehicle.points.map((point) => (point.startsWith("Automatic and manual") ? transmission.point : point))
+    : [...vehicle.points, transmission.point];
+  return { tag: transmission.tag, points };
+}
 
 const PRIMARY =
   "inline-flex w-full items-center justify-center gap-2 rounded-xl bg-gold px-4 py-2.5 text-[0.875rem] font-semibold text-ink shadow-[0_10px_24px_-12px_rgba(232,164,0,0.9)] transition-colors hover:bg-gold-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark";
@@ -27,6 +41,7 @@ export default function PackageCard({
   group: string;
 }) {
   const perSession = isPerSession(option);
+  const content = vehicle ? cardContent(option, vehicle) : null;
 
   return (
     <Surface lift className="flex h-full flex-col gap-4 p-3">
@@ -37,9 +52,9 @@ export default function PackageCard({
           <IconTile>
             <Icon name={vehicle ? "car" : "badge-check"} className="h-5 w-5" />
           </IconTile>
-          {vehicle && (
+          {content && (
             <span className="rounded-full bg-page px-3 py-1 text-[0.75rem] font-semibold text-muted ring-1 ring-line">
-              {vehicle.tag}
+              {content.tag}
             </span>
           )}
         </div>
@@ -52,9 +67,9 @@ export default function PackageCard({
           {option.detail && <p className="text-[0.875rem] leading-[1.6] text-muted">{option.detail}</p>}
         </div>
 
-        {vehicle && (
+        {content && (
           <ul className="grid gap-2.5">
-            {vehicle.points.map((point) => (
+            {content.points.map((point) => (
               <li key={point} className="flex items-start gap-2.5 text-[0.875rem] text-ink">
                 <span className="mt-0.5 grid h-5 w-5 shrink-0 place-items-center rounded-full bg-success-soft text-success">
                   <Icon name="check" className="h-3 w-3" strokeWidth={2.6} />

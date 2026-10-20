@@ -13,7 +13,7 @@ import { prisma } from "@/lib/prisma";
 import { CREDENTIALS_MESSAGE } from "@/lib/registration/payment-submission";
 import { createAccount, ORIGIN, resetDatabase } from "./helpers";
 
-const PACKAGE_ID = "regular-car-van";
+const PACKAGE_ID = "regular-car";
 const REFERENCE = "RDS-5E6F7A8B9C";
 const EMAIL = "status-applicant@example.com";
 const PASSWORD = "applicant-pass-123";
@@ -40,7 +40,7 @@ async function seedApplication() {
   await createAccount({ userId: "ADMIN-1", email: "admin@riona.test", role: UserRole.ADMIN });
   await createAccount({ userId: "STU-A", email: "student@riona.test", role: UserRole.STUDENT });
   await prisma.trainingPackage.create({
-    data: { id: PACKAGE_ID, name: "Car and Van Training", packageType: "REGULAR", price: 26000, durationDays: 15 },
+    data: { id: PACKAGE_ID, name: "Regular Car Training", packageType: "REGULAR", price: 26000, durationDays: 15 },
   });
   return prisma.registrationRequest.create({
     data: {

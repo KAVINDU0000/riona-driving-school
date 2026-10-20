@@ -7,7 +7,7 @@ import { AccountStatus, PackageType, TrainingType, UserRole, VehicleType } from 
 import { prisma } from "@/lib/prisma";
 
 /** Real packages on the branch. Read-only for these tests: they are never created, edited or deleted here. */
-export const REAL_REGULAR_PACKAGE = "regular-car-van";
+export const REAL_REGULAR_PACKAGE = "regular-car";
 export const REAL_TRIAL_PACKAGE = "trial-car-motorcycle";
 const REAL_PACKAGES = [REAL_REGULAR_PACKAGE, REAL_TRIAL_PACKAGE];
 

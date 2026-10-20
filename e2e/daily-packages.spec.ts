@@ -10,7 +10,7 @@ const DAILY: PackageRow[] = [
   { id: "daily-three-wheeler", name: "Three-Wheeler Daily Training", detail: "per 60-minute session", price: "LKR 1,500 per session" },
 ];
 
-const CAR_VAN: PackageRow = { id: "regular-car-van", name: "Car and Van Training", detail: "15 days", price: "LKR 26,000" };
+const CAR_VAN: PackageRow = { id: "regular-car", name: "Regular Car Training", detail: "15 days", price: "LKR 26,000" };
 const CAR_TRIAL: PackageRow = { id: "trial-car", name: "Car Trial Preparation", detail: "", price: "LKR 15,000" };
 
 const PER_SESSION_NOTE = "is charged per session";

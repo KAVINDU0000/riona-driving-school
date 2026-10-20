@@ -9,7 +9,7 @@ import { generateReferenceNumber } from "@/lib/registration/submit";
 import { postRequest, refuseSharedDatabase, resetDatabase } from "./helpers";
 
 const PASSWORD = "correct-horse-battery";
-const PACKAGE_ID = "regular-car-van";
+const PACKAGE_ID = "regular-car";
 const INACTIVE_PACKAGE_ID = "retired-package";
 
 async function resetRegistrationTables() {
@@ -21,7 +21,7 @@ async function resetRegistrationTables() {
 
 async function seedPackages() {
   await prisma.trainingPackage.create({
-    data: { id: PACKAGE_ID, name: "Car and Van Training", packageType: "REGULAR", price: 26000, isActive: true },
+    data: { id: PACKAGE_ID, name: "Regular Car Training", packageType: "REGULAR", price: 26000, isActive: true },
   });
   await prisma.trainingPackage.create({
     data: { id: INACTIVE_PACKAGE_ID, name: "Retired package", packageType: "REGULAR", price: 1000, isActive: false },

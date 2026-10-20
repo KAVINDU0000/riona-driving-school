@@ -24,7 +24,7 @@ export async function seedPackagesFromFixture() {
         name: option.name,
         packageType,
         price: option.price,
-        durationDays: option.id === "regular-car-van" ? 15 : null,
+        durationDays: option.id === "regular-car" ? 15 : null,
         sessionDurationMinutes: packageType === "DAILY" ? Number(/(\d+)-minute/.exec(option.detail ?? "")?.[1]) : null,
         isActive: true,
         sortOrder: index + 1,
