@@ -52,3 +52,6 @@ yarn-error.log*
 /test-results/
 /playwright-report/
 /blob-report/
+
+# dry-run database connection (local only)
+.env.dryrun.local
