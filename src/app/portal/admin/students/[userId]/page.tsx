@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import AdminFrame from "@/components/admin/AdminFrame";
+import AddAppointmentForms from "@/components/admin/AddAppointmentForms";
 import StudentStatusControl from "@/components/admin/StudentStatusControl";
 import { formatDate, formatDateTime, formatMoney, labels } from "@/components/student/format";
 import StatusBadge from "@/components/student/StatusBadge";
@@ -25,7 +26,7 @@ export default async function AdminStudentProfilePage({ params }: { params: Prom
   return (
     <AdminFrame
       title={student.fullName}
-      description={`Student ID ${student.studentId}. Records on this page are read-only. The account can be deactivated or reactivated here.`}
+      description={`Student ID ${student.studentId}. Existing records are read-only. You can add appointments and exams, and deactivate or reactivate the account, here.`}
       active="/portal/admin/students"
       crumbs={[{ label: "Students", href: "/portal/admin/students" }, { label: student.fullName }]}
     >
@@ -185,6 +186,9 @@ export default async function AdminStudentProfilePage({ params }: { params: Prom
               ))}
             </ul>
           )}
+          <div className="mt-6">
+            <AddAppointmentForms userId={student.studentId} disabled={student.accountStatus !== "ACTIVE"} />
+          </div>
         </section>
       </div>
     </AdminFrame>

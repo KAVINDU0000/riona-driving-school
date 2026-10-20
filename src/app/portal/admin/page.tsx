@@ -31,8 +31,20 @@ export default async function AdminDashboardPage() {
     { label: "Active instructors", value: stats.activeInstructors, caption: "Active accounts and profiles", icon: "user", href: "/portal/admin/instructors" },
     { label: "Today's scheduled lessons", value: stats.todaysScheduledLessons, caption: `School date ${formatDate(stats.today)}`, icon: "calendar" },
     { label: "Lessons needing action", value: stats.lessonsNeedingAction, caption: "Ended, still scheduled", icon: "clock" },
-    { label: "Upcoming medical appointments", value: stats.upcomingMedicalAppointments, caption: "Scheduled, from now on", icon: "heart-pulse" },
-    { label: "Upcoming exams", value: stats.upcomingExams, caption: "Scheduled, from now on", icon: "badge-check" },
+    {
+      label: "Upcoming medical appointments",
+      value: stats.upcomingMedicalAppointments,
+      caption: "Scheduled, from now on",
+      icon: "heart-pulse",
+      href: "/portal/admin/medical-appointments",
+    },
+    {
+      label: "Upcoming exams",
+      value: stats.upcomingExams,
+      caption: "Scheduled, from now on",
+      icon: "badge-check",
+      href: "/portal/admin/exams",
+    },
     {
       label: "Pending payment reviews",
       value: stats.pendingPaymentReviews,
