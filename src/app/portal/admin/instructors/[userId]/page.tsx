@@ -3,8 +3,11 @@ import { notFound } from "next/navigation";
 import AdminFrame from "@/components/admin/AdminFrame";
 import { formatDate, formatDateTime, labels } from "@/components/student/format";
 import StatusBadge from "@/components/student/StatusBadge";
+import InstructorSalaryTracker from "@/components/admin/InstructorSalaryTracker";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
 import { getInstructorProfile, isDirectoryId } from "@/lib/admin/directory";
+import { getInstructorSalary } from "@/lib/admin/instructor-salary";
+import { schoolNow } from "@/lib/student/time";
 
 export const metadata: Metadata = {
   title: "Instructor profile | Admin Portal | Riyona Driving School",
@@ -20,11 +23,13 @@ export default async function AdminInstructorProfilePage({ params }: { params: P
   if (!profile) notFound();
   const { instructor, monthLabel, monthCounts, upcomingLessons, upcomingAvailabilityWindows, availabilityWindows, feedbackCount } = profile;
   const active = instructor.accountStatus === "ACTIVE" && instructor.profileStatus === "ACTIVE";
+  const salary = await getInstructorSalary(userId);
+  const today = schoolNow();
 
   return (
     <AdminFrame
       title={instructor.fullName}
-      description={`Instructor ID ${instructor.instructorId}. Read-only. Status changes are not available yet.`}
+      description={`Instructor ID ${instructor.instructorId}. Salary can be changed here. The other details are read-only.`}
       active="/portal/admin/instructors"
       crumbs={[{ label: "Instructors", href: "/portal/admin/instructors" }, { label: instructor.fullName }]}
     >
@@ -61,6 +66,25 @@ export default async function AdminInstructorProfilePage({ params }: { params: P
             <Field label="Availability windows from today" value={String(upcomingAvailabilityWindows)} />
             <Field label="Lesson feedback written" value={String(feedbackCount)} />
           </dl>
+        </section>
+
+        <section aria-labelledby="salary-heading" className="glass rounded-[22px] p-5">
+          <h2 id="salary-heading" className="text-[1.125rem] font-bold text-ink">
+            Monthly salary
+          </h2>
+          <p className="mt-2 text-[0.875rem] text-muted">
+            Record each month, then mark it paid with the date it was paid. Months already recorded keep their amounts when the
+            fixed salary changes.
+          </p>
+          <div className="mt-4">
+            <InstructorSalaryTracker
+              instructorId={userId}
+              monthlySalary={salary.monthlySalary}
+              months={salary.months}
+              currentMonth={today.date.slice(0, 7)}
+              today={today.date}
+            />
+          </div>
         </section>
 
         <section aria-labelledby="availability-heading" className="glass rounded-[22px] p-5">
