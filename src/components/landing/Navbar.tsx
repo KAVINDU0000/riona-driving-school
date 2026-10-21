@@ -9,7 +9,7 @@ export default function Navbar({ hideApply = false }: { hideApply?: boolean }) {
   return (
     <header className="sticky top-0 z-50 pt-5">
       <div className="w-full px-4 md:px-8">
-        <nav className="glass flex h-[88px] items-center gap-6 rounded-[18px] px-5 shadow-[0_12px_40px_-16px_rgb(40_60_90/0.16)] backdrop-blur-2xl">
+        <nav data-site-nav className="glass flex h-[88px] items-center gap-6 rounded-[18px] px-5 shadow-[0_12px_40px_-16px_rgb(40_60_90/0.16)] backdrop-blur-2xl">
           <a href="#home" className="flex shrink-0 items-center gap-3">
             <Image
               src="/images/logo-riyona.jpg"

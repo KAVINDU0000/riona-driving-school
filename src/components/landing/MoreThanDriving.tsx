@@ -39,7 +39,7 @@ export default function MoreThanDriving() {
             </ol>
           </div>
 
-          <div className="relative aspect-[4/3] overflow-hidden rounded-[24px] shadow-float ring-1 ring-white/70">
+          <div className="relative aspect-[4/3] overflow-hidden rounded-[10px] shadow-float ring-1 ring-white/70">
             <Image
               src="/images/more-than-lesson.png"
               alt="Riyona instructor giving a thumbs up while a smiling student drives"
