@@ -16,24 +16,30 @@ export default function Navbar({ hideApply = false }: { hideApply?: boolean }) {
               alt="Riyona Driving School logo"
               width={44}
               height={44}
-              className="h-11 w-11 rounded-full object-cover ring-1 ring-line"
+              className="h-11 w-11 rounded-full object-cover ring-2 ring-gold/70 ring-offset-2 ring-offset-white/60"
             />
-            <span className="whitespace-nowrap text-[0.9375rem] font-bold tracking-[0.02em] text-ink">
-              RIYONA DRIVING SCHOOL
+            <span className="flex flex-col leading-none">
+              <span className="whitespace-nowrap text-[1rem] font-extrabold tracking-[0.04em] text-ink">RIYONA</span>
+              <span className="mt-1 whitespace-nowrap text-[0.625rem] font-bold uppercase tracking-[0.22em] text-gold-ink">
+                Driving School
+              </span>
             </span>
           </a>
 
           <DesktopNav />
 
-          <div className="ml-auto hidden items-center gap-4 lg:flex">
-            <a href={site.phoneHref} className="flex items-center gap-2 text-[0.875rem] font-medium text-ink">
-              <Icon name="phone" className="h-4 w-4" />
+          <div className="ml-auto hidden items-center gap-3 lg:flex">
+            <a
+              href={site.phoneHref}
+              className="inline-flex items-center gap-2 rounded-full bg-page px-4 py-2 text-[0.8125rem] font-semibold text-ink ring-1 ring-line transition-colors hover:ring-gold"
+            >
+              <Icon name="phone" className="h-4 w-4 text-gold-ink" />
               {site.phone}
             </a>
             {!hideApply && (
               <Link
                 href="/signup"
-                className="inline-flex items-center rounded-xl px-4 py-2.5 text-[0.875rem] font-semibold text-ink ring-1 ring-line transition-colors hover:bg-page focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark"
+                className="inline-flex items-center rounded-full bg-ink px-5 py-2.5 text-[0.875rem] font-semibold text-white transition-colors hover:bg-ink-soft focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark"
               >
                 Apply now
               </Link>
@@ -42,7 +48,7 @@ export default function Navbar({ hideApply = false }: { hideApply?: boolean }) {
               href={site.whatsapp}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 rounded-xl bg-gold px-5 py-2.5 text-[0.875rem] font-semibold text-ink shadow-[0_8px_20px_-10px_rgba(232,164,0,0.8)] transition-colors hover:bg-gold-dark"
+              className="inline-flex items-center gap-2 rounded-full bg-gold px-5 py-2.5 text-[0.875rem] font-semibold text-ink shadow-[0_8px_20px_-10px_rgba(232,164,0,0.8)] transition-colors hover:bg-gold-dark"
             >
               WhatsApp
               <Icon name="chat" className="h-4 w-4" />
