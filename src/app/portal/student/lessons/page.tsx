@@ -7,6 +7,7 @@ import { allowedDurations } from "@/lib/student/lesson-booking";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
 import { getEnrollments, getLessons } from "@/lib/student/data";
 import type { StudentCancellation } from "@/lib/lessons/cancellation";
+import SectionTitle from "@/components/student/SectionTitle";
 
 export const metadata = { title: "Lessons | Student portal", robots: { index: false, follow: false } };
 
@@ -61,17 +62,13 @@ export default async function StudentLessonsPage() {
       />
 
       <section aria-labelledby="book-heading" className="flex flex-col gap-4">
-        <h2 id="book-heading" className="text-[1.125rem] font-bold text-ink">
-          Book a lesson
-        </h2>
+        <SectionTitle id="book-heading" icon="car" tone="gold">Book a lesson</SectionTitle>
         <LessonBookingForm requirements={bookable} />
       </section>
 
       <div className="grid gap-6 xl:grid-cols-2">
         <section aria-labelledby="upcoming-heading" className="glass rounded-[22px] p-6">
-          <h2 id="upcoming-heading" className="text-[1.125rem] font-bold text-ink">
-            Upcoming lessons
-          </h2>
+          <SectionTitle id="upcoming-heading" icon="calendar" tone="blue">Upcoming lessons</SectionTitle>
           <div className="mt-4">
             {lessons.upcoming.length === 0 ? (
               <EmptyState title="No upcoming lessons" body="Lessons you book appear here." />
@@ -97,9 +94,7 @@ export default async function StudentLessonsPage() {
         </section>
 
         <section aria-labelledby="past-heading" className="glass rounded-[22px] p-6">
-          <h2 id="past-heading" className="text-[1.125rem] font-bold text-ink">
-            Lesson history
-          </h2>
+          <SectionTitle id="past-heading" icon="check-circle" tone="green">Lesson history</SectionTitle>
           <div className="mt-4">
             {lessons.past.length === 0 ? (
               <EmptyState title="No past lessons" body="Completed lessons appear here with attendance and any feedback." />

@@ -7,6 +7,7 @@ import PasswordChangeForm from "@/components/student/PasswordChangeForm";
 import StatusBadge from "@/components/student/StatusBadge";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
 import { getStudentProfile } from "@/lib/student/data";
+import SectionTitle from "@/components/student/SectionTitle";
 
 export const metadata = { title: "Settings | Student portal", robots: { index: false, follow: false } };
 
@@ -29,9 +30,7 @@ export default async function StudentSettingsPage() {
 
       <div className="grid gap-6 xl:grid-cols-2">
         <section aria-labelledby="account-heading" className="glass rounded-[22px] p-6">
-          <h2 id="account-heading" className="text-[1.125rem] font-bold text-ink">
-            Account
-          </h2>
+          <SectionTitle id="account-heading" icon="user" tone="blue">Account</SectionTitle>
           <dl className="mt-4 grid gap-4 text-[0.9375rem]">
             <div>
               <dt className="text-[0.8125rem] font-semibold text-muted">Student ID</dt>
@@ -56,18 +55,14 @@ export default async function StudentSettingsPage() {
         </section>
 
         <section aria-labelledby="password-heading" className="glass rounded-[22px] p-6">
-          <h2 id="password-heading" className="text-[1.125rem] font-bold text-ink">
-            Change password
-          </h2>
+          <SectionTitle id="password-heading" icon="lock" tone="violet">Change password</SectionTitle>
           <p className="mb-5 mt-1 text-[0.875rem] text-muted">Changing your password signs out every other device.</p>
           <PasswordChangeForm />
         </section>
       </div>
 
       <section aria-labelledby="email-heading" className="glass rounded-[22px] p-6">
-        <h2 id="email-heading" className="text-[1.125rem] font-bold text-ink">
-          Change email address
-        </h2>
+        <SectionTitle id="email-heading" icon="mail" tone="blue">Change email address</SectionTitle>
         <p className="mb-5 mt-1 text-[0.875rem] text-muted">We send a link to the new address. Your sign-in email changes only after you open it.</p>
         <div className="max-w-xl">
           <EmailChangeForm currentEmail={profile.email ?? "Not set"} />

@@ -33,7 +33,7 @@ export default function InstructorSideFrame({
   const current = SECTIONS.find((section) => section.href === active);
 
   return (
-    <div className="relative min-h-screen bg-page lg:flex">
+    <div className="relative min-h-screen bg-page lg:flex lg:h-dvh lg:overflow-hidden">
       <div className="page-atmosphere" aria-hidden="true" />
 
       <aside className="relative z-20 bg-ink text-white lg:sticky lg:top-0 lg:h-screen lg:w-[264px] lg:shrink-0 lg:overflow-y-auto">
@@ -86,7 +86,7 @@ export default function InstructorSideFrame({
         </nav>
       </aside>
 
-      <div className="relative z-10 flex min-w-0 flex-1 flex-col">
+      <div className="relative z-10 flex min-w-0 flex-1 flex-col lg:min-h-0">
         <header className="sticky top-0 z-30 px-4 pt-5 md:px-8">
           <div className="glass flex h-[88px] items-center justify-between gap-4 rounded-[18px] px-5 shadow-[0_12px_40px_-16px_rgb(40_60_90/0.16)] backdrop-blur-2xl">
             <nav aria-label="Breadcrumb" className="min-w-0 text-[0.8125rem] text-muted">
@@ -124,13 +124,17 @@ export default function InstructorSideFrame({
           </div>
         </header>
 
-        <main className="flex-1 px-4 pb-16 pt-8 md:px-8 md:pt-10">
+        <main className="flex-1 px-4 pb-16 pt-8 md:px-8 md:pt-10 lg:min-h-0 lg:overflow-y-auto lg:scroll-smooth lg:pt-0 lg:[scrollbar-width:none] lg:[&::-webkit-scrollbar]:hidden">
           <div className="mx-auto max-w-[1280px]">
-            <h1 className="text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-ink md:text-[2.25rem]">
-              {title}
-              <span className="text-gold-dark">.</span>
-            </h1>
-            <p className="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted">{description}</p>
+            <div className="lg:sticky lg:top-0 lg:z-10 lg:pt-10">
+              <h1 className="text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-ink md:text-[2.25rem] [animation:title-fade_linear_both] [animation-range:64px_74px] [animation-timeline:scroll(nearest)] motion-reduce:[animation:none]">
+                {title}
+                <span className="text-gold-dark">.</span>
+              </h1>
+              <p className="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted [animation:title-fade_linear_both] [animation-range:32px_38px] [animation-timeline:scroll(nearest)] motion-reduce:[animation:none]">
+                {description}
+              </p>
+            </div>
             <div className="mt-8">{children}</div>
           </div>
         </main>

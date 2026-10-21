@@ -5,6 +5,7 @@ import StatusBadge from "@/components/student/StatusBadge";
 import StudentStatCard from "@/components/student/StudentStatCard";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
 import { getAttendance } from "@/lib/student/data";
+import SectionTitle from "@/components/student/SectionTitle";
 
 export const metadata = { title: "Attendance | Student portal", robots: { index: false, follow: false } };
 
@@ -27,9 +28,7 @@ export default async function StudentAttendancePage() {
       </section>
 
       <section aria-labelledby="records-heading" className="glass rounded-[22px] p-6">
-        <h2 id="records-heading" className="text-[1.125rem] font-bold text-ink">
-          Attendance records
-        </h2>
+        <SectionTitle id="records-heading" icon="check-circle" tone="amber">Attendance records</SectionTitle>
         <div className="mt-4">
           {rows.length === 0 ? (
             <EmptyState title="No lessons yet" body="Attendance appears here after your first booked lesson." />

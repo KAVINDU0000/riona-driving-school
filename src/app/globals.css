@@ -302,3 +302,14 @@ body {
 .thin-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--color-gold-dark);
 }
+
+/* Student pages: the title and description fade out as the content scrolls up under them. Driven by scroll
+   position (scroll-linked animation), so it needs no JavaScript. Browsers without support simply keep the text visible. */
+@keyframes title-fade {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}

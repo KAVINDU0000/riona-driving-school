@@ -4,6 +4,7 @@ import PageIntro from "@/components/student/PageIntro";
 import StatusBadge from "@/components/student/StatusBadge";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
 import { getAppointments } from "@/lib/student/data";
+import SectionTitle from "@/components/student/SectionTitle";
 
 export const metadata = { title: "Appointments | Student portal", robots: { index: false, follow: false } };
 
@@ -23,9 +24,7 @@ export default async function StudentAppointmentsPage() {
       />
 
       <section aria-labelledby="medical-heading" className="glass rounded-[22px] p-6">
-        <h2 id="medical-heading" className="text-[1.125rem] font-bold text-ink">
-          Medical appointments
-        </h2>
+        <SectionTitle id="medical-heading" icon="shield-check" tone="green">Medical appointments</SectionTitle>
         <div className="mt-4 flex flex-col gap-4">
           {medical.length === 0 ? (
             <EmptyState title="No medical appointments" body="Your medical appointment appears here once the school schedules it." />
@@ -45,9 +44,7 @@ export default async function StudentAppointmentsPage() {
       </section>
 
       <section aria-labelledby="exam-heading" className="glass rounded-[22px] p-6">
-        <h2 id="exam-heading" className="text-[1.125rem] font-bold text-ink">
-          Driving exams
-        </h2>
+        <SectionTitle id="exam-heading" icon="file-check" tone="violet">Driving exams</SectionTitle>
         <div className="mt-4 flex flex-col gap-4">
           {exams.length === 0 ? (
             <EmptyState title="No exams scheduled" body="Your written test and driving trial appear here when the school schedules them." />

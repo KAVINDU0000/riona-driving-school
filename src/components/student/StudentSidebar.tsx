@@ -10,7 +10,11 @@ export default function StudentSidebar() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Student portal" className="glass sticky top-6 hidden h-fit w-64 shrink-0 rounded-[22px] p-3 lg:block">
+    // Plain background (no backdrop blur). The frame does not scroll on large screens, so the sidebar stays in place.
+    <nav
+      aria-label="Student portal"
+      className="hidden h-fit w-64 shrink-0 self-start rounded-[22px] border border-white/70 bg-white/85 p-3 shadow-[0_12px_40px_-16px_rgb(40_60_90/0.16)] lg:block"
+    >
       <ul className="flex flex-col gap-1">
         {studentNav.map((item) => {
           const active = pathname === item.href || pathname.startsWith(`${item.href}/`);

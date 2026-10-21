@@ -5,6 +5,7 @@ import ProfileForm from "@/components/student/ProfileForm";
 import StatusBadge from "@/components/student/StatusBadge";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
 import { getStudentProfile } from "@/lib/student/data";
+import SectionTitle from "@/components/student/SectionTitle";
 
 export const metadata = { title: "Profile | Student portal", robots: { index: false, follow: false } };
 
@@ -27,9 +28,7 @@ export default async function StudentProfilePage() {
 
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
         <section aria-labelledby="details-heading" className="glass rounded-[22px] p-6">
-          <h2 id="details-heading" className="text-[1.125rem] font-bold text-ink">
-            Your details
-          </h2>
+          <SectionTitle id="details-heading" icon="user" tone="blue">Your details</SectionTitle>
           <dl className="mt-4 grid gap-4 text-[0.9375rem] sm:grid-cols-2">
             <Field label="Full name" value={profile.fullName} />
             <Field label="Student ID" value={profile.studentId} />
@@ -48,9 +47,7 @@ export default async function StudentProfilePage() {
         </section>
 
         <section aria-labelledby="edit-heading" className="glass rounded-[22px] p-6">
-          <h2 id="edit-heading" className="text-[1.125rem] font-bold text-ink">
-            Contact details
-          </h2>
+          <SectionTitle id="edit-heading" icon="user" tone="gold">Contact details</SectionTitle>
           <p className="mb-5 mt-1 text-[0.875rem] text-muted">Keep your address and mobile number current so the school can reach you.</p>
           <ProfileForm initialAddress={profile.address} initialPhone={profile.phoneNumber} />
           <p className="mt-6 text-[0.8125rem] text-muted">Name, NIC and date of birth are maintained by the school.</p>

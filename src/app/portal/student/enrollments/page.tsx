@@ -5,6 +5,7 @@ import PageIntro from "@/components/student/PageIntro";
 import StatusBadge from "@/components/student/StatusBadge";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
 import { getEnrollments } from "@/lib/student/data";
+import SectionTitle from "@/components/student/SectionTitle";
 
 export const metadata = { title: "Enrollments | Student portal", robots: { index: false, follow: false } };
 
@@ -27,10 +28,10 @@ export default async function StudentEnrollmentsPage() {
             <article key={enrollment.id} aria-labelledby={`enrollment-${enrollment.id}`} className="glass rounded-[22px] p-6">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div>
-                  <h2 id={`enrollment-${enrollment.id}`} className="text-[1.25rem] font-bold text-ink">
+                  <SectionTitle id={`enrollment-${enrollment.id}`} icon="book" tone="gold">
                     {enrollment.packageName}
-                  </h2>
-                  <p className="mt-1 text-[0.8125rem] text-muted">Enrolled {formatDate(enrollment.enrollmentDate.toISOString().slice(0, 10))}</p>
+                  </SectionTitle>
+                  <p className="mt-1 pl-13 text-[0.8125rem] text-muted">Enrolled {formatDate(enrollment.enrollmentDate.toISOString().slice(0, 10))}</p>
                 </div>
                 <StatusBadge status={enrollment.status} label={labels.enrollmentStatus[enrollment.status]} />
               </div>

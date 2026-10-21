@@ -17,6 +17,16 @@ const quickLinks = [
   { href: "/portal/student/profile", label: "Update my details", icon: "user" },
 ];
 
+/** Pill-style "View all" link used on the dashboard cards. */
+function ViewAll({ href }: { href: string }) {
+  return (
+    <Link href={href} className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-white/80 px-3.5 py-1.5 text-[0.8125rem] font-semibold text-ink ring-1 ring-line hover:bg-white">
+      View all
+      <Icon name="arrow-right" className="h-3.5 w-3.5" />
+    </Link>
+  );
+}
+
 export default async function StudentDashboardPage() {
   const user = await requirePortalUser("STUDENT");
   const data = await getDashboard(user.userId);
@@ -35,24 +45,32 @@ export default async function StudentDashboardPage() {
         <StudentStatCard
           label="Registration"
           icon="file-check"
+          tone="blue"
+          href="/portal/student/registration"
           value={data.registration ? <StatusBadge status={data.registration.status} label={labels.registrationStatus[data.registration.status]} /> : "Not linked"}
           caption={data.registration ? data.registration.selectedPackage.name : "No approved application is linked to your account yet."}
         />
         <StudentStatCard
           label="Training progress"
           icon="badge-check"
+          tone="green"
+          href="/portal/student/enrollments"
           value={data.progress.required > 0 ? `${data.progress.completed} / ${data.progress.required}` : "No sessions yet"}
           caption={data.progress.required > 0 ? `${remaining} session${remaining === 1 ? "" : "s"} still to book` : "Sessions appear once you have an active enrollment."}
         />
         <StudentStatCard
           label="Next lesson"
-          icon="car"
+          icon="calendar"
+          tone="violet"
+          href="/portal/student/lessons"
           value={data.nextLesson ? formatDate(data.nextLesson.lessonDate) : "None booked"}
           caption={data.nextLesson ? `${data.nextLesson.startTime}–${data.nextLesson.endTime} · ${labels.vehicleType[data.nextLesson.vehicleType]}` : "Book a practical lesson from the Lessons page."}
         />
         <StudentStatCard
           label="Attendance"
           icon="check-circle"
+          tone="amber"
+          href="/portal/student/attendance"
           value={data.attendance.present + data.attendance.absent + data.attendance.late > 0 ? `${data.attendance.present} present` : "No record"}
           caption={`${data.attendance.absent} absent · ${data.attendance.late} late · ${data.attendance.notRecorded} not yet recorded`}
         />
@@ -61,12 +79,15 @@ export default async function StudentDashboardPage() {
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
         <section aria-labelledby="enrollments-heading" className="glass rounded-[22px] p-6">
           <div className="flex items-center justify-between gap-3">
-            <h2 id="enrollments-heading" className="text-[1.125rem] font-bold text-ink">
-              Your enrollments
-            </h2>
-            <Link href="/portal/student/enrollments" className="text-[0.8125rem] font-semibold text-gold-ink hover:text-ink">
-              View all
-            </Link>
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-gold-soft text-gold-ink ring-1 ring-gold/50">
+                <Icon name="book" className="h-5 w-5" />
+              </span>
+              <h2 id="enrollments-heading" className="text-[1.125rem] font-bold text-ink">
+                Your enrollments
+              </h2>
+            </div>
+            <ViewAll href="/portal/student/enrollments" />
           </div>
           <div className="mt-4 flex flex-col gap-4">
             {data.enrollments.length === 0 ? (
@@ -127,9 +148,17 @@ export default async function StudentDashboardPage() {
         </section>
 
         <section aria-labelledby="appointments-heading" className="glass rounded-[22px] p-6">
-          <h2 id="appointments-heading" className="text-[1.125rem] font-bold text-ink">
-            Upcoming appointments
-          </h2>
+          <div className="flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <span className="grid h-10 w-10 place-items-center rounded-xl bg-violet-100 text-violet-700 ring-1 ring-violet-200">
+                <Icon name="calendar" className="h-5 w-5" />
+              </span>
+              <h2 id="appointments-heading" className="text-[1.125rem] font-bold text-ink">
+                Upcoming appointments
+              </h2>
+            </div>
+            <ViewAll href="/portal/student/appointments" />
+          </div>
           <div className="mt-4 flex flex-col gap-3">
             {data.upcomingAppointments.length === 0 ? (
               <EmptyState title="Nothing scheduled" body="Medical and driving exam appointments appear here once the school schedules them." />
@@ -149,31 +178,52 @@ export default async function StudentDashboardPage() {
       </div>
 
       <section aria-labelledby="recent-heading" className="glass rounded-[22px] p-6">
-        <h2 id="recent-heading" className="text-[1.125rem] font-bold text-ink">
-          Recent lessons
-        </h2>
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="grid h-10 w-10 place-items-center rounded-xl bg-gold-soft text-gold-ink ring-1 ring-gold/50">
+              <Icon name="car" className="h-5 w-5" />
+            </span>
+            <h2 id="recent-heading" className="text-[1.125rem] font-bold text-ink">
+              Recent lessons
+            </h2>
+          </div>
+          <ViewAll href="/portal/student/lessons" />
+        </div>
         <div className="mt-4">
           {data.recentLessons.length === 0 ? (
             <EmptyState title="No past lessons yet" body="Completed lessons appear here with their attendance and any feedback from your instructor." action={{ label: "Go to lessons", href: "/portal/student/lessons" }} />
           ) : (
-            <ul className="divide-y divide-line">
-              {data.recentLessons.map((lesson) => (
-                <li key={lesson.id} className="flex flex-wrap items-center justify-between gap-3 py-3">
-                  <div>
-                    <p className="font-semibold text-ink">
-                      {formatDate(lesson.lessonDate)} · {lesson.startTime}–{lesson.endTime}
-                    </p>
-                    <p className="text-[0.8125rem] text-muted">
-                      {labels.vehicleType[lesson.vehicleType]} · {lesson.instructorName}
-                    </p>
-                  </div>
-                  <div className="flex gap-2">
-                    <StatusBadge status={lesson.status} label={labels.lessonStatus[lesson.status]} />
-                    {lesson.attendance && <StatusBadge status={lesson.attendance} label={labels.attendance[lesson.attendance]} />}
-                  </div>
-                </li>
-              ))}
-            </ul>
+            <div className="overflow-x-auto rounded-2xl border border-line bg-white/60">
+              <table className="w-full min-w-[720px] text-left text-[0.875rem]">
+                <thead className="bg-page/70 text-[0.75rem] uppercase tracking-[0.06em] text-muted">
+                  <tr>
+                    <th scope="col" className="px-4 py-3 font-semibold">Date</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">Time</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">Vehicle</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">Topic</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">Status</th>
+                    <th scope="col" className="px-4 py-3 font-semibold">Instructor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.recentLessons.map((lesson) => (
+                    <tr key={lesson.id} className="border-t border-line">
+                      <td className="px-4 py-3 font-semibold text-ink">{formatDate(lesson.lessonDate)}</td>
+                      <td className="px-4 py-3 text-ink">{lesson.startTime}–{lesson.endTime}</td>
+                      <td className="px-4 py-3 text-ink">{labels.vehicleType[lesson.vehicleType]}</td>
+                      <td className="px-4 py-3 text-ink">{labels.trainingType[lesson.trainingType]}</td>
+                      <td className="px-4 py-3">
+                        <div className="flex flex-wrap gap-2">
+                          <StatusBadge status={lesson.status} label={labels.lessonStatus[lesson.status]} />
+                          {lesson.attendance && <StatusBadge status={lesson.attendance} label={labels.attendance[lesson.attendance]} />}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-ink">{lesson.instructorName}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </div>
       </section>
