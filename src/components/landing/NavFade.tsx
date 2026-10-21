@@ -6,6 +6,8 @@ import { useEffect } from "react";
 const ITEM_SELECTOR =
   'main h1, main h2, main h3, main h4, main p, main img, main figure, main li, main article, main button, main a, main [class*="rounded"]';
 
+/** Attribute that keeps a block and everything in it out of the fade. */
+const OPT_OUT = "[data-nav-fade-off]";
 /** Share of an item's height that must pass under the bar before it is fully transparent. */
 const FADE_SHARE = 0.6;
 /** Smallest fade distance in pixels, so small items such as one text line still fade gently. */
@@ -26,7 +28,10 @@ export default function NavFade() {
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 
-    const candidates = Array.from(document.querySelectorAll<HTMLElement>(ITEM_SELECTOR));
+    // Blocks marked with OPT_OUT (such as the past paper) keep full opacity and are not masked.
+    const candidates = Array.from(document.querySelectorAll<HTMLElement>(ITEM_SELECTOR)).filter(
+      (el) => !el.closest(OPT_OUT) && !el.querySelector(OPT_OUT),
+    );
     const large = candidates.filter((el) => el.offsetHeight > MAX_ITEM_HEIGHT);
     const small = candidates.filter((el) => el.offsetHeight <= MAX_ITEM_HEIGHT);
     // Keep only the outermost small item, so nothing fades twice.
