@@ -155,6 +155,198 @@ body {
     var(--font-sinhala), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Home page palette, taken from the Riyona logo: brand gold, deep maroon and warm near-black.
+   Utility classes read these tokens, so overriding them here restyles the home page only. */
+.landing-theme {
+  --color-page: #f7f3ec;
+  --color-ink: #1c1417;
+  --color-ink-soft: #2f2226;
+  --color-muted: #6b5c60;
+  --color-line: #e8dfd5;
+
+  --color-gold: #f9b91f;
+  --color-gold-dark: #e6a100;
+  --color-gold-deep: #c98200;
+  --color-gold-ink: #9b2226;
+  --color-gold-soft: #fff1c9;
+
+  --color-success: #1f7a4d;
+  --color-success-soft: #dcf3e5;
+}
+
+/* Home page background: layered mesh gradient, a faint architectural grid with film grain, and one slow light orb */
+.landing-theme {
+  position: relative;
+  isolation: isolate;
+  background-color: #f7f3ec;
+  background-image:
+    radial-gradient(70% 50% at 0% 0%, rgb(155 34 38 / 0.22) 0%, transparent 62%),
+    radial-gradient(60% 50% at 100% 0%, rgb(249 185 31 / 0.32) 0%, transparent 62%),
+    radial-gradient(60% 45% at 50% 55%, rgb(249 185 31 / 0.12) 0%, transparent 65%),
+    radial-gradient(60% 50% at 0% 100%, rgb(155 34 38 / 0.18) 0%, transparent 62%),
+    radial-gradient(55% 45% at 100% 100%, rgb(249 185 31 / 0.26) 0%, transparent 62%),
+    linear-gradient(180deg, #fbf6ee 0%, #f7f0e4 100%);
+}
+
+.landing-theme::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgb(15 23 42 / 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(15 23 42 / 0.045) 1px, transparent 1px),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.06'/%3E%3C/svg%3E");
+  background-size:
+    56px 56px,
+    56px 56px,
+    160px 160px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 30%, transparent 100%);
+}
+
+.landing-theme::after {
+  content: "";
+  position: fixed;
+  z-index: -1;
+  top: -18vmax;
+  right: -16vmax;
+  width: 62vmax;
+  height: 62vmax;
+  border-radius: 9999px;
+  pointer-events: none;
+  background: radial-gradient(circle, rgb(99 102 241 / 0.14) 0%, transparent 65%);
+  filter: blur(28px);
+  animation: light-drift 26s ease-in-out infinite alternate;
+}
+
+.landing-theme .page-atmosphere {
+  display: none;
+}
+
+@keyframes light-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(-4vmax, 6vmax, 0) scale(1.08);
+  }
+}
+
+/* Deep nebula panel: violet, teal and indigo glows over midnight navy that slowly drift, with a twinkling star field */
+.nebula-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: #0b1230;
+  background-image:
+    radial-gradient(55% 70% at 88% 8%, rgb(139 92 246 / 0.55) 0%, transparent 62%),
+    radial-gradient(50% 60% at 6% 96%, rgb(20 184 166 / 0.38) 0%, transparent 62%),
+    radial-gradient(40% 50% at 50% 45%, rgb(59 130 246 / 0.22) 0%, transparent 70%),
+    linear-gradient(160deg, #0b1230 0%, #161a4f 55%, #1d1657 100%);
+  background-size: 160% 160%;
+  animation: nebula-drift 18s ease-in-out infinite alternate;
+  box-shadow: 0 30px 70px -30px rgb(11 18 48 / 0.7);
+}
+
+/* Teal and indigo variant of the nebula panel */
+.nebula-alt {
+  background-image:
+    radial-gradient(55% 70% at 8% 10%, rgb(45 212 191 / 0.42) 0%, transparent 62%),
+    radial-gradient(50% 60% at 94% 92%, rgb(99 102 241 / 0.5) 0%, transparent 62%),
+    radial-gradient(40% 50% at 50% 40%, rgb(168 85 247 / 0.2) 0%, transparent 70%),
+    linear-gradient(160deg, #071a2e 0%, #0f2a52 55%, #14205a 100%);
+  background-size: 160% 160%;
+}
+
+.nebula-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    radial-gradient(1.2px 1.2px at 12% 22%, rgb(255 255 255 / 0.9), transparent),
+    radial-gradient(1px 1px at 38% 68%, rgb(255 255 255 / 0.7), transparent),
+    radial-gradient(1.4px 1.4px at 64% 18%, rgb(255 255 255 / 0.85), transparent),
+    radial-gradient(1px 1px at 82% 74%, rgb(255 255 255 / 0.6), transparent),
+    radial-gradient(1.2px 1.2px at 92% 40%, rgb(255 230 160 / 0.9), transparent),
+    radial-gradient(1px 1px at 26% 88%, rgb(255 255 255 / 0.6), transparent);
+  background-size: 420px 420px;
+  animation: twinkle 6s ease-in-out infinite alternate;
+}
+
+.nebula-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.nebula-hero .hero-copy .text-ink {
+  color: #ffffff;
+}
+
+.nebula-hero .hero-copy .text-muted {
+  color: rgb(221 227 250 / 0.8);
+}
+
+.nebula-hero .hero-copy .text-gold-ink {
+  color: #ffd45c;
+}
+
+@keyframes nebula-drift {
+  from {
+    background-position: 0% 0%;
+  }
+  to {
+    background-position: 100% 100%;
+  }
+}
+
+@keyframes twinkle {
+  from {
+    opacity: 0.45;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Animated gradient text for the key word in the hero headline */
+.text-aurora {
+  background-image: linear-gradient(90deg, #c98200, #9b2226, #e6a100, #c98200);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: aurora-text 8s linear infinite;
+}
+
+@keyframes aurora-text {
+  to {
+    background-position: 300% center;
+  }
+}
+
+/* Scroll-linked reveal. Browsers without scroll timelines show content immediately. */
+@supports (animation-timeline: view()) {
+  .reveal {
+    animation: reveal-up linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 35%;
+  }
+}
+
+@keyframes reveal-up {
+  from {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 /* Eyebrow label shared by every section header */
 .eyebrow {
   font-size: 0.6875rem;

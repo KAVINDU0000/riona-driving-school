@@ -9,7 +9,7 @@ export default function LearningHub() {
   return (
     <section id="learning-hub" className="pt-14 md:pt-[clamp(72px,8vw,136px)]">
       <Container>
-        <div className="mb-10 grid gap-6 md:mb-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)] lg:items-end">
+        <div className="reveal mb-10 grid gap-6 md:mb-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)] lg:items-end">
           <div>
             <Eyebrow>Theory &amp; Training</Eyebrow>
             <h2 className="mt-3 text-[1.75rem] font-bold leading-[1.15] tracking-[-0.02em] text-ink md:text-[clamp(1.875rem,2.5vw,2.75rem)]">

@@ -7,7 +7,7 @@ import NavFade from "@/components/landing/NavFade";
 /** Shared shell for the public pages: skip link, the site header, the page content, footer and WhatsApp button. */
 export default function PublicFrame({ children }: { children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="landing-theme flex min-h-screen flex-col">
       <div className="page-atmosphere" aria-hidden="true" />
       <a
         href="#main"

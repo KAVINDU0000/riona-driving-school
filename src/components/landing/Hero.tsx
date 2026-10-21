@@ -1,7 +1,15 @@
 import Image from "next/image";
 import Link from "next/link";
 import Icon from "@/components/ui/Icon";
+import { site } from "@/data/landing";
 import { Container, Eyebrow } from "./primitives";
+
+const quickLinks = [
+  { title: "Vehicle packages", body: "Car, van and regular courses with clear fees", href: "/packages", icon: "car", external: false },
+  { title: "Practice papers", body: "Theory tests in the style of the DMT exam", href: "/practice-papers", icon: "file-check", external: false },
+  { title: "Road signs", body: "Learn every sign, grouped by category", href: "/road-signs", icon: "signpost", external: false },
+  { title: "Talk to us", body: "Quick answers on WhatsApp", href: site.whatsapp, icon: "chat", external: true },
+] as const;
 
 const stats = [
   { value: "98%", label: "Pass rate", sub: "Recent students" },
@@ -24,7 +32,7 @@ export default function Hero() {
             <h1 className="mt-6 text-[2.75rem] font-bold leading-[1.05] tracking-[-0.03em] text-ink md:text-[clamp(44px,4vw,68px)]">
               Drive With
               <br />
-              Confidence.
+              <span className="text-aurora">Confidence.</span>
             </h1>
 
             <p className="mt-4 text-[1.25rem] font-semibold text-gold-ink md:text-[1.375rem]">
@@ -79,6 +87,32 @@ export default function Hero() {
               ))}
             </div>
           </div>
+        </div>
+
+        <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {quickLinks.map((item) => {
+            const content = (
+              <>
+                <span className="grid h-11 w-11 shrink-0 place-items-center rounded-xl bg-gold-soft text-gold-ink transition-colors group-hover:bg-gold">
+                  <Icon name={item.icon} className="h-5 w-5" />
+                </span>
+                <span className="min-w-0">
+                  <span className="block text-[0.9375rem] font-bold text-ink">{item.title}</span>
+                  <span className="mt-0.5 block text-[0.8125rem] leading-[1.5] text-muted">{item.body}</span>
+                </span>
+              </>
+            );
+            const className = "glass-lift glass group flex items-center gap-4 rounded-2xl p-5";
+            return item.external ? (
+              <a key={item.title} href={item.href} target="_blank" rel="noopener noreferrer" className={className}>
+                {content}
+              </a>
+            ) : (
+              <Link key={item.title} href={item.href} className={className}>
+                {content}
+              </Link>
+            );
+          })}
         </div>
       </Container>
     </section>

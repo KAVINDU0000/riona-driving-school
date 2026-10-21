@@ -15,7 +15,7 @@ import NavFade from "@/components/landing/NavFade";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="landing-theme flex min-h-screen flex-col">
       <div className="page-atmosphere" aria-hidden="true" />
       <Navbar hideApply />
 
@@ -24,8 +24,8 @@ export default function Home() {
         <TrustStrip />
         <MoreThanDriving />
         <WhyRiyona />
-        <VehicleCategories />
         <LearningHub />
+        <VehicleCategories />
         <LicenceJourney />
         <RoadSafety />
         <Testimonials />

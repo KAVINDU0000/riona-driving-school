@@ -9,7 +9,7 @@ import StudentSidebar from "@/components/student/StudentSidebar";
  */
 export default function StudentLayout({ studentId, children }: { studentId: string; children: ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col lg:h-dvh lg:overflow-hidden [&_.glass]:border-slate-300/80 [&_.glass]:bg-white [&_.glass]:shadow-[0_10px_28px_-14px_rgb(15_23_42/0.28)]">
+    <div className="landing-theme flex min-h-screen flex-col lg:h-dvh lg:overflow-hidden [&_.glass]:border-slate-300/80 [&_.glass]:bg-white [&_.glass]:shadow-[0_10px_28px_-14px_rgb(15_23_42/0.28)]">
       <div className="page-atmosphere" aria-hidden="true" />
       <StudentHeader studentId={studentId} />
 
