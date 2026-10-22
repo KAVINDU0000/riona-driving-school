@@ -18,6 +18,9 @@ export default function LessonItem({ lesson, showDate = false }: { lesson: Instr
             {lesson.startTime} – {lesson.endTime}
           </p>
           <p className="mt-1 text-[0.875rem] text-ink">{lesson.student.fullName}</p>
+          {lesson.groupmates.length > 0 && (
+            <p className="mt-0.5 text-[0.8125rem] text-muted">Shared session with {lesson.groupmates.join(", ")}</p>
+          )}
           <p className="mt-0.5 text-[0.8125rem] text-muted">
             {lesson.student.userId} · {labels.trainingType[lesson.trainingType] ?? lesson.trainingType} · {lesson.vehicle.label}
           </p>

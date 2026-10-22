@@ -1,4 +1,4 @@
-import { UserRole } from "@/generated/prisma/enums";
+import { LessonScheduleStatus, UserRole } from "@/generated/prisma/enums";
 import { AuthError } from "@/lib/auth/http";
 import { prisma } from "@/lib/prisma";
 import { dateToString } from "@/lib/student/time";
@@ -20,6 +20,14 @@ export async function getInstructorAccount(userId: string) {
     throw new AuthError(404, "Account not found.");
   }
 
+  // The vehicle types of the lessons this instructor teaches. A vehicle has one type, so this is read from lessons.
+  const teaching = await prisma.lessonSchedule.findMany({
+    where: { instructorUserId: userId, status: { not: LessonScheduleStatus.CANCELLED } },
+    distinct: ["vehicleType"],
+    orderBy: { vehicleType: "asc" },
+    select: { vehicleType: true },
+  });
+
   return {
     instructorId: user.userId,
     email: user.email ?? "",
@@ -27,6 +35,7 @@ export async function getInstructorAccount(userId: string) {
     phoneNumber: profile.phoneNumber,
     hireDate: dateToString(profile.hireDate),
     status: profile.status,
+    vehicleTypes: teaching.map((row) => row.vehicleType),
   };
 }
 

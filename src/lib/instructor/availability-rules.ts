@@ -50,9 +50,12 @@ export const toInterval = (window: { startTime: string; endTime: string }): Inte
   end: minutesOfDay(window.endTime),
 });
 
-/** True when the two intervals share any time, or touch. Touching windows are one window and are refused. */
+/**
+ * True when the two intervals share any time. Touching intervals (8:00–10:00 and 10:00–12:00) do not overlap, because
+ * they are separate fixed sessions and the same instructor can take both.
+ */
 export function overlapsOrTouches(a: Interval, b: Interval): boolean {
-  return a.start <= b.end && b.start <= a.end;
+  return a.start < b.end && b.start < a.end;
 }
 
 /** Refuses a window that overlaps or touches another window of the same date. `others` must exclude the window being edited. */

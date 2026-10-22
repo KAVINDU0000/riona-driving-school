@@ -167,6 +167,12 @@ body {
     var(--font-sinhala), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
 }
 
+/* Tamil text: the same for lang="ta", with the Tamil font. */
+[lang="ta"] {
+  font-family:
+    var(--font-tamil), var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+}
+
 /* Home page palette, taken from the Riyona logo: brand gold, deep maroon and warm near-black.
    Utility classes read these tokens, so overriding them here restyles the home page only. */
 .landing-theme {

@@ -6,7 +6,8 @@ import { activeSessionSlots, findActiveSlotByStart } from "@/lib/session-slots/s
 import { minutesOfDay, parseDateOnly, parseTimeOnly, schoolNow, timeToString, dateToString } from "@/lib/student/time";
 
 /**
- * Practical lesson booking for students. Every lesson has exactly one student, one instructor and one vehicle.
+ * Practical lesson booking for students. A lesson belongs to a session group: one slot, one vehicle and one instructor, shared
+ *   by students up to the seat count for the vehicle type. Each student still has their own lesson.
  *
  * - The student chooses a date and one of the fixed session slots (lib/session-slots). A lesson takes the whole slot,
  *   so the server takes the start and end times from the slot.
@@ -156,13 +157,49 @@ export type BookingOption = { startTime: string; endTime: string };
 export type BookingOptions = {
   date: string;
   remainingSessions: number;
-  /** The open session slots that still have a free instructor and vehicle, in display order. */
+  /** The open session slots that have a free seat in a session or a free instructor and vehicle, in display order. */
   slots: BookingOption[];
 };
 
+/** Students one vehicle of this type takes in one session. Admins set these in one place. */
+async function seatsFor(vehicleType: VehicleType, db: Prisma.TransactionClient | typeof prisma = prisma): Promise<number> {
+  const row = await db.vehicleTypeCapacity.findUnique({ where: { vehicleType }, select: { seats: true } });
+  if (!row) throw new AuthError(409, "The seat limit for this vehicle type is not set yet. Ask the school to set it.");
+  return row.seats;
+}
+
+type GroupSeats = { id: string; vehicleId: string; instructorUserId: string; capacity: number; studentIds: string[] };
+
+/** Sessions on this date and slot for this vehicle type with a free seat, that do not already include this student. */
+async function openGroups(date: Date, startTime: string, vehicleType: VehicleType, studentUserId: string): Promise<GroupSeats[]> {
+  const groups = await prisma.sessionGroup.findMany({
+    where: { lessonDate: date, startTime: parseTimeOnly(startTime)!, vehicleType },
+    orderBy: { createdAt: "asc" },
+    select: {
+      id: true,
+      vehicleId: true,
+      instructorUserId: true,
+      capacity: true,
+      lessons: { where: { status: { not: LessonScheduleStatus.CANCELLED } }, select: { studentUserId: true } },
+    },
+  });
+  return groups
+    .map((group) => ({
+      id: group.id,
+      vehicleId: group.vehicleId,
+      instructorUserId: group.instructorUserId,
+      capacity: group.capacity,
+      studentIds: group.lessons.map((lesson) => lesson.studentUserId),
+    }))
+    .filter((group) => group.studentIds.length < group.capacity && !group.studentIds.includes(studentUserId));
+}
+
+/** Thrown inside a booking attempt when the session filled up or the student is already in it. The next option is tried. */
+class GroupUnavailableError extends Error {}
+
 /**
- * The open session slots a student can book for a requirement on a date. A slot is offered only when a free
- * instructor and vehicle exist for it, and the student is free. Slots that have already started are never offered.
+ * The start times a student can book for a requirement on a date. A slot is offered when it has a free seat in a session
+ * already running, or a free instructor and vehicle to open a new session. Past slots are never offered.
  */
 export async function findBookingOptions(input: {
   studentUserId: string;
@@ -191,7 +228,12 @@ export async function findBookingOptions(input: {
   for (const sessionSlot of await activeSessionSlots()) {
     const interval = toMinutes(sessionSlot);
     if (input.lessonDate === now.date && interval.start <= now.minutes) continue;
-    if (candidatePairs(day, interval).length > 0) slots.push({ startTime: sessionSlot.startTime, endTime: sessionSlot.endTime });
+    if (day.studentLessons.some((l) => overlaps(l, interval))) continue;
+
+    const hasSeat = (await openGroups(date, sessionSlot.startTime, requirement.vehicleType, input.studentUserId)).length > 0;
+    if (hasSeat || candidatePairs(day, interval).length > 0) {
+      slots.push({ startTime: sessionSlot.startTime, endTime: sessionSlot.endTime });
+    }
   }
 
   return { date: input.lessonDate, remainingSessions: remaining, slots };
@@ -213,8 +255,9 @@ export type BookedLesson = {
 };
 
 /**
- * Books one practical lesson. Validates the request on the server, recalculates the end time, assigns an
- * instructor and vehicle, then inserts the lesson inside a transaction that also locks the requirement.
+ * Books one practical lesson in an open session slot. The student joins a running session with a free seat first. If none
+ * is free, the school opens a new session with a free vehicle and instructor. The end time, length, instructor and vehicle
+ * come from the slot and the session, never from the request.
  */
 export async function bookPracticalLesson(request: BookingRequest): Promise<BookedLesson> {
   const { requirement } = await loadContext(request.studentUserId, request.enrollmentId, request.requirementId);
@@ -226,6 +269,7 @@ export async function bookPracticalLesson(request: BookingRequest): Promise<Book
   const sessionSlot = await findActiveSlotByStart(request.startTime);
   if (!sessionSlot) throw new AuthError(400, "Choose one of the session times that are open.");
   const startDate = parseTimeOnly(sessionSlot.startTime)!;
+  const endDate = parseTimeOnly(sessionSlot.endTime)!;
   const startMinutes = minutesOfDay(sessionSlot.startTime);
   const endMinutes = minutesOfDay(sessionSlot.endTime);
   const durationMinutes = endMinutes - startMinutes;
@@ -240,23 +284,25 @@ export async function bookPracticalLesson(request: BookingRequest): Promise<Book
   if (day.studentLessons.some((l) => overlaps(l, slot))) {
     throw new AuthError(409, "You already have a lesson at that time.");
   }
+
+  const joinable = (await openGroups(date, sessionSlot.startTime, requirement.vehicleType, request.studentUserId)).slice(0, MAX_CANDIDATE_ATTEMPTS);
   const pairs = candidatePairs(day, slot).slice(0, MAX_CANDIDATE_ATTEMPTS);
-  if (pairs.length === 0) {
+  if (joinable.length === 0 && pairs.length === 0) {
     throw new AuthError(409, "That time is no longer available. Choose another time.");
   }
+  const seats = pairs.length > 0 ? await seatsFor(requirement.vehicleType) : 0;
 
-  const endTime = sessionSlot.endTime;
-  for (const pair of pairs) {
+  type Placement = { kind: "join"; group: GroupSeats } | { kind: "open"; pair: { instructorUserId: string; vehicleId: string } };
+  const placements: Placement[] = [
+    ...joinable.map((group): Placement => ({ kind: "join", group })),
+    ...pairs.map((pair): Placement => ({ kind: "open", pair })),
+  ];
+
+  for (const placement of placements) {
     try {
       const lesson = await prisma.$transaction(async (tx) => {
         // Serialises bookings for this requirement, so the session count below cannot be raced.
         await tx.$queryRaw`SELECT id FROM "EnrollmentTrainingRequirement" WHERE id = ${requirement.id} FOR UPDATE`;
-        // A shared lock on the vehicle: a status change to maintenance or inactive waits for this booking to commit,
-        // so it cannot retire the vehicle between the check and the insert.
-        await tx.$queryRaw`SELECT id FROM "Vehicle" WHERE id = ${pair.vehicleId} FOR SHARE`;
-        // Likewise for the instructor: removing or shrinking an availability window waits for this booking to commit
-        // (see lib/instructor/availability.ts), so it cannot leave the new lesson outside every window.
-        await tx.$queryRaw`SELECT "userId" FROM "InstructorProfile" WHERE "userId" = ${pair.instructorUserId} FOR SHARE`;
 
         // Re-read the entitlement under the lock. The copy loaded before the transaction can be stale if an admin changed it.
         const current = await tx.enrollmentTrainingRequirement.findUnique({
@@ -275,19 +321,48 @@ export async function bookPracticalLesson(request: BookingRequest): Promise<Book
           throw new AuthError(409, "All sessions for this requirement are already booked.");
         }
 
+        let group: { id: string; vehicleId: string; instructorUserId: string };
+        if (placement.kind === "join") {
+          // Lock the session and count its members under the lock, so the last seat cannot be taken twice.
+          await tx.$queryRaw`SELECT id FROM "SessionGroup" WHERE id = ${placement.group.id} FOR UPDATE`;
+          const members = await tx.lessonSchedule.findMany({
+            where: { sessionGroupId: placement.group.id, status: { not: LessonScheduleStatus.CANCELLED } },
+            select: { studentUserId: true },
+          });
+          if (members.length >= placement.group.capacity || members.some((m) => m.studentUserId === request.studentUserId)) {
+            throw new GroupUnavailableError("session full");
+          }
+          group = { id: placement.group.id, vehicleId: placement.group.vehicleId, instructorUserId: placement.group.instructorUserId };
+        } else {
+          // Opening a session takes the vehicle and instructor for this slot. The unique indexes stop a second session on either.
+          group = await tx.sessionGroup.create({
+            data: {
+              lessonDate: date,
+              startTime: startDate,
+              endTime: endDate,
+              vehicleId: placement.pair.vehicleId,
+              vehicleType: requirement.vehicleType,
+              instructorUserId: placement.pair.instructorUserId,
+              capacity: seats,
+            },
+            select: { id: true, vehicleId: true, instructorUserId: true },
+          });
+        }
+
         return tx.lessonSchedule.create({
           data: {
             lessonDate: date,
             startTime: startDate,
-            endTime: parseTimeOnly(endTime)!,
+            endTime: endDate,
             durationMinutes,
-            instructorUserId: pair.instructorUserId,
-            vehicleId: pair.vehicleId,
+            instructorUserId: group.instructorUserId,
+            vehicleId: group.vehicleId,
             vehicleType: requirement.vehicleType,
             studentUserId: request.studentUserId,
             enrollmentId: request.enrollmentId,
             trainingType: requirement.trainingType,
             status: LessonScheduleStatus.SCHEDULED,
+            sessionGroupId: group.id,
           },
           select: { id: true, lessonDate: true, startTime: true, endTime: true, durationMinutes: true, vehicleType: true, trainingType: true },
         });
@@ -304,16 +379,19 @@ export async function bookPracticalLesson(request: BookingRequest): Promise<Book
       };
     } catch (error) {
       if (error instanceof AuthError) throw error;
+      if (error instanceof GroupUnavailableError) continue;
       // A write conflict or deadlock rolls this attempt back, so no lesson was inserted. Report it as a retryable conflict.
       if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2034") {
         throw new AuthError(409, "Another booking or change is in progress for this requirement. Try again.");
       }
+      // A unique index on a session means another instructor or vehicle took it first: try the next option.
+      if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") continue;
       const message = error instanceof Error ? error.message : "";
       // The student is busy: no other instructor or vehicle can help, so stop now.
       if (message.includes("LessonSchedule_student_no_overlap")) {
         throw new AuthError(409, "You already have a lesson at that time.");
       }
-      // The instructor, vehicle or availability changed under us. Try the next free pair.
+      // The instructor, vehicle or availability changed under us. Try the next option.
       if (
         message.includes("LessonSchedule_instructor_no_overlap") ||
         message.includes("LessonSchedule_vehicle_no_overlap") ||

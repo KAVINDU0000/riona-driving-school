@@ -201,6 +201,7 @@ model InstructorProfile {
   user            User                     @relation(fields: [userId], references: [userId], onDelete: Restrict)
   availability    InstructorAvailability[]
   lessonSchedules LessonSchedule[]
+  sessionGroups   SessionGroup[]
   lessonFeedback  LessonFeedback[]
   salaryMonths    InstructorSalaryMonth[]
 
@@ -362,6 +363,7 @@ model Vehicle {
   createdAt          DateTime         @default(now())
   updatedAt          DateTime         @updatedAt
   lessonSchedules    LessonSchedule[]
+  sessionGroups      SessionGroup[]
   auditLogs          VehicleAuditLog[]
 
   // Lets a lesson reference (vehicleId, vehicleType) so the database rejects a vehicle/type mismatch.
@@ -542,7 +544,10 @@ model LessonSchedule {
   attendanceMarkedBy       User?                         @relation("AttendanceMarker", fields: [attendanceMarkedByUserId], references: [userId], onDelete: SetNull)
   cancelledBy              User?                         @relation("LessonCanceller", fields: [cancelledByUserId], references: [userId], onDelete: SetNull)
   feedback                 LessonFeedback?
+  sessionGroupId           String?
+  sessionGroup             SessionGroup?                @relation(fields: [sessionGroupId], references: [id], onDelete: Restrict)
 
+  @@index([sessionGroupId])
   @@index([lessonDate, startTime, endTime])
   @@index([instructorUserId, lessonDate])
   @@index([vehicleId, lessonDate])
@@ -575,6 +580,33 @@ model SessionSlot {
   isActive  Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+// A shared practice session: one vehicle and one instructor in one fixed slot on one date. Several students can share it,
+// up to the seat count for the vehicle type. Each student still has their own LessonSchedule row for attendance and feedback.
+model SessionGroup {
+  id               String            @id @default(cuid())
+  lessonDate       DateTime          @db.Date
+  startTime        DateTime          @db.Time(0)
+  endTime          DateTime          @db.Time(0)
+  vehicleId        String
+  vehicleType      VehicleType
+  instructorUserId String
+  capacity         Int
+  createdAt        DateTime          @default(now())
+  vehicle          Vehicle           @relation(fields: [vehicleId, vehicleType], references: [id, vehicleType], onDelete: Restrict)
+  instructor       InstructorProfile @relation(fields: [instructorUserId], references: [userId], onDelete: Restrict)
+  lessons          LessonSchedule[]
+
+  @@unique([lessonDate, startTime, vehicleId])
+  @@unique([lessonDate, startTime, instructorUserId])
+}
+
+// How many students one vehicle of each type can take in one session. Admins can change these.
+model VehicleTypeCapacity {
+  vehicleType VehicleType @id
+  seats       Int
+  updatedAt   DateTime    @updatedAt
 }
 
 model LessonFeedback {

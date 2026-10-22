@@ -3,7 +3,8 @@ import { parseCancellationReason } from "@/lib/lessons/cancellation";
 import { AuthError } from "@/lib/auth/http";
 import { ADMIN_PAGE_SIZE, pageCount } from "@/lib/admin/query";
 import { prisma } from "@/lib/prisma";
-import { dateToString, formatMinutes, minutesOfDay, parseDateOnly, parseTimeOnly, schoolNow, timeToString } from "@/lib/student/time";
+import { findActiveSlotByStart } from "@/lib/session-slots/store";
+import { dateToString, minutesOfDay, parseDateOnly, parseTimeOnly, schoolNow, timeToString } from "@/lib/student/time";
 
 /*
  * Admin view and actions for practical lessons. The list uses the same rules as the dashboard counts:
@@ -12,7 +13,6 @@ import { dateToString, formatMinutes, minutesOfDay, parseDateOnly, parseTimeOnly
  * Instructor notes and feedback are never selected here.
  */
 
-const TIME_PATTERN = /^\d{2}:\d{2}$/;
 const ID_PATTERN = /^[a-z0-9]{1,64}$/i;
 
 export type LessonListItem = {
@@ -188,16 +188,18 @@ export async function cancelAdminLesson(lessonId: string, adminUserId: string, r
 }
 
 /**
- * Moves a scheduled lesson to a new date and start time, keeping its length, instructor and vehicle. Refused unless the
- * instructor is available for the whole new slot, and the instructor, vehicle and student are free in it.
- * Records and the cancellation rules are untouched; only the time moves.
+ * Moves a scheduled lesson to a new date and one of the open session times. The lesson takes that slot's start and end
+ * times. Refused unless the instructor is available for the whole slot, and the instructor, vehicle and student are free
+ * in it. A moved lesson leaves its shared session, because the session has its own time. Records and the cancellation
+ * rules are untouched.
  */
 export async function rescheduleAdminLesson(lessonId: string, dateInput: unknown, timeInput: unknown) {
   checkId(lessonId);
   const date = typeof dateInput === "string" ? parseDateOnly(dateInput) : null;
   if (!date) throw new AuthError(400, "Choose a valid date.");
-  const time = typeof timeInput === "string" && TIME_PATTERN.test(timeInput) ? timeInput : null;
-  if (!time) throw new AuthError(400, "Choose a valid start time.");
+  const time = typeof timeInput === "string" ? timeInput : "";
+  const slot = time ? await findActiveSlotByStart(time) : null;
+  if (!slot) throw new AuthError(400, "Choose one of the open session times.");
 
   return prisma.$transaction(async (tx) => {
     await tx.$queryRaw`SELECT id FROM "LessonSchedule" WHERE id = ${lessonId} FOR UPDATE`;
@@ -219,8 +221,8 @@ export async function rescheduleAdminLesson(lessonId: string, dateInput: unknown
 
     const dayText = dateInput as string;
     const school = schoolNow();
-    const start = minutesOfDay(time);
-    const end = start + lesson.durationMinutes;
+    const start = minutesOfDay(slot.startTime);
+    const end = minutesOfDay(slot.endTime);
     if (end > 24 * 60) throw new AuthError(400, "The lesson would end after midnight. Choose an earlier start time.");
     if (dayText < school.date || (dayText === school.date && start <= school.minutes)) {
       throw new AuthError(400, "The new date and time must be in the future.");
@@ -264,10 +266,13 @@ export async function rescheduleAdminLesson(lessonId: string, dateInput: unknown
       throw new AuthError(409, "The student already has a lesson at that time.");
     }
 
-    const startTime = parseTimeOnly(time);
-    const endTime = parseTimeOnly(formatMinutes(end));
-    if (!startTime || !endTime) throw new AuthError(400, "Choose a valid start time.");
-    await tx.lessonSchedule.update({ where: { id: lesson.id }, data: { lessonDate: date, startTime, endTime } });
-    return { id: lesson.id, lessonDate: dayText, startTime: time, endTime: formatMinutes(end) };
+    const startTime = parseTimeOnly(slot.startTime);
+    const endTime = parseTimeOnly(slot.endTime);
+    if (!startTime || !endTime) throw new AuthError(400, "Choose one of the open session times.");
+    await tx.lessonSchedule.update({
+      where: { id: lesson.id },
+      data: { lessonDate: date, startTime, endTime, durationMinutes: end - start, sessionGroupId: null },
+    });
+    return { id: lesson.id, lessonDate: dayText, startTime: slot.startTime, endTime: slot.endTime };
   });
 }

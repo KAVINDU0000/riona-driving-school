@@ -1,12 +1,9 @@
 import Image from "next/image";
 import { Surface } from "@/components/landing/primitives";
 import DangerSignImage from "@/components/public/DangerSignImage";
-import {
-  SIGN_IMAGES,
-  type SignCategory,
-  type SignGlyph,
-} from "@/data/road-rules";
-import { SIGN_NAMES_SI } from "@/data/road-signs-si";
+import type { SignCategory, SignGlyph } from "@/data/road-rules";
+import { PICTURE_NAMES } from "@/data/road-signs-picture-names";
+import type { RoadSignsLang } from "@/data/road-signs-ui";
 import { SINHALA_DANGER_SIGNS } from "@/data/road-signs-sinhala-danger";
 import { SINHALA_PROHIBITORY_SIGNS } from "@/data/road-signs-sinhala-prohibitory";
 import { SINHALA_MANDATORY_SIGNS } from "@/data/road-signs-sinhala-mandatory";
@@ -30,32 +27,6 @@ const SINHALA_SIGNS_BY_CATEGORY: Record<
   lights: SINHALA_LIGHTS_SIGNS,
   police: SINHALA_POLICE_SIGNS,
 };
-
-/** The official sign picture for a sign name, or null when the sign has none. Decorative; the name is always written out. */
-function SignPicture({ name, className }: { name: string; className: string }) {
-  const src = SIGN_IMAGES[name];
-  if (!src) return null;
-  return (
-    <Image
-      src={src}
-      alt=""
-      width={96}
-      height={96}
-      className={`shrink-0 object-contain ${className}`}
-    />
-  );
-}
-
-/** The Sinhala name of a sign, shown under the English name. Renders nothing when there is no Sinhala name. */
-function SinhalaName({ name, className }: { name: string; className: string }) {
-  const text = SIGN_NAMES_SI[name];
-  if (!text) return null;
-  return (
-    <span lang="si" className={className}>
-      {text}
-    </span>
-  );
-}
 
 /** Drawn sign shape. Its colour and outline show the type of sign. Decorative only; the sign name is always written out. */
 export function SignShape({
@@ -257,157 +228,39 @@ export function CategoryIcon({
   return <SignShape glyph={category.glyph} className={className} />;
 }
 
-/** All signs in one category, as tiles. Warning signs are drawn; other shape-based signs use their shape. */
-/** A grid of sign pictures with their Sinhala names only. Used for categories that have a Sinhala picture list. */
-function SinhalaSignGrid({
-  signs,
-}: {
-  signs: { image: string; name: string }[];
-}) {
+/** Sign pictures for each category, with the Sinhala name of each picture. English and Tamil names come from PICTURE_NAMES. */
+const PICTURE_LISTS: Record<string, { image: string; name: string }[]> = {
+  warning: SINHALA_DANGER_SIGNS,
+  ...SINHALA_SIGNS_BY_CATEGORY,
+};
+
+/** The name of a sign picture in the chosen language. Sinhala is stored with the picture; English and Tamil are in PICTURE_NAMES. */
+export function pictureName(sign: { image: string; name: string }, lang: RoadSignsLang): string {
+  if (lang === "si") return sign.name;
+  return PICTURE_NAMES[sign.image]?.[lang] ?? sign.name;
+}
+
+/** All signs in one category, as picture tiles. Each name is written in the chosen language only. */
+export function CategorySignGrid({ category, lang }: { category: SignCategory; lang: RoadSignsLang }) {
+  const signs = PICTURE_LISTS[category.id] ?? [];
   return (
-    <ul className="mt-10 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    <ul className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
       {signs.map((sign) => (
         <li key={sign.image}>
-          <Surface className="flex h-full items-center gap-4 p-4">
+          <Surface lift className="flex h-full flex-col items-center gap-3 p-4 text-center">
             <Image
               src={sign.image}
               alt=""
-              width={240}
-              height={160}
-              className="h-24 w-28 shrink-0 object-contain"
+              width={96}
+              height={96}
+              className="h-20 w-20 shrink-0 object-contain"
             />
-            <span
-              lang="si"
-              className="text-[0.9375rem] font-semibold leading-snug text-ink"
-            >
-              {sign.name}
+            <span lang={lang} className="text-[0.875rem] font-semibold leading-snug text-ink">
+              {pictureName(sign, lang)}
             </span>
           </Surface>
         </li>
       ))}
     </ul>
-  );
-}
-
-export function CategorySignGrid({ category }: { category: SignCategory }) {
-  if (category.glyph === "none") {
-    const sinhalaList = SINHALA_SIGNS_BY_CATEGORY[category.id];
-    if (sinhalaList) {
-      return <SinhalaSignGrid signs={sinhalaList} />;
-    }
-    return (
-      <ul className="mt-10 grid gap-3 md:grid-cols-2">
-        {category.signs.map((name) => (
-          <li key={name}>
-            <Surface className="flex h-full items-start gap-3 p-4">
-              {SIGN_IMAGES[name] ? (
-                <SignPicture name={name} className="h-12 w-12" />
-              ) : (
-                <span
-                  className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-gold"
-                  aria-hidden="true"
-                />
-              )}
-              <div className="flex flex-col gap-1">
-                <span className="text-[0.9375rem] leading-[1.6] text-ink">
-                  {name}
-                </span>
-                <SinhalaName
-                  name={name}
-                  className="text-[0.875rem] leading-[1.6] text-muted"
-                />
-              </div>
-            </Surface>
-          </li>
-        ))}
-      </ul>
-    );
-  }
-
-  if (category.id === "warning") {
-    return (
-      <ul className="mt-6 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-        {SINHALA_DANGER_SIGNS.map((sign) => (
-          <li key={sign.image}>
-            <Surface
-              lift
-              className="flex h-full flex-col items-center gap-3 p-4 text-center"
-            >
-              <Image
-                src={sign.image}
-                alt=""
-                width={96}
-                height={96}
-                className="h-20 w-20 shrink-0 object-contain"
-              />
-              <span
-                lang="si"
-                className="text-[0.875rem] font-semibold leading-snug text-ink"
-              >
-                {sign.name}
-              </span>
-            </Surface>
-          </li>
-        ))}
-      </ul>
-    );
-  }
-
-  // Categories with a Sinhala picture list show only that list; the English tiles are replaced by it.
-  const sinhalaSigns = SINHALA_SIGNS_BY_CATEGORY[category.id];
-
-  return (
-    <>
-      {!sinhalaSigns && (
-        <ul className="mt-10 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {category.signs.map((name) => (
-            <li key={name}>
-              <Surface className="flex h-full items-center gap-4 p-4">
-                {SIGN_IMAGES[name] ? (
-                  <SignPicture name={name} className="h-12 w-12" />
-                ) : (
-                  <SignShape glyph={category.glyph} />
-                )}
-                <div className="flex flex-col gap-1">
-                  <span className="text-[0.9375rem] font-semibold leading-snug text-ink">
-                    {name}
-                  </span>
-                  <SinhalaName
-                    name={name}
-                    className="text-[0.875rem] leading-snug text-muted"
-                  />
-                </div>
-              </Surface>
-            </li>
-          ))}
-        </ul>
-      )}
-      {sinhalaSigns && (
-        <ul className="mt-10 grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-          {sinhalaSigns.map((sign) => (
-            <li key={sign.image}>
-              <Surface
-                lift
-                className="flex h-full flex-col items-center gap-3 p-4 text-center"
-              >
-                <Image
-                  src={sign.image}
-                  alt=""
-                  width={96}
-                  height={96}
-                  className="h-20 w-20 shrink-0 object-contain"
-                />
-                <span
-                  lang="si"
-                  className="text-[0.875rem] font-semibold leading-snug text-ink"
-                >
-                  {sign.name}
-                </span>
-              </Surface>
-            </li>
-          ))}
-        </ul>
-      )}
-    </>
   );
 }

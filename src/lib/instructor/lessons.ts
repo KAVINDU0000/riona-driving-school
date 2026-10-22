@@ -40,6 +40,10 @@ export type InstructorLessonRow = {
   student: { userId: string; fullName: string };
   vehicle: { id: string; registrationNumber: string; label: string; status: VehicleStatus };
   hasFeedback: boolean;
+  /** The shared session this lesson belongs to, if any. */
+  sessionGroupId: string | null;
+  /** Names of the other students in the same shared session. */
+  groupmates: string[];
 };
 
 const rowSelect = {
@@ -55,6 +59,7 @@ const rowSelect = {
   student: { select: { userId: true, fullName: true } },
   vehicle: { select: { id: true, registrationNumber: true, make: true, model: true, status: true } },
   feedback: { select: { id: true } },
+  sessionGroupId: true,
 } as const;
 
 type RawRow = {
@@ -70,6 +75,7 @@ type RawRow = {
   student: { userId: string; fullName: string };
   vehicle: { id: string; registrationNumber: string; make: string | null; model: string | null; status: VehicleStatus };
   feedback: { id: string } | null;
+  sessionGroupId: string | null;
 };
 
 function toRow(raw: RawRow): InstructorLessonRow {
@@ -91,6 +97,8 @@ function toRow(raw: RawRow): InstructorLessonRow {
       status: raw.vehicle.status,
     },
     hasFeedback: raw.feedback !== null,
+    sessionGroupId: raw.sessionGroupId,
+    groupmates: [],
   };
 }
 
@@ -98,6 +106,21 @@ function toRow(raw: RawRow): InstructorLessonRow {
  * The instructor's lessons between two dates, inclusive, in schedule order. The range is validated by the caller.
  * The status filter is one of the schema's lesson statuses, or "ALL".
  */
+/** Fills in the other students in each row's shared session. One query covers all the rows. */
+async function withGroupmates(rows: InstructorLessonRow[]): Promise<InstructorLessonRow[]> {
+  const groupIds = [...new Set(rows.map((row) => row.sessionGroupId).filter((id): id is string => id !== null))];
+  if (groupIds.length === 0) return rows;
+  const members = await prisma.lessonSchedule.findMany({
+    where: { sessionGroupId: { in: groupIds }, status: { not: LessonScheduleStatus.CANCELLED } },
+    select: { id: true, sessionGroupId: true, student: { select: { fullName: true } } },
+  });
+  return rows.map((row) =>
+    row.sessionGroupId === null
+      ? row
+      : { ...row, groupmates: members.filter((m) => m.sessionGroupId === row.sessionGroupId && m.id !== row.id).map((m) => m.student.fullName) },
+  );
+}
+
 export async function lessonsBetween(
   instructorUserId: string,
   from: string,
@@ -114,7 +137,7 @@ export async function lessonsBetween(
     take: 500,
     select: rowSelect,
   });
-  return rows.map(toRow);
+  return withGroupmates(rows.map(toRow));
 }
 
 export type DashboardSummary = {
@@ -125,7 +148,7 @@ export type DashboardSummary = {
   todaysLessons: InstructorLessonRow[];
   upcoming: InstructorLessonRow[];
   pendingActions: { lesson: InstructorLessonRow; needs: "attendance" | "outcome" }[];
-  vehicles: { id: string; registrationNumber: string; label: string; status: VehicleStatus }[];
+  vehicles: { id: string; registrationNumber: string; label: string; status: VehicleStatus; vehicleType: string }[];
   /** Students with a scheduled lesson from today on. */
   students: { userId: string; fullName: string; nextLessonDate: string; lessonCount: number }[];
   /** Today's availability windows, and how many windows exist from today on. Students can only book inside windows. */
@@ -168,7 +191,7 @@ export async function getDashboardSummary(instructorUserId: string): Promise<Das
       distinct: ["vehicleId"],
       orderBy: [{ lessonDate: "asc" }],
       take: 50,
-      select: { vehicle: { select: { id: true, registrationNumber: true, make: true, model: true, status: true } } },
+      select: { vehicle: { select: { id: true, registrationNumber: true, make: true, model: true, status: true, vehicleType: true } } },
     }),
     prisma.lessonSchedule.groupBy({
       by: ["studentUserId"],
@@ -226,15 +249,16 @@ export async function getDashboardSummary(instructorUserId: string): Promise<Das
 }
 
 function uniqueVehicles(
-  vehicles: { id: string; registrationNumber: string; make: string | null; model: string | null; status: VehicleStatus }[],
+  vehicles: { id: string; registrationNumber: string; make: string | null; model: string | null; status: VehicleStatus; vehicleType: string }[],
 ) {
-  const seen = new Map<string, { id: string; registrationNumber: string; label: string; status: VehicleStatus }>();
+  const seen = new Map<string, { id: string; registrationNumber: string; label: string; status: VehicleStatus; vehicleType: string }>();
   for (const vehicle of vehicles) {
     if (seen.has(vehicle.id)) continue;
     seen.set(vehicle.id, {
       id: vehicle.id,
       registrationNumber: vehicle.registrationNumber,
       status: vehicle.status,
+      vehicleType: vehicle.vehicleType,
       label: [vehicle.make, vehicle.model].filter(Boolean).join(" ") || vehicle.registrationNumber,
     });
   }
@@ -295,7 +319,7 @@ export async function getLessonDetail(instructorUserId: string, lessonId: string
     },
   });
 
-  const base = toRow(lesson);
+  const base = (await withGroupmates([toRow(lesson)]))[0];
   const today = schoolNow().date;
   const status = { status: lesson.status, attendance: lesson.attendance };
   return {

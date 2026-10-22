@@ -7,6 +7,7 @@ import { formatDate, labels } from "@/components/student/format";
 import StatusBadge from "@/components/student/StatusBadge";
 import { getAdminLesson } from "@/lib/admin/lessons";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
+import { activeSessionSlots } from "@/lib/session-slots/store";
 
 export const metadata: Metadata = {
   title: "Lesson | Admin Portal | Riyona Driving School",
@@ -24,6 +25,7 @@ export default async function AdminLessonPage({ params }: { params: Promise<{ le
     notFound();
   }
 
+  const slots = await activeSessionSlots();
   const vehicleLine = [lesson.vehicle.registrationNumber, lesson.vehicle.make, lesson.vehicle.model].filter(Boolean).join(" · ");
   const cancelledBy = lesson.cancelledByRole === "ADMIN" ? "the school" : lesson.cancelledByRole === "INSTRUCTOR" ? "the instructor" : null;
 
@@ -79,6 +81,7 @@ export default async function AdminLessonPage({ params }: { params: Promise<{ le
             date={lesson.lessonDate}
             startTime={lesson.startTime}
             attendance={lesson.attendance}
+            slots={slots}
           />
         </section>
       </div>

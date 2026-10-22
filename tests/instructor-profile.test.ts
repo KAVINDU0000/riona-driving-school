@@ -64,6 +64,6 @@ describe("instructor profile", () => {
 
   it("returns only the account fields, never a password hash", async () => {
     const account = await getInstructorAccount("INS-1");
-    expect(Object.keys(account).sort()).toEqual(["email", "fullName", "hireDate", "instructorId", "phoneNumber", "status"]);
+    expect(Object.keys(account).sort()).toEqual(["email", "fullName", "hireDate", "instructorId", "phoneNumber", "status", "vehicleTypes"]);
   });
 });

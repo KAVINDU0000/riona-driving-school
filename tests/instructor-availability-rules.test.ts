@@ -52,10 +52,12 @@ describe("assertNotInPast", () => {
 
 describe("window overlap", () => {
   const morning = { start: 9 * 60, end: 12 * 60 };
-  it("treats touching windows as overlapping, because they are one window", () => {
-    expect(overlapsOrTouches(morning, { start: 12 * 60, end: 14 * 60 })).toBe(true);
+  it("treats sessions that share time as overlapping", () => {
     expect(overlapsOrTouches(morning, { start: 11 * 60, end: 13 * 60 })).toBe(true);
     expect(overlapsOrTouches(morning, { start: 8 * 60, end: 13 * 60 })).toBe(true);
+  });
+  it("allows back-to-back sessions, such as 10:00–12:00 after 08:00–10:00", () => {
+    expect(overlapsOrTouches(morning, { start: 12 * 60, end: 14 * 60 })).toBe(false);
   });
   it("allows windows with a break between them", () => {
     expect(overlapsOrTouches(morning, { start: 12 * 60 + 15, end: 14 * 60 })).toBe(false);

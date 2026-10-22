@@ -5,7 +5,6 @@ import { formatDate, formatDateTime, formatMoney, labels } from "@/components/st
 import PageIntro from "@/components/student/PageIntro";
 import StatusBadge from "@/components/student/StatusBadge";
 import StudentStatCard from "@/components/student/StudentStatCard";
-import ScrollZoom from "@/components/ui/ScrollZoom";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
 import { getDashboard } from "@/lib/student/data";
 
@@ -39,7 +38,7 @@ export default async function StudentDashboardPage() {
     <>
       <PageIntro title={`Welcome back, ${firstName}`} description="Your registration, lessons, progress and appointments in one place." />
 
-      <ScrollZoom className="-mx-3 -my-2 flex min-w-0 flex-col gap-6 px-3 py-2">
+      <div className="flex min-w-0 flex-col gap-6">
         <section aria-labelledby="stats" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           <h2 id="stats" className="sr-only">
             Summary
@@ -79,7 +78,7 @@ export default async function StudentDashboardPage() {
         </section>
 
         <div className="grid gap-6 xl:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)]">
-          <section aria-labelledby="enrollments-heading" className="glass rounded-[22px] p-6" data-scroll-zoom>
+          <section aria-labelledby="enrollments-heading" className="glass rounded-[22px] p-6">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-xl bg-gold-soft text-gold-ink ring-1 ring-gold/50">
@@ -149,7 +148,7 @@ export default async function StudentDashboardPage() {
             </div>
           </section>
 
-          <section aria-labelledby="appointments-heading" className="glass rounded-[22px] p-6" data-scroll-zoom>
+          <section aria-labelledby="appointments-heading" className="glass rounded-[22px] p-6">
             <div className="flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <span className="grid h-10 w-10 place-items-center rounded-xl bg-violet-100 text-violet-700 ring-1 ring-violet-200">
@@ -179,7 +178,7 @@ export default async function StudentDashboardPage() {
           </section>
         </div>
 
-        <section aria-labelledby="recent-heading" className="glass rounded-[22px] p-6" data-scroll-zoom>
+        <section aria-labelledby="recent-heading" className="glass rounded-[22px] p-6">
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-xl bg-gold-soft text-gold-ink ring-1 ring-gold/50">
@@ -229,7 +228,7 @@ export default async function StudentDashboardPage() {
             )}
           </div>
         </section>
-      </ScrollZoom>
+      </div>
 
       <nav aria-label="Quick links" className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
         {quickLinks.map((link) => (

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, type FormEvent, type ReactNode } from "react";
 import { BUTTON_DANGER, BUTTON_PRIMARY, FIELD, LABEL, SELECT_FIELD } from "@/components/admin/admin-ui";
-import { DateAndTimeFields, describeWhen } from "@/components/admin/AddAppointmentForms";
+import { describeWhen } from "@/components/admin/AddAppointmentForms";
 import ConfirmDialog from "@/components/student/ConfirmDialog";
 import { labels } from "@/components/student/format";
 
@@ -24,12 +24,14 @@ export default function LessonActions({
   date,
   startTime,
   attendance,
+  slots,
 }: {
   lessonId: string;
   status: Status;
   date: string;
   startTime: string;
   attendance: string | null;
+  slots: { startTime: string; endTime: string }[];
 }) {
   const router = useRouter();
   const [busy, setBusy] = useState(false);
@@ -73,6 +75,7 @@ export default function LessonActions({
         disabled={!open || busy}
         date={date}
         startTime={startTime}
+        slots={slots}
         onSave={async (newDate, newTime) => {
           if (await send({ action: "reschedule", date: newDate, startTime: newTime }, "The lesson could not be moved.")) {
             setNotice("Lesson moved.");
@@ -141,23 +144,40 @@ function RescheduleSection({
   disabled,
   date,
   startTime,
+  slots,
   onSave,
 }: {
   disabled: boolean;
   date: string;
   startTime: string;
+  slots: { startTime: string; endTime: string }[];
   onSave: (date: string, time: string) => Promise<void>;
 }) {
   const [newDate, setNewDate] = useState(date);
-  const [newTime, setNewTime] = useState(startTime);
+  const [newTime, setNewTime] = useState(slots.some((slot) => slot.startTime === startTime) ? startTime : (slots[0]?.startTime ?? ""));
   const summary = describeWhen(newDate, newTime);
   const changed = newDate !== date || newTime !== startTime;
   return (
     <Block
       title="Reschedule"
-      hint="Move the lesson to a new date and start time. The instructor, vehicle and student must all be free, and the instructor must be available."
+      hint="Move the lesson to a new date and one of the open session times. The instructor, vehicle and student must all be free, and the instructor must be available."
     >
-      <DateAndTimeFields idPrefix="lesson-move" date={newDate} time={newTime} onDate={setNewDate} onTime={setNewTime} disabled={disabled} />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <label className={`grid gap-1.5 ${LABEL}`}>
+          Date
+          <input type="date" value={newDate} onChange={(event) => setNewDate(event.target.value)} disabled={disabled} className={FIELD} />
+        </label>
+        <label className={`grid gap-1.5 ${LABEL}`}>
+          Session time
+          <select value={newTime} onChange={(event) => setNewTime(event.target.value)} disabled={disabled} className={SELECT_FIELD}>
+            {slots.map((slot) => (
+              <option key={slot.startTime} value={slot.startTime}>
+                {slot.startTime} – {slot.endTime}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="text-[0.8125rem] text-muted">{summary ? `New time: ${summary}` : "Choose a date and a time."}</p>
         <button

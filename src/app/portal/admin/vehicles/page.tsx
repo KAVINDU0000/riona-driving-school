@@ -13,6 +13,14 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
+/** The icon that matches each vehicle type, so the list shows what kind of vehicle each row is. */
+const VEHICLE_TYPE_ICONS: Record<string, string> = {
+  CAR: "car",
+  VAN: "van",
+  MOTORCYCLE: "motorcycle",
+  THREE_WHEELER: "three-wheeler",
+};
+
 function ChevronIcon() {
   return (
     <svg
@@ -145,7 +153,7 @@ export default async function AdminVehiclesPage({
                     aria-hidden="true"
                     className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-page text-ink-soft ring-1 ring-line"
                   >
-                    <Icon name="car" className="h-[18px] w-[18px]" />
+                    <Icon name={VEHICLE_TYPE_ICONS[vehicle.vehicleType] ?? "car"} className="h-[18px] w-[18px]" />
                   </span>
                   <span className="grid min-w-0 flex-1 gap-1 md:grid-cols-[1.2fr_1fr_auto] md:items-center md:gap-4">
                     <span className="min-w-0">

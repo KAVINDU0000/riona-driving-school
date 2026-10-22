@@ -102,7 +102,7 @@ async function windowsOnDate(tx: Tx, instructorUserId: string, date: Date, excep
   return rows.map((row) => ({ startTime: timeToString(row.startTime), endTime: timeToString(row.endTime) }));
 }
 
-/** Adds a window. It cannot be in the past and cannot overlap or touch another window of the same date. */
+/** Adds a window. It cannot be in the past and cannot overlap another window of the same date. */
 export async function createAvailability(instructorUserId: string, input: AvailabilityInput): Promise<AvailabilityWindow> {
   assertNotInPast(input, schoolNow());
   const date = parseDateOnly(input.date)!;

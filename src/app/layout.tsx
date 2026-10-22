@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Outfit, Geist_Mono, Noto_Sans_Sinhala } from "next/font/google";
+import { Outfit, Geist_Mono, Noto_Sans_Sinhala, Noto_Sans_Tamil } from "next/font/google";
 import "./globals.css";
 
 const outfit = Outfit({
@@ -12,6 +12,14 @@ const outfit = Outfit({
 const notoSinhala = Noto_Sans_Sinhala({
   variable: "--font-sinhala",
   subsets: ["sinhala", "latin"],
+  weight: ["400", "600", "700"],
+  display: "swap",
+});
+
+// Tamil text (lang="ta") uses this font; Outfit has no Tamil letters.
+const notoTamil = Noto_Sans_Tamil({
+  variable: "--font-tamil",
+  subsets: ["tamil", "latin"],
   weight: ["400", "600", "700"],
   display: "swap",
 });
@@ -41,7 +49,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${outfit.variable} ${notoSinhala.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${outfit.variable} ${notoSinhala.variable} ${notoTamil.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-page text-ink">{children}</body>
     </html>

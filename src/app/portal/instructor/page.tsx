@@ -1,12 +1,21 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import AdminEmptyState from "@/components/admin/AdminEmptyState";
-import AdminStatCard from "@/components/admin/AdminStatCard";
 import InstructorFrame from "@/components/instructor/InstructorFrame";
-import LessonItem from "@/components/instructor/LessonItem";
+import {
+  ActionItem,
+  DashboardHero,
+  Panel,
+  PanelLink,
+  StatTile,
+  StudentRow,
+  TodayLessonCard,
+  UpcomingRow,
+  VehicleRow,
+} from "@/components/instructor/InstructorDashboardParts";
+import Icon from "@/components/ui/Icon";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
 import { getDashboardSummary } from "@/lib/instructor/lessons";
-import { vehicleWarning } from "@/lib/instructor/lesson-rules";
 import { formatDate } from "@/components/student/format";
 
 export const metadata: Metadata = {
@@ -14,138 +23,131 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-/** Admin list row: bordered white card, gold border on hover. */
-const ROW = "flex flex-col gap-1 rounded-2xl border border-line bg-white p-4 shadow-[0_1px_2px_rgba(16,27,48,0.04)] transition-all hover:border-gold/60 hover:shadow-[0_12px_28px_-18px_rgba(16,27,48,0.45)]";
+const HERO_PRIMARY = "inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-gold px-5 text-[0.9375rem] font-bold text-ink shadow-[0_8px_20px_-8px_rgba(255,201,51,0.7)] transition-colors hover:bg-gold-dark focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold";
+const HERO_SECONDARY = "inline-flex h-11 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/5 px-5 text-[0.9375rem] font-semibold text-white transition-colors hover:bg-white/10 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold";
 
 /** Today's lessons, pending actions and upcoming schedule for the signed-in instructor. Every figure is read from lesson records. */
 export default async function InstructorDashboardPage() {
   const user = await requirePortalUser("INSTRUCTOR");
   const data = await getDashboardSummary(user.userId);
 
+  const availabilityLine =
+    data.availability.upcomingWindowCount === 0
+      ? "You have no availability set, so students cannot book lessons with you."
+      : data.availability.todayWindows.length === 0
+        ? "You are not available today."
+        : `Available today: ${data.availability.todayWindows.map((window) => `${window.startTime}–${window.endTime}`).join(", ")}.`;
+
   return (
     <InstructorFrame title="Dashboard" description="Today's lessons, anything that needs your action, and your upcoming schedule." active="/portal/instructor">
-      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <AdminStatCard label="Today's lessons" value={data.todayCount} caption="Excludes cancelled lessons" icon="calendar" />
-        <AdminStatCard label="Upcoming" value={data.upcomingCount} caption="Scheduled after today" icon="car" />
-        <AdminStatCard label="Completed today" value={data.completedToday} caption={formatDate(data.today)} icon="check-circle" />
-        <AdminStatCard label="Needs action" value={data.pendingActions.length} caption="Ended, still open" icon="badge-check" />
+      <DashboardHero date={formatDate(data.today)} todayCount={data.todayCount} availabilityLine={availabilityLine}>
+        <Link href="/portal/instructor/lessons" className={HERO_PRIMARY}>
+          Full schedule
+        </Link>
+        <Link href="/portal/instructor/availability" className={HERO_SECONDARY}>
+          Manage availability
+        </Link>
+      </DashboardHero>
+
+      <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+        <StatTile label="Today's lessons" value={data.todayCount} caption="Excludes cancelled lessons" icon="calendar" tone="gold" />
+        <StatTile label="Upcoming" value={data.upcomingCount} caption="Scheduled after today" icon="car" tone="ink" />
+        <StatTile label="Completed today" value={data.completedToday} caption={formatDate(data.today)} icon="check-circle" tone="success" />
+        <StatTile
+          label="Needs action"
+          value={data.pendingActions.length}
+          caption="Ended, still open"
+          icon="badge-check"
+          tone={data.pendingActions.length > 0 ? "alert" : "ink"}
+        />
       </div>
 
-      {data.availability.upcomingWindowCount === 0 ? (
-        <p role="status" className="mt-6 rounded-2xl bg-amber-50 px-5 py-4 text-[0.9375rem] text-amber-900 ring-1 ring-amber-200">
-          You have no availability set, so students cannot book lessons with you.{" "}
-          <Link href="/portal/instructor/availability" className="font-semibold underline">
-            Set your availability
-          </Link>
-        </p>
-      ) : (
-        <p className="mt-6 text-[0.875rem] text-muted">
-          {data.availability.todayWindows.length === 0
-            ? "You are not available today."
-            : `Available today: ${data.availability.todayWindows.map((window) => `${window.startTime}–${window.endTime}`).join(", ")}.`}{" "}
-          <Link href="/portal/instructor/availability" className="font-semibold text-gold-ink hover:underline">
-            Manage availability
-          </Link>
-        </p>
-      )}
-
-      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)]">
-        <section aria-labelledby="today-heading" className="grid content-start gap-4">
-          <div className="flex items-center justify-between gap-3">
-            <h2 id="today-heading" className="text-[1.125rem] font-bold text-ink">Today&apos;s schedule</h2>
-            <Link href="/portal/instructor/lessons" className="text-[0.875rem] font-semibold text-gold-ink hover:underline">
-              Full schedule
-            </Link>
-          </div>
-          {data.todaysLessons.length === 0 ? (
-            <AdminEmptyState title="No lessons today" body="Lessons assigned to you for today appear here." />
+      {/* Order: what needs action, then today, then what is coming, then the people and vehicles behind them. */}
+      <div className="mt-8 grid gap-6">
+        <Panel id="pending-heading" title="Needs your action" count={data.pendingActions.length}>
+          {data.pendingActions.length === 0 ? (
+            <p className="flex items-center gap-2.5 rounded-xl bg-success-soft px-4 py-3 text-[0.9375rem] font-medium text-success">
+              <Icon name="check-circle" className="h-5 w-5 shrink-0" />
+              Nothing to action. Every ended lesson is up to date.
+            </p>
           ) : (
-            <ul className="grid gap-3">
-              {data.todaysLessons.map((lesson) => (
-                <LessonItem key={lesson.id} lesson={lesson} />
+            <ul className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {data.pendingActions.map(({ lesson, needs }) => (
+                <ActionItem
+                  key={lesson.id}
+                  href={`/portal/instructor/lessons/${lesson.id}`}
+                  date={formatDate(lesson.lessonDate)}
+                  time={lesson.startTime}
+                  student={lesson.student.fullName}
+                  needs={needs === "attendance" ? "Record attendance" : "Mark completed or cancel"}
+                />
               ))}
             </ul>
           )}
-        </section>
+        </Panel>
 
-        <div className="grid content-start gap-8">
-          <section aria-labelledby="pending-heading" className="grid gap-4">
-            <h2 id="pending-heading" className="text-[1.125rem] font-bold text-ink">Needs your action</h2>
-            {data.pendingActions.length === 0 ? (
-              <AdminEmptyState title="Nothing to action" body="Lessons that have ended but still need attendance or an outcome appear here." />
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:items-start">
+          <Panel id="today-heading" title="Today's schedule" action={<PanelLink href="/portal/instructor/lessons">Full schedule</PanelLink>}>
+            {data.todaysLessons.length === 0 ? (
+              <AdminEmptyState title="No lessons today" body="Lessons assigned to you for today appear here." />
             ) : (
               <ul className="grid gap-3">
-                {data.pendingActions.map(({ lesson, needs }) => (
-                  <li key={lesson.id}>
-                    <Link href={`/portal/instructor/lessons/${lesson.id}`} className={ROW}>
-                      <span className="text-[0.9375rem] font-bold text-ink">
-                        {formatDate(lesson.lessonDate)} · {lesson.startTime}
-                      </span>
-                      <span className="text-[0.875rem] text-muted">{lesson.student.fullName}</span>
-                      <span className="text-[0.8125rem] font-semibold text-gold-ink">
-                        {needs === "attendance" ? "Record attendance" : "Mark completed or cancel"}
-                      </span>
-                    </Link>
-                  </li>
+                {data.todaysLessons.map((lesson) => (
+                  <TodayLessonCard key={lesson.id} lesson={lesson} />
                 ))}
               </ul>
             )}
-          </section>
+          </Panel>
 
-          <section aria-labelledby="upcoming-heading" className="grid gap-4">
-            <h2 id="upcoming-heading" className="text-[1.125rem] font-bold text-ink">Upcoming lessons</h2>
+          <Panel id="upcoming-heading" title="Upcoming lessons" action={<PanelLink href="/portal/instructor/lessons">View all</PanelLink>}>
             {data.upcoming.length === 0 ? (
               <AdminEmptyState title="No upcoming lessons" body="Scheduled lessons after today appear here." />
             ) : (
-              <ul className="grid gap-3">
+              <ul className="grid gap-1">
                 {data.upcoming.map((lesson) => (
-                  <LessonItem key={lesson.id} lesson={lesson} showDate />
+                  <UpcomingRow key={lesson.id} lesson={lesson} />
                 ))}
               </ul>
             )}
-          </section>
+          </Panel>
+        </div>
 
-          <section aria-labelledby="students-heading" className="grid gap-4">
-            <div className="flex items-center justify-between gap-3">
-              <h2 id="students-heading" className="text-[1.125rem] font-bold text-ink">Your students</h2>
-              <Link href="/portal/instructor/students" className="text-[0.875rem] font-semibold text-gold-ink hover:underline">
-                All students
-              </Link>
-            </div>
+        <div className="grid gap-6 lg:grid-cols-2 lg:items-start">
+          <Panel id="students-heading" title="Your students" action={<PanelLink href="/portal/instructor/students">All students</PanelLink>}>
             {data.students.length === 0 ? (
               <AdminEmptyState title="No students assigned" body="Students with a scheduled lesson from today on appear here." />
             ) : (
-              <ul className="grid gap-2">
+              <ul className="grid gap-1">
                 {data.students.map((student) => (
-                  <li key={student.userId}>
-                    <Link href={`/portal/instructor/students/${student.userId}`} className={ROW}>
-                      <span className="text-[0.9375rem] font-bold text-ink">{student.fullName}</span>
-                      <span className="text-[0.8125rem] text-muted">
-                        {student.lessonCount} scheduled · next {formatDate(student.nextLessonDate)}
-                      </span>
-                    </Link>
-                  </li>
+                  <StudentRow
+                    key={student.userId}
+                    href={`/portal/instructor/students/${student.userId}`}
+                    name={student.fullName}
+                    lessonCount={student.lessonCount}
+                    next={formatDate(student.nextLessonDate)}
+                  />
                 ))}
               </ul>
             )}
-          </section>
+          </Panel>
 
-          <section aria-labelledby="vehicles-heading" className="grid gap-4">
-            <h2 id="vehicles-heading" className="text-[1.125rem] font-bold text-ink">Vehicles on your lessons</h2>
+          <Panel id="vehicles-heading" title="Vehicles on your lessons">
             {data.vehicles.length === 0 ? (
               <AdminEmptyState title="No vehicles assigned" body="Vehicles on your scheduled lessons appear here." />
             ) : (
-              <ul className="grid gap-2">
+              <ul className="grid gap-1">
                 {data.vehicles.map((vehicle) => (
-                  <li key={vehicle.id} className="rounded-2xl border border-line bg-white p-4 text-[0.9375rem] text-ink shadow-[0_1px_2px_rgba(16,27,48,0.04)]">
-                    <span className="font-semibold">{vehicle.label}</span>
-                    <span className="ml-2 text-[0.8125rem] text-muted">{vehicle.registrationNumber}</span>
-                    {vehicleWarning(vehicle.status) && <p className="mt-1 text-[0.8125rem] text-amber-800">{vehicleWarning(vehicle.status)}</p>}
-                  </li>
+                  <VehicleRow
+                    key={vehicle.id}
+                    label={vehicle.label}
+                    registrationNumber={vehicle.registrationNumber}
+                    status={vehicle.status}
+                    vehicleType={vehicle.vehicleType}
+                  />
                 ))}
               </ul>
             )}
-          </section>
+          </Panel>
         </div>
       </div>
     </InstructorFrame>
