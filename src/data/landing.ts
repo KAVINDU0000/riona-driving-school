@@ -113,7 +113,7 @@ export const vehicles = [
       "Automatic and manual transmission options",
       "Pickup and drop-off available in the Colombo area",
     ],
-    image: "/images/car-swift.png",
+    image: "/images/car-swift.webp",
   },
   {
     key: "van",
@@ -126,7 +126,7 @@ export const vehicles = [
       "Wider-body manoeuvring",
       "Dual-control van available",
     ],
-    image: "/images/van.png",
+    image: "/images/van.webp",
   },
   {
     key: "motorbike",
@@ -139,7 +139,7 @@ export const vehicles = [
       "Braking and cornering technique",
       "Protective gear advice",
     ],
-    image: "/images/motorbike.png",
+    image: "/images/motorbike.webp",
   },
   {
     key: "three-wheeler",
@@ -152,7 +152,7 @@ export const vehicles = [
       "Traffic and junction handling",
       "Licence test preparation",
     ],
-    image: "/images/three-wheeler.png",
+    image: "/images/three-wheeler.webp",
   },
 ];
 
