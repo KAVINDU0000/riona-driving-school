@@ -11,7 +11,6 @@ import LicenceJourney from "@/components/landing/LicenceJourney";
 import RoadSafety from "@/components/landing/RoadSafety";
 import Testimonials from "@/components/landing/Testimonials";
 import FAQ from "@/components/landing/FAQ";
-import NavFade from "@/components/landing/NavFade";
 
 export default function Home() {
   return (
@@ -30,7 +29,6 @@ export default function Home() {
         <RoadSafety />
         <Testimonials />
         <FAQ />
-        <NavFade />
       </main>
 
       <Footer />

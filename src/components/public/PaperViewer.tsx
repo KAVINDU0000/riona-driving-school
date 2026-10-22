@@ -40,7 +40,7 @@ export default function PaperViewer({
   const progress = (page / pageCount) * 100;
 
   return (
-    <div data-nav-fade-off className="flex flex-col gap-4">
+    <div className="flex flex-col gap-4">
       <div className="flex items-center justify-between gap-3">
         <button
           type="button"

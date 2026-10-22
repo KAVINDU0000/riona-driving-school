@@ -327,26 +327,6 @@ body {
   }
 }
 
-/* Scroll-linked reveal. Browsers without scroll timelines show content immediately. */
-@supports (animation-timeline: view()) {
-  .reveal {
-    animation: reveal-up linear both;
-    animation-timeline: view();
-    animation-range: entry 0% entry 35%;
-  }
-}
-
-@keyframes reveal-up {
-  from {
-    opacity: 0;
-    transform: translateY(32px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
-  }
-}
-
 /* Eyebrow label shared by every section header */
 .eyebrow {
   font-size: 0.6875rem;
@@ -493,15 +473,4 @@ body {
 
 .thin-scroll::-webkit-scrollbar-thumb:hover {
   background: var(--color-gold-dark);
-}
-
-/* Student pages: the title and description fade out as the content scrolls up under them. Driven by scroll
-   position (scroll-linked animation), so it needs no JavaScript. Browsers without support simply keep the text visible. */
-@keyframes title-fade {
-  from {
-    opacity: 1;
-  }
-  to {
-    opacity: 0;
-  }
 }

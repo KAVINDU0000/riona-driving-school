@@ -5,15 +5,15 @@ import StudentBreadcrumbs from "@/components/student/StudentBreadcrumbs";
 export default function PageIntro({ title, description, actions }: { title: string; description: string; actions?: ReactNode }) {
   return (
     <div className="flex flex-col gap-3 pb-3 pt-1 lg:sticky lg:top-0 lg:z-10">
-      <div className="[animation:title-fade_linear_both] [animation-range:120px_140px] [animation-timeline:scroll(nearest)] motion-reduce:[animation:none]">
+      <div>
         <StudentBreadcrumbs current={title} />
       </div>
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
-          <h1 className="text-[1.75rem] font-bold leading-tight tracking-[-0.02em] text-ink md:text-[2rem] [animation:title-fade_linear_both] [animation-range:66px_76px] [animation-timeline:scroll(nearest)] motion-reduce:[animation:none]">
+          <h1 className="text-[1.75rem] font-bold leading-tight tracking-[-0.02em] text-ink md:text-[2rem]">
             {title}
           </h1>
-          <p className="mt-1.5 max-w-2xl text-[0.9375rem] text-muted [animation:title-fade_linear_both] [animation-range:36px_42px] [animation-timeline:scroll(nearest)] motion-reduce:[animation:none]">
+          <p className="mt-1.5 max-w-2xl text-[0.9375rem] text-muted">
             {description}
           </p>
         </div>

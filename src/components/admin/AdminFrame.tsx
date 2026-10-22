@@ -160,11 +160,11 @@ export default function AdminFrame({
         <main className="flex-1 px-4 pb-16 pt-8 md:px-8 md:pt-10 lg:min-h-0 lg:overflow-y-auto lg:scroll-smooth lg:pt-0 lg:[scrollbar-width:none] lg:[&::-webkit-scrollbar]:hidden">
           <div className="mx-auto max-w-[1280px]">
             <div className="lg:sticky lg:top-0 lg:z-10 lg:pt-10">
-              <h1 className="text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-ink md:text-[2.25rem] [animation:title-fade_linear_both] [animation-range:64px_74px] [animation-timeline:scroll(nearest)] motion-reduce:[animation:none]">
+              <h1 className="text-[2rem] font-bold leading-[1.1] tracking-[-0.03em] text-ink md:text-[2.25rem]">
                 {title}
                 <span className="text-gold-dark">.</span>
               </h1>
-              <p className="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted [animation:title-fade_linear_both] [animation-range:32px_38px] [animation-timeline:scroll(nearest)] motion-reduce:[animation:none]">
+              <p className="mt-2 max-w-2xl text-[0.9375rem] leading-relaxed text-muted">
                 {description}
               </p>
             </div>

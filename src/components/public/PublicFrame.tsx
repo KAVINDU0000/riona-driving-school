@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import Footer from "@/components/landing/Footer";
 import Navbar from "@/components/landing/Navbar";
 import FloatingWhatsApp from "@/components/landing/FloatingWhatsApp";
-import NavFade from "@/components/landing/NavFade";
 
 /** Shared shell for the public pages: skip link, the site header, the page content, footer and WhatsApp button. */
 export default function PublicFrame({ children }: { children: ReactNode }) {
@@ -18,7 +17,6 @@ export default function PublicFrame({ children }: { children: ReactNode }) {
       <Navbar />
       <main id="main" className="flex-1 pt-10 pb-16 md:pt-14 md:pb-20">
         {children}
-        <NavFade />
       </main>
       <Footer />
       <FloatingWhatsApp />
