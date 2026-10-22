@@ -15,21 +15,23 @@ export type BookableRequirement = {
   requirementLabel: string;
   vehicleLabel: string;
   remaining: number;
-  durations: number[];
 };
 
-type Availability = { query: string; starts?: string[]; error?: string };
+type SessionOption = { startTime: string; endTime: string };
+type Availability = { query: string; slots?: SessionOption[]; error?: string };
 
 const selectClass =
   "h-12 w-full rounded-xl border border-line bg-white px-4 text-[0.9375rem] text-ink focus:border-gold-dark focus:outline-none focus:ring-4 focus:ring-gold/25 disabled:opacity-60";
+
+/** A session slot as the student reads it, for example "08:00 – 10:00". */
+const slotLabel = (slot: SessionOption) => `${slot.startTime} – ${slot.endTime}`;
 
 export default function LessonBookingForm({ requirements }: { requirements: BookableRequirement[] }) {
   const router = useRouter();
   const today = schoolNow().date;
   const [choice, setChoice] = useState(requirements[0]?.key ?? "");
   const [date, setDate] = useState("");
-  const [chosenDuration, setChosenDuration] = useState<number | null>(null);
-  const [startTime, setStartTime] = useState("");
+  const [chosenStart, setChosenStart] = useState("");
   const [availability, setAvailability] = useState<Availability>({ query: "" });
   const [confirming, setConfirming] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -46,27 +48,27 @@ export default function LessonBookingForm({ requirements }: { requirements: Book
     }
     return [...groups.entries()];
   }, [requirements]);
-  const duration = selected && chosenDuration && selected.durations.includes(chosenDuration) ? chosenDuration : (selected?.durations[0] ?? null);
 
   // The query identifies one set of booking options. A result is used only while it answers the current query.
-  const query = selected && date && duration ? new URLSearchParams({
-    enrollmentId: selected.enrollmentId,
-    requirementId: selected.requirementId,
-    date,
-    durationMinutes: String(duration),
-  }).toString() : "";
+  const query = selected && date
+    ? new URLSearchParams({
+        enrollmentId: selected.enrollmentId,
+        requirementId: selected.requirementId,
+        date,
+      }).toString()
+    : "";
 
   useEffect(() => {
     if (!query) return;
     let active = true;
     fetch(`/api/student/lessons?${query}`, { cache: "no-store", credentials: "same-origin" })
       .then(async (response) => {
-        const data = (await response.json().catch(() => ({}))) as { startTimes?: string[]; error?: string };
+        const data = (await response.json().catch(() => ({}))) as { slots?: SessionOption[]; error?: string };
         if (!active) return;
         setAvailability(
           response.ok
-            ? { query, starts: data.startTimes ?? [] }
-            : { query, error: data.error ?? "Booking options could not be loaded. Try again." },
+            ? { query, slots: data.slots ?? [] }
+            : { query, error: data.error ?? "Session times could not be loaded. Try again." },
         );
       })
       .catch(() => {
@@ -78,23 +80,23 @@ export default function LessonBookingForm({ requirements }: { requirements: Book
   }, [query]);
 
   const current = query && availability.query === query ? availability : null;
-  const loadingStarts = Boolean(query) && !current;
-  const starts = current?.starts ?? null;
+  const loadingSlots = Boolean(query) && !current;
+  const slots = current?.slots ?? null;
   const loadError = current?.error ?? "";
-  const chosenStart = starts?.includes(startTime) ? startTime : "";
+  const chosen = slots?.find((slot) => slot.startTime === chosenStart) ?? null;
 
   function reviewBooking(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBookingError("");
-    if (!selected || !date || !duration || !chosenStart) {
-      setBookingError("Choose a requirement, a date, a lesson length and a start time.");
+    if (!selected || !date || !chosen) {
+      setBookingError("Choose a requirement, a date and a session time.");
       return;
     }
     setConfirming(true);
   }
 
   async function confirmBooking() {
-    if (!selected || !duration || !chosenStart) return;
+    if (!selected || !chosen) return;
     setSubmitting(true);
     setBookingError("");
     try {
@@ -107,8 +109,7 @@ export default function LessonBookingForm({ requirements }: { requirements: Book
           enrollmentId: selected.enrollmentId,
           requirementId: selected.requirementId,
           lessonDate: date,
-          startTime: chosenStart,
-          durationMinutes: duration,
+          startTime: chosen.startTime,
         }),
       });
       const data = (await response.json().catch(() => ({}))) as { error?: string; lesson?: { lessonDate: string; startTime: string; endTime: string } };
@@ -118,7 +119,7 @@ export default function LessonBookingForm({ requirements }: { requirements: Book
       }
       setBooked({ date: data.lesson.lessonDate, start: data.lesson.startTime, end: data.lesson.endTime });
       setConfirming(false);
-      setStartTime("");
+      setChosenStart("");
       router.refresh();
     } catch {
       setBookingError("We could not reach the server. Check your connection and try again.");
@@ -153,7 +154,7 @@ export default function LessonBookingForm({ requirements }: { requirements: Book
             value={choice}
             onChange={(e) => {
               setChoice(e.target.value);
-              setStartTime("");
+              setChosenStart("");
             }}
             className={selectClass}
             disabled={submitting}
@@ -176,7 +177,7 @@ export default function LessonBookingForm({ requirements }: { requirements: Book
           )}
         </div>
 
-        <div className="flex flex-col gap-2">
+        <div className="flex flex-col gap-2 md:col-span-2">
           <label htmlFor="lesson-date" className="text-[0.8125rem] font-semibold text-ink">
             Date
           </label>
@@ -187,66 +188,44 @@ export default function LessonBookingForm({ requirements }: { requirements: Book
             value={date}
             onChange={(e) => {
               setDate(e.target.value);
-              setStartTime("");
+              setChosenStart("");
             }}
             disabled={submitting}
             className={selectClass}
           />
         </div>
 
-        <div className="flex flex-col gap-2">
-          <label htmlFor="duration" className="text-[0.8125rem] font-semibold text-ink">
-            Lesson length
-          </label>
-          <select
-            id="duration"
-            value={duration ?? ""}
-            onChange={(e) => {
-              setChosenDuration(Number(e.target.value));
-              setStartTime("");
-            }}
-            disabled={submitting || !selected}
-            className={selectClass}
-          >
-            {(selected?.durations ?? []).map((minutes) => (
-              <option key={minutes} value={minutes}>
-                {minutes} minutes{minutes === 30 ? " (standard)" : ""}
-              </option>
-            ))}
-          </select>
-        </div>
-
         <fieldset className="flex flex-col gap-2 md:col-span-2">
-          <legend className="text-[0.8125rem] font-semibold text-ink">Start time</legend>
-          {!date && <p className="text-[0.875rem] text-muted">Choose a date to see the free start times.</p>}
-          {date && loadingStarts && (
+          <legend className="text-[0.8125rem] font-semibold text-ink">Session time</legend>
+          {!date && <p className="text-[0.875rem] text-muted">Choose a date to see the session times that are free.</p>}
+          {date && loadingSlots && (
             <p role="status" className="text-[0.875rem] text-muted">
-              Checking free times…
+              Checking free session times…
             </p>
           )}
-          {date && !loadingStarts && loadError && (
+          {date && !loadingSlots && loadError && (
             <p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-[0.875rem] text-red-700">
               {loadError}
             </p>
           )}
-          {date && !loadingStarts && !loadError && starts && starts.length === 0 && (
+          {date && !loadingSlots && !loadError && slots && slots.length === 0 && (
             <p className="rounded-xl bg-gold-soft px-4 py-3 text-[0.875rem] text-gold-ink">
-              No start times are free on this date for this lesson length. Try another date or length.
+              No session times are free on this date. Try another date.
             </p>
           )}
-          {date && !loadingStarts && starts && starts.length > 0 && (
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-5 md:grid-cols-6" role="radiogroup" aria-label="Free start times">
-              {starts.map((time) => {
-                const checked = chosenStart === time;
+          {date && !loadingSlots && slots && slots.length > 0 && (
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4" role="radiogroup" aria-label="Free session times">
+              {slots.map((slot) => {
+                const checked = chosenStart === slot.startTime;
                 return (
                   <label
-                    key={time}
-                    className={`cursor-pointer rounded-xl px-2 py-2.5 text-center text-[0.875rem] font-semibold ring-1 transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-gold-dark ${
+                    key={slot.startTime}
+                    className={`cursor-pointer rounded-xl px-2 py-3 text-center text-[0.875rem] font-semibold ring-1 transition-colors has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-gold-dark ${
                       checked ? "bg-gold text-ink ring-gold" : "bg-white text-ink ring-line hover:ring-ink/30"
                     }`}
                   >
-                    <input type="radio" name="start" value={time} checked={checked} onChange={() => setStartTime(time)} className="sr-only" />
-                    {time}
+                    <input type="radio" name="start" value={slot.startTime} checked={checked} onChange={() => setChosenStart(slot.startTime)} className="sr-only" />
+                    {slotLabel(slot)}
                   </label>
                 );
               })}
@@ -263,7 +242,7 @@ export default function LessonBookingForm({ requirements }: { requirements: Book
         <div className="md:col-span-2">
           <button
             type="submit"
-            disabled={submitting || !chosenStart}
+            disabled={submitting || !chosen}
             className="inline-flex items-center gap-2 rounded-xl bg-gold px-6 py-3 text-[0.9375rem] font-semibold text-ink hover:bg-gold-dark disabled:cursor-not-allowed disabled:opacity-60"
           >
             Review booking
@@ -287,7 +266,7 @@ export default function LessonBookingForm({ requirements }: { requirements: Book
           <span className="font-semibold text-ink">Lesson type:</span> {selected?.requirementLabel}
         </p>
         <p className="mt-2">
-          {date && formatDate(date)}, {chosenStart} for {duration} minutes.
+          {date && formatDate(date)}, {chosen && slotLabel(chosen)}.
         </p>
         <p className="mt-2 text-[0.8125rem]">
           Vehicle type: {selected?.vehicleLabel}. The school assigns an instructor and a vehicle of that type when you confirm.

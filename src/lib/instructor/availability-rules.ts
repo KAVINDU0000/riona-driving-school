@@ -5,20 +5,16 @@ import { minutesOfDay, parseDateOnly, parseTimeOnly } from "@/lib/student/time";
  * Availability rules for instructors, in one place so the API and the UI agree. Every function here is pure, so the
  * rules can be unit tested without a database.
  *
- * The schema stores date-specific windows (InstructorAvailability). A break or an unavailable period is the gap
- * between two windows on the same date, and a day with no window is a day off. Student booking only offers a slot that
- * fits entirely inside one window, so these windows are the single source of truth for instructor availability.
+ * The schema stores date-specific windows (InstructorAvailability). An instructor takes a fixed session slot for a date,
+ * which creates a window with the slot's exact times. A day with no window is a day off. Student booking only offers a
+ * slot that fits entirely inside one window, so these windows are the single source of truth for instructor availability.
  *
- * Assumptions, because the project does not define them yet:
- * - Windows start and end on the same 15-minute grid as booking start times, and last at least 30 minutes.
+ * Assumptions:
  * - A window cannot be created for a date that has passed. Today is allowed, but not a window that has already ended.
  * - Windows on one date cannot overlap. Touching windows are refused too, because they are one window.
  * - A window can be changed or removed only if every scheduled or completed lesson on that date still fits inside a window.
  */
 
-export const AVAILABILITY_GRID_MINUTES = 15;
-export const MIN_WINDOW_MINUTES = 30;
-export const AVAILABILITY_NOTES_MAX = 200;
 export const MAX_AVAILABILITY_RANGE_DAYS = 62;
 
 export type Interval = { start: number; end: number };
@@ -30,32 +26,16 @@ export type AvailabilityInput = {
   notes: string | null;
 };
 
-/** Validates a window from a request body. Date and times are strict YYYY-MM-DD and HH:MM strings. */
-export function parseAvailabilityInput(body: Record<string, unknown>): AvailabilityInput {
+/**
+ * Validates a session assignment from a request body: a date and the start time of an open session slot. The
+ * instructor cannot choose any other time. The slot's own end time is used, so the window matches the slot exactly.
+ */
+export function parseSessionAssignment(body: Record<string, unknown>): { date: string; startTime: string } {
   const date = typeof body.date === "string" ? body.date : "";
   const startTime = typeof body.startTime === "string" ? body.startTime : "";
-  const endTime = typeof body.endTime === "string" ? body.endTime : "";
   if (!parseDateOnly(date)) throw new AuthError(400, "Choose a valid date.");
-  if (!parseTimeOnly(startTime) || !parseTimeOnly(endTime)) throw new AuthError(400, "Choose a valid start and end time.");
-
-  const start = minutesOfDay(startTime);
-  const end = minutesOfDay(endTime);
-  if (start % AVAILABILITY_GRID_MINUTES !== 0 || end % AVAILABILITY_GRID_MINUTES !== 0) {
-    throw new AuthError(400, "Times must be on the 15-minute grid.");
-  }
-  if (end <= start) throw new AuthError(400, "The end time must be after the start time.");
-  if (end - start < MIN_WINDOW_MINUTES) throw new AuthError(400, `A window must be at least ${MIN_WINDOW_MINUTES} minutes long.`);
-
-  let notes: string | null = null;
-  if (body.notes !== undefined && body.notes !== null && body.notes !== "") {
-    if (typeof body.notes !== "string") throw new AuthError(400, "Notes must be text.");
-    const trimmed = body.notes.trim();
-    if (trimmed.length > AVAILABILITY_NOTES_MAX) {
-      throw new AuthError(400, `Notes must be ${AVAILABILITY_NOTES_MAX} characters or fewer.`);
-    }
-    notes = trimmed || null;
-  }
-  return { date, startTime, endTime, notes };
+  if (!parseTimeOnly(startTime)) throw new AuthError(400, "Choose a valid session time.");
+  return { date, startTime };
 }
 
 /** Refuses a window on a past date, or one that has already ended today. `now` is the school's current date and minutes. */
@@ -78,7 +58,7 @@ export function overlapsOrTouches(a: Interval, b: Interval): boolean {
 /** Refuses a window that overlaps or touches another window of the same date. `others` must exclude the window being edited. */
 export function assertNoWindowOverlap(candidate: Interval, others: Interval[]): void {
   if (others.some((other) => overlapsOrTouches(candidate, other))) {
-    throw new AuthError(409, "This overlaps another availability window on the same date. Edit that window instead.");
+    throw new AuthError(409, "This overlaps another session or availability window on the same date. Release that one first.");
   }
 }
 

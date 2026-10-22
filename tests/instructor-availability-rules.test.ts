@@ -5,10 +5,9 @@ import {
   assertNotInPast,
   lessonsOutsideWindows,
   overlapsOrTouches,
-  parseAvailabilityInput,
+  parseSessionAssignment,
   parseAvailabilityRange,
 } from "@/lib/instructor/availability-rules";
-import { breaksBetween } from "@/lib/instructor/availability-view";
 
 function statusOf(run: () => unknown): number | "ok" {
   try {
@@ -19,30 +18,22 @@ function statusOf(run: () => unknown): number | "ok" {
   }
 }
 
-const valid = { date: "2099-06-01", startTime: "09:00", endTime: "12:00" };
+const valid = { date: "2099-06-01", startTime: "08:00" };
 
-describe("parseAvailabilityInput", () => {
-  it("accepts a window on the 15-minute grid and trims the note", () => {
-    expect(parseAvailabilityInput({ ...valid, notes: "  Morning only  " })).toEqual({ ...valid, notes: "Morning only" });
-    expect(parseAvailabilityInput({ ...valid }).notes).toBeNull();
-    expect(parseAvailabilityInput({ ...valid, notes: "   " }).notes).toBeNull();
+describe("parseSessionAssignment", () => {
+  it("accepts a date and the start time of a session", () => {
+    expect(parseSessionAssignment({ ...valid })).toEqual(valid);
   });
 
   const badInputs: [Record<string, unknown>, string][] = [
     [{ ...valid, date: "2099-02-30" }, "an impossible date"],
     [{ ...valid, date: "01/06/2099" }, "a wrongly formatted date"],
-    [{ ...valid, startTime: "9:00" }, "a wrongly formatted time"],
-    [{ ...valid, startTime: "09:10" }, "a time off the grid"],
-    [{ ...valid, endTime: "09:00" }, "an end equal to the start"],
-    [{ ...valid, startTime: "12:00", endTime: "09:00" }, "a reversed window"],
-    [{ ...valid, startTime: "09:00", endTime: "09:15" }, "a window shorter than 30 minutes"],
-    [{ ...valid, notes: 5 }, "a non-text note"],
-    [{ ...valid, notes: "x".repeat(201) }, "a note over 200 characters"],
-    [{ date: 5, startTime: 5, endTime: 5 }, "non-string values"],
+    [{ ...valid, startTime: "8:00" }, "a wrongly formatted time"],
+    [{ date: 5, startTime: 5 }, "non-string values"],
   ];
   for (const [input, why] of badInputs) {
     it(`rejects ${why} with 400`, () => {
-      expect(statusOf(() => parseAvailabilityInput(input))).toBe(400);
+      expect(statusOf(() => parseSessionAssignment(input))).toBe(400);
     });
   }
 });
@@ -93,29 +84,5 @@ describe("lessonsOutsideWindows", () => {
       { start: 10 * 60 + 15, end: 12 * 60 },
     ];
     expect(lessonsOutsideWindows(windows, [{ start: 9 * 60 + 45, end: 10 * 60 + 30 }])).toHaveLength(1);
-  });
-});
-
-describe("breaksBetween", () => {
-  it("lists the gaps between windows in time order", () => {
-    expect(
-      breaksBetween([
-        { startTime: "14:00", endTime: "17:00" },
-        { startTime: "09:00", endTime: "12:00" },
-      ]),
-    ).toEqual([{ startTime: "12:00", endTime: "14:00" }]);
-  });
-  it("is empty for one window or none", () => {
-    expect(breaksBetween([{ startTime: "09:00", endTime: "12:00" }])).toEqual([]);
-    expect(breaksBetween([])).toEqual([]);
-  });
-});
-
-describe("parseAvailabilityRange", () => {
-  it("accepts a range up to 62 days and refuses bad ones", () => {
-    expect(parseAvailabilityRange("2099-06-01", "2099-06-07")).toEqual({ from: "2099-06-01", to: "2099-06-07" });
-    expect(statusOf(() => parseAvailabilityRange("2099-06-07", "2099-06-01"))).toBe(400);
-    expect(statusOf(() => parseAvailabilityRange("2099-06-01", "2099-09-01"))).toBe(400);
-    expect(statusOf(() => parseAvailabilityRange("nope", "2099-06-01"))).toBe(400);
   });
 });

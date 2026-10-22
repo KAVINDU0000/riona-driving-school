@@ -2,8 +2,8 @@ import { NextResponse } from "next/server";
 import { UserRole } from "@/generated/prisma/enums";
 import { requireUser } from "@/lib/auth/authorize";
 import { AuthError, assertSameOrigin, handleAuthRouteError, readJsonObject } from "@/lib/auth/http";
-import { createAvailability, listAvailability } from "@/lib/instructor/availability";
-import { parseAvailabilityInput, parseAvailabilityRange } from "@/lib/instructor/availability-rules";
+import { assignSessionSlot, listAvailability } from "@/lib/instructor/availability";
+import { parseAvailabilityRange, parseSessionAssignment } from "@/lib/instructor/availability-rules";
 
 /** The signed-in instructor's own availability windows between two dates. The instructor comes from the session. */
 export async function GET(request: Request) {
@@ -20,13 +20,13 @@ export async function GET(request: Request) {
   }
 }
 
-/** Adds an availability window for the signed-in instructor. Students can book into it once it exists. */
+/** Takes an open session slot on a date for the signed-in instructor. Students can book that slot once it exists. */
 export async function POST(request: Request) {
   try {
     assertSameOrigin(request);
     const user = await requireUser(request, [UserRole.INSTRUCTOR]);
-    const input = parseAvailabilityInput(await readJsonObject(request));
-    const window = await createAvailability(user.userId, input);
+    const { date, startTime } = parseSessionAssignment(await readJsonObject(request));
+    const window = await assignSessionSlot(user.userId, date, startTime);
     return NextResponse.json({ ok: true, window }, { status: 201 });
   } catch (error) {
     return handleAuthRouteError(error);

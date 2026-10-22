@@ -3,7 +3,6 @@ import LessonBookingForm, { type BookableRequirement } from "@/components/studen
 import { formatDate, labels } from "@/components/student/format";
 import PageIntro from "@/components/student/PageIntro";
 import StatusBadge from "@/components/student/StatusBadge";
-import { allowedDurations } from "@/lib/student/lesson-booking";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
 import { getEnrollments, getLessons } from "@/lib/student/data";
 import type { StudentCancellation } from "@/lib/lessons/cancellation";
@@ -35,7 +34,7 @@ export default async function StudentLessonsPage() {
   const user = await requirePortalUser("STUDENT");
   const [enrollments, lessons] = await Promise.all([getEnrollments(user.userId), getLessons(user.userId)]);
 
-  // Only active enrollments with sessions still to book can be booked, and each one keeps its own durations.
+  // Only active enrollments with sessions still to book can be booked.
   const bookable: BookableRequirement[] = enrollments
     .filter((e) => e.status === "ACTIVE")
     .flatMap((enrollment) =>
@@ -50,7 +49,6 @@ export default async function StudentLessonsPage() {
           requirementLabel: `${labels.vehicleType[item.vehicleType]} · ${labels.trainingType[item.trainingType]}`,
           vehicleLabel: labels.vehicleType[item.vehicleType],
           remaining: item.remaining ?? 0,
-          durations: allowedDurations(enrollment.sessionDurationMinutes),
         })),
     );
 
@@ -58,7 +56,7 @@ export default async function StudentLessonsPage() {
     <>
       <PageIntro
         title="Lessons"
-        description="Practical driving lessons. Each lesson is one-to-one: one student, one instructor and one vehicle. Lessons are 30 minutes unless you choose a longer standard length."
+        description="Practical driving lessons in fixed session times. Each lesson is one-to-one: one student, one instructor and one vehicle."
       />
 
       <section aria-labelledby="book-heading" className="flex flex-col gap-4">

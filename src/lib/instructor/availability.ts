@@ -3,6 +3,7 @@ import { LessonScheduleStatus } from "@/generated/prisma/enums";
 import { AuthError } from "@/lib/auth/http";
 import { prisma } from "@/lib/prisma";
 import { dateToString, minutesOfDay, parseDateOnly, parseTimeOnly, schoolNow, timeToString } from "@/lib/student/time";
+import { findActiveSlotByStart } from "@/lib/session-slots/store";
 import {
   assertNoWindowOverlap,
   assertNotInPast,
@@ -125,32 +126,22 @@ export async function createAvailability(instructorUserId: string, input: Availa
 }
 
 /**
- * Changes a window's times or notes. The window keeps its date: to move it to another date, remove it and add a new one,
- * so the lesson check always looks at a single date. A window on a past date is history and is not changed.
+ * Takes an open session slot for one date. The slot's own times become the instructor's window, so students can only
+ * book that exact slot. The slot must be open, and the instructor cannot take the same slot twice on one date.
  */
-export async function updateAvailability(instructorUserId: string, id: string, input: AvailabilityInput): Promise<AvailabilityWindow> {
-  const now = schoolNow();
-  assertNotInPast(input, now);
+export async function assignSessionSlot(instructorUserId: string, date: string, startTime: string): Promise<AvailabilityWindow> {
+  const slot = await findActiveSlotByStart(startTime);
+  if (!slot) throw new AuthError(409, "That session time is closed. Choose one that is open.");
 
-  return prisma.$transaction(async (tx) => {
-    await lockInstructor(tx, instructorUserId);
-    const existing = await tx.instructorAvailability.findFirst({ where: { id, instructorUserId } });
-    if (!existing) throw new AuthError(404, "Availability window not found.");
-    if (dateToString(existing.availabilityDate) !== input.date) {
-      throw new AuthError(400, "The date of a window cannot be changed. Remove it and add a new window.");
-    }
-    if (input.date < now.date) throw new AuthError(409, "A window on a past date cannot be changed.");
-
-    const others = await windowsOnDate(tx, instructorUserId, existing.availabilityDate, id);
-    assertNoWindowOverlap(toInterval(input), others.map(toInterval));
-    await assertLessonsStillFit(tx, instructorUserId, existing.availabilityDate, [...others, { startTime: input.startTime, endTime: input.endTime }]);
-
-    const updated = await tx.instructorAvailability.update({
-      where: { id },
-      data: { startTime: parseTimeOnly(input.startTime)!, endTime: parseTimeOnly(input.endTime)!, notes: input.notes },
-    });
-    return toWindow(updated, 0);
+  const day = parseDateOnly(date);
+  if (!day) throw new AuthError(400, "Choose a valid date.");
+  const taken = await prisma.instructorAvailability.findFirst({
+    where: { instructorUserId, availabilityDate: day, startTime: parseTimeOnly(slot.startTime)!, endTime: parseTimeOnly(slot.endTime)! },
+    select: { id: true },
   });
+  if (taken) throw new AuthError(409, "You have already taken this session on that date.");
+
+  return createAvailability(instructorUserId, { date, startTime: slot.startTime, endTime: slot.endTime, notes: null });
 }
 
 /** Removes a window. Refused when a scheduled or completed lesson would be left outside every window. */

@@ -2,12 +2,14 @@ import { Prisma } from "@/generated/prisma/client";
 import { AccountStatus, LessonScheduleStatus, TrainingType, VehicleStatus, VehicleType } from "@/generated/prisma/enums";
 import { prisma } from "@/lib/prisma";
 import { AuthError } from "@/lib/auth/http";
-import { formatMinutes, minutesOfDay, parseDateOnly, parseTimeOnly, schoolNow, timeToString, dateToString } from "@/lib/student/time";
+import { activeSessionSlots, findActiveSlotByStart } from "@/lib/session-slots/store";
+import { minutesOfDay, parseDateOnly, parseTimeOnly, schoolNow, timeToString, dateToString } from "@/lib/student/time";
 
 /**
  * Practical lesson booking for students. Every lesson has exactly one student, one instructor and one vehicle.
  *
- * - The student chooses a date, a start time and a duration. The server works out the end time.
+ * - The student chooses a date and one of the fixed session slots (lib/session-slots). A lesson takes the whole slot,
+ *   so the server takes the start and end times from the slot.
  * - The server picks an instructor and a vehicle that are free for the slot. The student never chooses them.
  * - Overlaps are refused by the database (exclusion constraints). This code only checks first, so the
  *   student gets a clear answer. A concurrent booking that wins the race is caught by the database, and the
@@ -16,26 +18,15 @@ import { formatMinutes, minutesOfDay, parseDateOnly, parseTimeOnly, schoolNow, t
  *   take the last session.
  */
 
-export const DEFAULT_LESSON_MINUTES = 30;
-export const STANDARD_LESSON_MINUTES = [30, 60] as const;
-/** Start times must sit on this grid, so the calendar stays readable. */
-export const START_GRID_MINUTES = 15;
 const MAX_CANDIDATE_ATTEMPTS = 8;
-
-/** Durations a student may book: the standard lengths, plus the package's configured length when it has one. */
-export function allowedDurations(packageMinutes: number | null | undefined): number[] {
-  const values = new Set<number>(STANDARD_LESSON_MINUTES);
-  if (packageMinutes && packageMinutes > 0) values.add(packageMinutes);
-  return [...values].sort((a, b) => a - b);
-}
 
 export type BookingRequest = {
   studentUserId: string;
   enrollmentId: string;
   requirementId: string;
   lessonDate: string;
+  /** The start time of an open session slot. The slot sets the end time and the length. */
   startTime: string;
-  durationMinutes: number;
 };
 
 type Interval = { start: number; end: number };
@@ -49,10 +40,7 @@ function requirementKey(requirement: { vehicleType: VehicleType; trainingType: T
 async function loadContext(studentUserId: string, enrollmentId: string, requirementId: string) {
   const enrollment = await prisma.enrollment.findFirst({
     where: { id: enrollmentId, studentUserId, status: "ACTIVE" },
-    select: {
-      id: true,
-      package: { select: { sessionDurationMinutes: true } },
-    },
+    select: { id: true },
   });
   if (!enrollment) {
     throw new AuthError(404, "That enrollment was not found or is not active.");
@@ -76,7 +64,7 @@ async function loadContext(studentUserId: string, enrollmentId: string, requirem
     requiredSessions: requirement.requiredSessions,
   };
 
-  return { enrollment, requirement: confirmed, durations: allowedDurations(enrollment.package.sessionDurationMinutes) };
+  return { enrollment, requirement: confirmed };
 }
 
 type RequirementKey = { enrollmentId: string; vehicleType: VehicleType; trainingType: TrainingType };
@@ -163,53 +151,56 @@ function candidatePairs(day: Availability, slot: Interval): { instructorUserId: 
   return pairs;
 }
 
+export type BookingOption = { startTime: string; endTime: string };
+
 export type BookingOptions = {
   date: string;
-  durationMinutes: number;
   remainingSessions: number;
-  startTimes: string[];
+  /** The open session slots that still have a free instructor and vehicle, in display order. */
+  slots: BookingOption[];
 };
 
 /**
- * The start times a student can book for a requirement on a date and duration. A start time is offered only
- * when a free instructor and vehicle exist for it, and the student is free. Past times are never offered.
+ * The open session slots a student can book for a requirement on a date. A slot is offered only when a free
+ * instructor and vehicle exist for it, and the student is free. Slots that have already started are never offered.
  */
 export async function findBookingOptions(input: {
   studentUserId: string;
   enrollmentId: string;
   requirementId: string;
   lessonDate: string;
-  durationMinutes: number;
 }): Promise<BookingOptions> {
-  const { requirement, durations } = await loadContext(input.studentUserId, input.enrollmentId, input.requirementId);
-  if (!durations.includes(input.durationMinutes)) {
-    throw new AuthError(400, "That lesson length is not available for this package.");
-  }
+  const { requirement } = await loadContext(input.studentUserId, input.enrollmentId, input.requirementId);
 
   const date = parseDateOnly(input.lessonDate);
   if (!date) throw new AuthError(400, "Choose a valid date.");
 
   const now = schoolNow();
   if (input.lessonDate < now.date) {
-    return { date: input.lessonDate, durationMinutes: input.durationMinutes, remainingSessions: 0, startTimes: [] };
+    return { date: input.lessonDate, remainingSessions: 0, slots: [] };
   }
 
   const booked = await countBookedSessions(requirementKey(requirement, input.enrollmentId));
   const remaining = Math.max(0, requirement.requiredSessions - booked);
   if (remaining === 0) {
-    return { date: input.lessonDate, durationMinutes: input.durationMinutes, remainingSessions: 0, startTimes: [] };
+    return { date: input.lessonDate, remainingSessions: 0, slots: [] };
   }
 
   const day = await loadDay(date, requirement.vehicleType, input.studentUserId);
-  const startTimes: string[] = [];
-  for (let start = 0; start + input.durationMinutes <= 24 * 60; start += START_GRID_MINUTES) {
-    if (input.lessonDate === now.date && start <= now.minutes) continue;
-    const slot = { start, end: start + input.durationMinutes };
-    if (candidatePairs(day, slot).length > 0) startTimes.push(formatMinutes(start));
+  const slots: BookingOption[] = [];
+  for (const sessionSlot of await activeSessionSlots()) {
+    const interval = toMinutes(sessionSlot);
+    if (input.lessonDate === now.date && interval.start <= now.minutes) continue;
+    if (candidatePairs(day, interval).length > 0) slots.push({ startTime: sessionSlot.startTime, endTime: sessionSlot.endTime });
   }
 
-  return { date: input.lessonDate, durationMinutes: input.durationMinutes, remainingSessions: remaining, startTimes };
+  return { date: input.lessonDate, remainingSessions: remaining, slots };
 }
+
+const toMinutes = (slot: { startTime: string; endTime: string }): Interval => ({
+  start: minutesOfDay(slot.startTime),
+  end: minutesOfDay(slot.endTime),
+});
 
 export type BookedLesson = {
   id: string;
@@ -226,24 +217,18 @@ export type BookedLesson = {
  * instructor and vehicle, then inserts the lesson inside a transaction that also locks the requirement.
  */
 export async function bookPracticalLesson(request: BookingRequest): Promise<BookedLesson> {
-  const { requirement, durations } = await loadContext(request.studentUserId, request.enrollmentId, request.requirementId);
-
-  if (!durations.includes(request.durationMinutes)) {
-    throw new AuthError(400, "That lesson length is not available for this package.");
-  }
+  const { requirement } = await loadContext(request.studentUserId, request.enrollmentId, request.requirementId);
 
   const date = parseDateOnly(request.lessonDate);
-  const startDate = parseTimeOnly(request.startTime);
-  if (!date || !startDate) throw new AuthError(400, "Choose a valid date and start time.");
+  if (!date) throw new AuthError(400, "Choose a valid date.");
 
-  const startMinutes = minutesOfDay(request.startTime);
-  if (startMinutes % START_GRID_MINUTES !== 0) {
-    throw new AuthError(400, "Choose a start time on the 15-minute grid.");
-  }
-  const endMinutes = startMinutes + request.durationMinutes;
-  if (endMinutes > 24 * 60) {
-    throw new AuthError(400, "The lesson would finish after midnight.");
-  }
+  // Only an open slot can be booked. Its start and end times set the lesson's times and length.
+  const sessionSlot = await findActiveSlotByStart(request.startTime);
+  if (!sessionSlot) throw new AuthError(400, "Choose one of the session times that are open.");
+  const startDate = parseTimeOnly(sessionSlot.startTime)!;
+  const startMinutes = minutesOfDay(sessionSlot.startTime);
+  const endMinutes = minutesOfDay(sessionSlot.endTime);
+  const durationMinutes = endMinutes - startMinutes;
 
   const now = schoolNow();
   if (request.lessonDate < now.date || (request.lessonDate === now.date && startMinutes <= now.minutes)) {
@@ -260,7 +245,7 @@ export async function bookPracticalLesson(request: BookingRequest): Promise<Book
     throw new AuthError(409, "That time is no longer available. Choose another time.");
   }
 
-  const endTime = formatMinutes(endMinutes);
+  const endTime = sessionSlot.endTime;
   for (const pair of pairs) {
     try {
       const lesson = await prisma.$transaction(async (tx) => {
@@ -295,7 +280,7 @@ export async function bookPracticalLesson(request: BookingRequest): Promise<Book
             lessonDate: date,
             startTime: startDate,
             endTime: parseTimeOnly(endTime)!,
-            durationMinutes: request.durationMinutes,
+            durationMinutes,
             instructorUserId: pair.instructorUserId,
             vehicleId: pair.vehicleId,
             vehicleType: requirement.vehicleType,

@@ -21,7 +21,6 @@ function bookingBody(overrides: Record<string, unknown> = {}) {
     requirementId: fixture.requirements.A1,
     lessonDate: LESSON_DATE,
     startTime: "09:00",
-    durationMinutes: 30,
     ...overrides,
   };
 }
@@ -38,10 +37,9 @@ describe("practical lesson booking", () => {
       requirementId: fixture.requirements.A1,
       lessonDate: LESSON_DATE,
       startTime: "09:00",
-      durationMinutes: 30,
     });
 
-    expect(lesson).toMatchObject({ lessonDate: LESSON_DATE, startTime: "09:00", endTime: "09:30", durationMinutes: 30 });
+    expect(lesson).toMatchObject({ lessonDate: LESSON_DATE, startTime: "09:00", endTime: "09:30" });
     const row = await prisma.lessonSchedule.findUniqueOrThrow({ where: { id: lesson.id } });
     expect(row.studentUserId).toBe("STU-A");
     expect(row.instructorUserId).toBe("INS-1");
@@ -69,9 +67,8 @@ describe("practical lesson booking", () => {
         requirementId: fixture.requirements.A1,
         lessonDate: LESSON_DATE,
         startTime: "10:00",
-        durationMinutes: 60,
       }),
-    ).resolves.toMatchObject({ endTime: "11:00", durationMinutes: 60 });
+    ).resolves.toMatchObject({ endTime: "11:00" });
 
     await expect(
       bookPracticalLesson({
@@ -80,7 +77,6 @@ describe("practical lesson booking", () => {
         requirementId: fixture.requirements.A1,
         lessonDate: LESSON_DATE,
         startTime: "09:00",
-        durationMinutes: 45,
       }),
     ).rejects.toMatchObject({ status: 400 });
   });
@@ -93,7 +89,6 @@ describe("practical lesson booking", () => {
         requirementId: fixture.requirements.A1,
         lessonDate: LESSON_DATE,
         startTime: "09:10",
-        durationMinutes: 30,
       }),
     ).rejects.toMatchObject({ status: 400 });
 
@@ -104,7 +99,6 @@ describe("practical lesson booking", () => {
         requirementId: fixture.requirements.A1,
         lessonDate: LESSON_DATE,
         startTime: "23:45",
-        durationMinutes: 30,
       }),
     ).rejects.toMatchObject({ status: 400 });
   });
@@ -117,7 +111,6 @@ describe("practical lesson booking", () => {
         requirementId: fixture.requirements.A1,
         lessonDate: LESSON_DATE,
         startTime: "13:00",
-        durationMinutes: 30,
       }),
     ).rejects.toMatchObject({ status: 409 });
   });
@@ -130,7 +123,6 @@ describe("practical lesson booking", () => {
         requirementId: fixture.requirements.A1,
         lessonDate: LESSON_DATE,
         startTime: "11:45",
-        durationMinutes: 60,
       }),
     ).rejects.toMatchObject({ status: 409 });
   });
@@ -142,7 +134,6 @@ describe("practical lesson booking", () => {
       requirementId: fixture.requirements.A1,
       lessonDate: LESSON_DATE,
       startTime: "09:00",
-      durationMinutes: 30,
     });
 
     await expect(
@@ -152,7 +143,6 @@ describe("practical lesson booking", () => {
         requirementId: fixture.requirements.A1,
         lessonDate: LESSON_DATE,
         startTime: "09:15",
-        durationMinutes: 30,
       }),
     ).rejects.toMatchObject({ status: 409 });
 
@@ -163,7 +153,6 @@ describe("practical lesson booking", () => {
         requirementId: fixture.requirements.A1,
         lessonDate: LESSON_DATE,
         startTime: "09:30",
-        durationMinutes: 30,
       }),
     ).resolves.toMatchObject({ startTime: "09:30" });
   });
@@ -177,7 +166,6 @@ describe("practical lesson booking", () => {
           requirementId: fixture.requirements.A1,
           lessonDate: LESSON_DATE,
           startTime,
-          durationMinutes: 30,
         }),
       ).resolves.toMatchObject({ startTime });
     }
@@ -202,7 +190,6 @@ describe("practical lesson booking", () => {
         requirementId: fixture.requirements.A1,
         lessonDate: LESSON_DATE,
         startTime: "09:00",
-        durationMinutes: 30,
       }),
     ).resolves.toMatchObject({ startTime: "09:00" });
   });
@@ -216,7 +203,6 @@ describe("practical lesson booking", () => {
       requirementId: fixture.requirements.B1,
       lessonDate: LESSON_DATE,
       startTime: "10:00",
-      durationMinutes: 30,
     });
 
     await expect(
@@ -226,7 +212,6 @@ describe("practical lesson booking", () => {
         requirementId: fixture.requirements.A1,
         lessonDate: LESSON_DATE,
         startTime: "10:00",
-        durationMinutes: 30,
       }),
     ).rejects.toMatchObject({ status: 409 });
   });
@@ -239,7 +224,6 @@ describe("practical lesson booking", () => {
         requirementId: fixture.requirements.A1,
         lessonDate: LESSON_DATE,
         startTime: "11:00",
-        durationMinutes: 30,
       }),
       bookPracticalLesson({
         studentUserId: "STU-B",
@@ -247,7 +231,6 @@ describe("practical lesson booking", () => {
         requirementId: fixture.requirements.B1,
         lessonDate: LESSON_DATE,
         startTime: "11:00",
-        durationMinutes: 30,
       }),
     ]);
     expect(attempts.filter((a) => a.status === "fulfilled")).toHaveLength(1);
@@ -262,7 +245,6 @@ describe("practical lesson booking", () => {
         requirementId: fixture.requirements.B1,
         lessonDate: LESSON_DATE,
         startTime: "09:00",
-        durationMinutes: 30,
       }),
     ).rejects.toMatchObject({ status: 404 });
   });
@@ -275,7 +257,6 @@ describe("practical lesson booking", () => {
         requirementId: fixture.requirements.A1,
         lessonDate: LESSON_DATE,
         startTime: "09:00",
-        durationMinutes: 30,
       }),
     ).rejects.toMatchObject({ status: 400 });
   });
@@ -288,7 +269,6 @@ describe("practical lesson booking", () => {
       requirementId: fixture.requirements.A2,
       lessonDate: LESSON_DATE,
       startTime: "09:00",
-      durationMinutes: 30,
     });
 
     await expect(
@@ -298,7 +278,6 @@ describe("practical lesson booking", () => {
         requirementId: fixture.requirements.A2,
         lessonDate: LESSON_DATE,
         startTime: "10:00",
-        durationMinutes: 30,
       }),
     ).rejects.toMatchObject({ status: 409 });
   });
@@ -310,7 +289,6 @@ describe("practical lesson booking", () => {
       requirementId: fixture.requirements.A1,
       lessonDate: LESSON_DATE,
       startTime: "09:00",
-      durationMinutes: 30,
     });
 
     const options = await findBookingOptions({
@@ -318,11 +296,10 @@ describe("practical lesson booking", () => {
       enrollmentId: fixture.enrollments.A1,
       requirementId: fixture.requirements.A1,
       lessonDate: LESSON_DATE,
-      durationMinutes: 30,
     });
-    expect(options.startTimes).not.toContain("09:00");
-    expect(options.startTimes).toContain("09:30");
-    expect(options.startTimes.every((t) => t >= "09:00" && t < "12:00")).toBe(true);
+    expect(options.slots.map((s) => s.startTime)).not.toContain("09:00");
+    expect(options.slots.map((s) => s.startTime)).toContain("09:30");
+    expect(options.slots.map((s) => s.startTime).every((t) => t >= "09:00" && t < "12:00")).toBe(true);
     expect(options.remainingSessions).toBe(2);
   });
 
@@ -349,7 +326,6 @@ describe("practical lesson booking", () => {
         requirementId: fixture.requirements.A1,
         lessonDate: "2020-01-06",
         startTime: "09:00",
-        durationMinutes: 30,
       }),
     ).rejects.toMatchObject({ status: 400 });
   });

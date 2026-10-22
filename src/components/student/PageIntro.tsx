@@ -4,7 +4,7 @@ import StudentBreadcrumbs from "@/components/student/StudentBreadcrumbs";
 /** Title, one-line description and breadcrumb at the top of every student page. */
 export default function PageIntro({ title, description, actions }: { title: string; description: string; actions?: ReactNode }) {
   return (
-    <div className="flex flex-col gap-3 pb-3 pt-1 lg:sticky lg:top-0 lg:z-10">
+    <div className="page-heading-sticky flex flex-col gap-3 pb-3 pt-1">
       <div>
         <StudentBreadcrumbs current={title} />
       </div>

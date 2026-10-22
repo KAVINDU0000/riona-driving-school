@@ -4,7 +4,7 @@ import { requireUser } from "@/lib/auth/authorize";
 import { AuthError, assertSameOrigin, handleAuthRouteError, readJsonObject, readString } from "@/lib/auth/http";
 import { bookPracticalLesson, findBookingOptions } from "@/lib/student/lesson-booking";
 
-/** Booking options: the start times still free for a requirement, on a date, at a duration. */
+/** Booking options: the open session slots still free for a requirement on a date. */
 export async function GET(request: Request) {
   try {
     const user = await requireUser(request, [UserRole.STUDENT]);
@@ -12,9 +12,8 @@ export async function GET(request: Request) {
     const enrollmentId = params.get("enrollmentId") ?? "";
     const requirementId = params.get("requirementId") ?? "";
     const lessonDate = params.get("date") ?? "";
-    const durationMinutes = Number(params.get("durationMinutes"));
-    if (!enrollmentId || !requirementId || !/^\d{4}-\d{2}-\d{2}$/.test(lessonDate) || !Number.isInteger(durationMinutes)) {
-      throw new AuthError(400, "Choose an enrollment, requirement, date and lesson length.");
+    if (!enrollmentId || !requirementId || !/^\d{4}-\d{2}-\d{2}$/.test(lessonDate)) {
+      throw new AuthError(400, "Choose an enrollment, requirement and date.");
     }
 
     const options = await findBookingOptions({
@@ -22,7 +21,6 @@ export async function GET(request: Request) {
       enrollmentId,
       requirementId,
       lessonDate,
-      durationMinutes,
     });
     return NextResponse.json(options);
   } catch (error) {
@@ -31,8 +29,8 @@ export async function GET(request: Request) {
 }
 
 /**
- * Books a practical lesson. The client sends the start time and duration only. The end time, instructor and
- * vehicle are decided on the server.
+ * Books a practical lesson in an open session slot. The client sends the slot's start time only. The end time, length,
+ * instructor and vehicle are decided on the server.
  */
 export async function POST(request: Request) {
   try {
@@ -44,9 +42,8 @@ export async function POST(request: Request) {
     const requirementId = readString(body, "requirementId", 64);
     const lessonDate = readString(body, "lessonDate", 10);
     const startTime = readString(body, "startTime", 5);
-    const durationMinutes = typeof body.durationMinutes === "number" ? body.durationMinutes : Number.NaN;
-    if (!enrollmentId || !requirementId || !lessonDate || !startTime || !Number.isInteger(durationMinutes)) {
-      throw new AuthError(400, "Choose an enrollment, requirement, date, start time and lesson length.");
+    if (!enrollmentId || !requirementId || !lessonDate || !startTime) {
+      throw new AuthError(400, "Choose an enrollment, requirement, date and session time.");
     }
 
     const lesson = await bookPracticalLesson({
@@ -55,7 +52,6 @@ export async function POST(request: Request) {
       requirementId,
       lessonDate,
       startTime,
-      durationMinutes,
     });
     return NextResponse.json({ ok: true, lesson }, { status: 201 });
   } catch (error) {

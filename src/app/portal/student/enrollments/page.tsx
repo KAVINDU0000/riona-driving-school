@@ -125,8 +125,7 @@ export default async function StudentEnrollmentsPage() {
                 </div>
               )}
               <p className="mt-3 text-[0.8125rem] text-muted">
-                Default lesson length is 30 minutes. Standard 60-minute lessons are also available
-                {enrollment.sessionDurationMinutes ? `, along with ${enrollment.sessionDurationMinutes} minutes for this package` : ""}.
+                Each lesson takes one of the school&apos;s fixed session times.
               </p>
             </article>
           ))}

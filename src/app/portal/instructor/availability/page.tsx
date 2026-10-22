@@ -6,6 +6,7 @@ import { formatDate } from "@/components/student/format";
 import { requirePortalUser } from "@/lib/auth/portal-guard";
 import { listAvailability } from "@/lib/instructor/availability";
 import { shiftDate } from "@/lib/instructor/lesson-rules";
+import { activeSessionSlots } from "@/lib/session-slots/store";
 import { schoolNow } from "@/lib/student/time";
 
 export const metadata: Metadata = {
@@ -22,8 +23,8 @@ function weekStart(date: string): string {
 }
 
 /**
- * The instructor's working hours for one week. Students can only book a lesson that fits inside a window set here, and the
- * gaps between windows are breaks. The week comes from the URL, but windows are always limited to the signed-in instructor.
+ * The instructor's session times for one week. Each day, the instructor takes the open session times they are working, and
+ * students can only book those. The week comes from the URL, but sessions are always limited to the signed-in instructor.
  */
 export default async function InstructorAvailabilityPage({ searchParams }: { searchParams: Promise<{ date?: string }> }) {
   const user = await requirePortalUser("INSTRUCTOR");
@@ -33,7 +34,7 @@ export default async function InstructorAvailabilityPage({ searchParams }: { sea
   const from = weekStart(requested);
   const to = shiftDate(from, 6);
   const days = Array.from({ length: 7 }, (_, index) => shiftDate(from, index));
-  const windows = await listAvailability(user.userId, from, to);
+  const [windows, slots] = await Promise.all([listAvailability(user.userId, from, to), activeSessionSlots()]);
 
   const link = (date: string) => `/portal/instructor/availability?date=${date}`;
   const navButton = "rounded-xl bg-white px-4 py-2 text-[0.875rem] font-semibold text-ink ring-1 ring-line hover:bg-page";
@@ -41,7 +42,7 @@ export default async function InstructorAvailabilityPage({ searchParams }: { sea
   return (
     <InstructorFrame
       title="Availability"
-      description="Set the hours students can book you. A gap between two windows is a break, and a day with no window is a day off."
+      description="Take the session times you are working each day. Students book those sessions. A day with no session taken is a day off."
       active="/portal/instructor/availability"
     >
       <div className="glass mb-6 flex flex-col gap-3 rounded-2xl p-4 sm:flex-row sm:items-center sm:justify-between">
@@ -60,7 +61,7 @@ export default async function InstructorAvailabilityPage({ searchParams }: { sea
           </Link>
         </nav>
       </div>
-      <AvailabilityEditor days={days} windows={windows} today={today} />
+      <AvailabilityEditor days={days} windows={windows} slots={slots} today={today} />
     </InstructorFrame>
   );
 }
