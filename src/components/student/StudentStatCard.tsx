@@ -45,10 +45,10 @@ export default function StudentStatCard({
   const className = "glass flex h-full flex-col gap-2.5 rounded-2xl p-5";
   if (href) {
     return (
-      <Link href={href} className={`${className} transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark`}>
+      <Link href={href} data-scroll-zoom className={`${className} transition-transform hover:-translate-y-0.5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gold-dark`}>
         {body}
       </Link>
     );
   }
-  return <div className={className}>{body}</div>;
+  return <div className={className} data-scroll-zoom>{body}</div>;
 }
