@@ -4,12 +4,12 @@ import Icon from "@/components/ui/Icon";
 import Link from "next/link";
 import { DesktopNav, MobileNav } from "@/components/public/PublicNav";
 import { site } from "@/data/landing";
-/** Floating glass navigation surface that spans the full viewport width. `hideApply` removes the Apply now button. */
+/** Full-width navigation bar fixed to the top of the page. `hideApply` removes the Apply now button. */
 export default function Navbar({ hideApply = false }: { hideApply?: boolean }) {
   return (
-    <header className="sticky top-0 z-50 pt-5">
-      <div className="w-full px-4 md:px-8">
-        <nav data-site-nav className="glass flex h-[88px] items-center gap-6 rounded-[18px] px-5 shadow-[0_12px_40px_-16px_rgb(40_60_90/0.16)] backdrop-blur-2xl">
+    <header className="sticky top-0 z-50">
+      <div className="w-full">
+        <nav data-site-nav className="flex h-[100px] w-full items-center gap-6 border-b border-line bg-white/85 px-5 backdrop-blur-2xl md:px-8">
           <a href="#home" className="flex shrink-0 items-center gap-3">
             <Image
               src="/images/logo-riyona.jpg"
@@ -62,7 +62,7 @@ export default function Navbar({ hideApply = false }: { hideApply?: boolean }) {
               <span className="sr-only">Open menu</span>
               <Icon name="grid" className="h-5 w-5" />
             </summary>
-            <div className="absolute left-4 right-4 top-[104px] space-y-1 rounded-2xl border border-white/60 bg-white/95 p-3 shadow-float backdrop-blur-xl md:left-10 md:right-10">
+            <div className="absolute left-0 right-0 top-[100px] space-y-1 border-b border-line bg-white/95 p-3 shadow-float backdrop-blur-xl md:px-8">
               <MobileNav />
               <a
                 href={site.whatsapp}

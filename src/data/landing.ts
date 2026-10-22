@@ -5,7 +5,7 @@ export const site = {
   name: "Riyona Driving School",
   phone: "+94 71 889 4481",
   phoneHref: "tel:+94718894481",
-  whatsapp: "https://wa.me/94770427496",
+  whatsapp: "https://wa.me/94772304481",
 };
 
 /** Public site navigation. Each entry is a real route, and the active item is chosen by pathname. */
