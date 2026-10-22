@@ -11,6 +11,7 @@ import LicenceJourney from "@/components/landing/LicenceJourney";
 import RoadSafety from "@/components/landing/RoadSafety";
 import Testimonials from "@/components/landing/Testimonials";
 import FAQ from "@/components/landing/FAQ";
+import ScrollZoom from "@/components/ui/ScrollZoom";
 
 export default function Home() {
   return (
@@ -19,16 +20,38 @@ export default function Home() {
       <Navbar hideApply />
 
       <main className="flex-1">
-        <Hero />
-        <TrustStrip />
-        <MoreThanDriving />
-        <WhyRiyona />
-        <LearningHub />
-        <VehicleCategories />
-        <LicenceJourney />
-        <RoadSafety />
-        <Testimonials />
-        <FAQ />
+        <ScrollZoom className="overflow-x-clip">
+          <div data-scroll-zoom>
+            <Hero />
+          </div>
+          <div data-scroll-zoom>
+            <TrustStrip />
+          </div>
+          <div data-scroll-zoom>
+            <MoreThanDriving />
+          </div>
+          <div data-scroll-zoom>
+            <WhyRiyona />
+          </div>
+          <div data-scroll-zoom>
+            <LearningHub />
+          </div>
+          <div data-scroll-zoom>
+            <VehicleCategories />
+          </div>
+          <div data-scroll-zoom>
+            <LicenceJourney />
+          </div>
+          <div data-scroll-zoom>
+            <RoadSafety />
+          </div>
+          <div data-scroll-zoom>
+            <Testimonials />
+          </div>
+          <div data-scroll-zoom>
+            <FAQ />
+          </div>
+        </ScrollZoom>
       </main>
 
       <Footer />
