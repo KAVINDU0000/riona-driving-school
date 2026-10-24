@@ -31,6 +31,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://riyonadrivingschool.com.lk"),
   title: "Riyona Driving School | Professional Driving School in Sri Lanka",
   description:
     "Government approved driver education in Sri Lanka. Car, van, motorcycle and three-wheeler lessons with patient instructors, dual-control vehicles and full transport on DMT exam day.",
