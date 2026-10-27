@@ -61,7 +61,7 @@ export default function AdminFrame({
         <div className="flex items-center gap-3 px-5 pb-3 pt-5 lg:pb-5 lg:pt-7">
           <Link href="/portal/admin" className="flex items-center gap-3">
             <Image
-              src="/images/logo-riyona.jpg"
+              src="/images/logo-riyona-circle.png"
               alt="Riyona Driving School logo"
               width={40}
               height={40}

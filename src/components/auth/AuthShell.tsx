@@ -50,7 +50,7 @@ export default function AuthShell({
           <nav className="glass flex h-[72px] items-center gap-3 rounded-[18px] px-4 shadow-[0_12px_40px_-16px_rgb(40_60_90/0.16)] backdrop-blur-2xl sm:h-[88px] sm:gap-6 sm:px-5">
             <Link href="/" className="flex shrink-0 items-center gap-3">
               <Image
-                src="/images/logo-riyona.jpg"
+                src="/images/logo-riyona-circle.png"
                 alt="Riyona Driving School logo"
                 width={44}
                 height={44}

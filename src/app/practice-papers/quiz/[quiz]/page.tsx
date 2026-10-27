@@ -50,7 +50,7 @@ export default async function PracticeQuizPage({
 
         <div className="flex min-w-0 items-center gap-3">
           <span className="relative hidden h-9 w-9 shrink-0 sm:block">
-            <Image src="/images/logo-riyona.jpg" alt="Riyona Driving School logo" fill sizes="36px" className="rounded-full object-cover" />
+            <Image src="/images/logo-riyona-circle.png" alt="Riyona Driving School logo" fill sizes="36px" className="rounded-full object-cover" />
           </span>
           <div className="min-w-0 text-right">
             <p className="truncate text-[0.875rem] font-bold text-ink">Driving licence written test</p>

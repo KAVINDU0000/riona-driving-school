@@ -21,7 +21,7 @@ export default function PortalFrame({ eyebrow, title, children }: PortalFramePro
           <nav className="glass flex h-[88px] items-center gap-6 rounded-[18px] px-5 shadow-[0_12px_40px_-16px_rgb(40_60_90/0.16)] backdrop-blur-2xl">
             <Link href="/" className="flex shrink-0 items-center gap-3">
               <Image
-                src="/images/logo-riyona.jpg"
+                src="/images/logo-riyona-circle.png"
                 alt="Riyona Driving School logo"
                 width={44}
                 height={44}

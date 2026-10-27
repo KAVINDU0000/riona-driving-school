@@ -102,7 +102,7 @@ export default function RoleLoginForm({ initialRole, notice }: RoleLoginFormProp
               <span aria-hidden="true" className="animate-ring-pulse absolute inset-0 rounded-full ring-2 ring-gold/70" />
               <div className="relative rounded-full bg-gold-soft p-1.5 ring-1 ring-gold/60">
                 <Image
-                  src="/images/logo-riyona.jpg"
+                  src="/images/logo-riyona-circle.png"
                   alt="Riyona Driving School logo"
                   width={72}
                   height={72}

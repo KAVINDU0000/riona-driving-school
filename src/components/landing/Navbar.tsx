@@ -12,7 +12,7 @@ export default function Navbar({ hideApply = false }: { hideApply?: boolean }) {
         <nav data-site-nav className="flex h-[84px] w-full items-center gap-6 border-b border-line bg-white/85 px-5 backdrop-blur-2xl md:h-[100px] md:px-8">
           <a href="#home" className="flex shrink-0 items-center gap-3">
             <Image
-              src="/images/logo-riyona.jpg"
+              src="/images/logo-riyona-circle.png"
               alt="Riyona Driving School logo"
               width={44}
               height={44}
