@@ -34,7 +34,7 @@ export default function Footer() {
           <div className="flex flex-col gap-4">
             <div className="flex items-center gap-3">
               <Image
-                src="/images/logo-riyona.jpg"
+                src="/images/logo-riyona-circle.png"
                 alt=""
                 width={40}
                 height={40}
