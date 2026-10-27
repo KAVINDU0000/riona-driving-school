@@ -45,9 +45,9 @@ export default function AuthShell({
     <div className={`flex min-h-screen flex-col ${fixedPage ? "lg:h-screen lg:overflow-clip" : ""}`}>
       <div className={isSoft ? "soft-atmosphere" : "page-atmosphere"} aria-hidden="true" />
 
-      <header className="sticky top-0 z-50 pt-5">
+      <header className="sticky top-0 z-50 pt-3 sm:pt-5">
         <div className="w-full px-4 md:px-8">
-          <nav className="glass flex h-[88px] items-center gap-6 rounded-[18px] px-5 shadow-[0_12px_40px_-16px_rgb(40_60_90/0.16)] backdrop-blur-2xl">
+          <nav className="glass flex h-[72px] items-center gap-3 rounded-[18px] px-4 shadow-[0_12px_40px_-16px_rgb(40_60_90/0.16)] backdrop-blur-2xl sm:h-[88px] sm:gap-6 sm:px-5">
             <Link href="/" className="flex shrink-0 items-center gap-3">
               <Image
                 src="/images/logo-riyona.jpg"
@@ -56,7 +56,8 @@ export default function AuthShell({
                 height={44}
                 className="h-11 w-11 rounded-full object-cover ring-1 ring-line"
               />
-              <span className="whitespace-nowrap text-[0.9375rem] font-bold tracking-[0.02em] text-ink">
+              {/* Full name only where there is room beside the back link; the logo identifies the school on phones */}
+              <span className="hidden whitespace-nowrap text-[0.9375rem] font-bold tracking-[0.02em] text-ink sm:block">
                 RIYONA DRIVING SCHOOL
               </span>
             </Link>

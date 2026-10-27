@@ -9,7 +9,7 @@ export default function Navbar({ hideApply = false }: { hideApply?: boolean }) {
   return (
     <header className="sticky top-0 z-50">
       <div className="w-full">
-        <nav data-site-nav className="flex h-[100px] w-full items-center gap-6 border-b border-line bg-white/85 px-5 backdrop-blur-2xl md:px-8">
+        <nav data-site-nav className="flex h-[84px] w-full items-center gap-6 border-b border-line bg-white/85 px-5 backdrop-blur-2xl md:h-[100px] md:px-8">
           <a href="#home" className="flex shrink-0 items-center gap-3">
             <Image
               src="/images/logo-riyona.jpg"
@@ -58,11 +58,11 @@ export default function Navbar({ hideApply = false }: { hideApply?: boolean }) {
 
           {/* Compact menu for smaller screens, no client JS needed */}
           <details className="group ml-auto lg:hidden">
-            <summary className="grid h-10 w-10 cursor-pointer list-none place-items-center rounded-xl text-ink hover:bg-page">
+            <summary className="grid h-11 w-11 cursor-pointer list-none place-items-center rounded-xl text-ink hover:bg-page">
               <span className="sr-only">Open menu</span>
               <Icon name="grid" className="h-5 w-5" />
             </summary>
-            <div className="absolute left-0 right-0 top-[100px] space-y-1 border-b border-line bg-white/95 p-3 shadow-float backdrop-blur-xl md:px-8">
+            <div className="absolute left-0 right-0 top-[84px] space-y-1 md:top-[100px] border-b border-line bg-white p-3 shadow-float md:px-8">
               <MobileNav />
               <a
                 href={site.whatsapp}
