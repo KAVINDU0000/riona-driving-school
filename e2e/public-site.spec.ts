@@ -61,6 +61,27 @@ test("the mobile menu opens and leads to a page", async ({ page }) => {
   await expect(page).toHaveURL(/\/vehicles$/);
 });
 
+test("the navigation adapts cleanly across laptop and desktop widths", async ({ page }) => {
+  await page.goto("/");
+
+  for (const width of [1024, 1279, 1280, 1440, 1920]) {
+    await page.setViewportSize({ width, height: 900 });
+    const compactMenu = page.locator("header details");
+    const desktopNavigation = page.getByRole("list", { name: "Main" });
+
+    if (width < 1280) {
+      await expect(compactMenu).toBeVisible();
+      await expect(desktopNavigation).not.toBeVisible();
+    } else {
+      await expect(compactMenu).not.toBeVisible();
+      await expect(desktopNavigation).toBeVisible();
+    }
+
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
+    expect(overflow, `horizontal overflow at ${width}px`).toBeLessThanOrEqual(1);
+  }
+});
+
 for (const route of ["/", "/about", "/packages", "/vehicles", "/cash-discount", "/contact"]) {
   test(`${route} has no dead internal links`, async ({ page }) => {
     await page.goto(route);

@@ -28,7 +28,7 @@ export default function Navbar({ hideApply = false }: { hideApply?: boolean }) {
 
           <DesktopNav />
 
-          <div className="ml-auto hidden items-center gap-3 lg:flex">
+          <div className="ml-auto hidden items-center gap-3 xl:flex">
             <a
               href={site.phoneHref}
               className="inline-flex items-center gap-2 rounded-full bg-page px-4 py-2 text-[0.8125rem] font-semibold text-ink ring-1 ring-line transition-colors hover:ring-gold"
@@ -57,7 +57,7 @@ export default function Navbar({ hideApply = false }: { hideApply?: boolean }) {
           </div>
 
           {/* Compact menu for smaller screens, no client JS needed */}
-          <details className="group ml-auto lg:hidden">
+          <details className="group ml-auto xl:hidden">
             <summary className="grid h-11 w-11 cursor-pointer list-none place-items-center rounded-xl text-ink hover:bg-page">
               <span className="sr-only">Open menu</span>
               <Icon name="grid" className="h-5 w-5" />
